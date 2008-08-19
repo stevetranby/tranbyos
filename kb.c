@@ -31,8 +31,9 @@ void keyboard_handler(struct regs *r)
 		*  held. If shift is held using the larger lookup table,
 		*  you would add 128 to the scancode when you look for it */
         if(kbdus[scancode] == KBDUS_INSERT) {
-			puts("Time is: ");
+			puts("Elasped Time (in seconds): ");
 			printInt( time_s() );
+			putch('\n');
 		} else {
 			putch(kbdus[scancode]);
 		}

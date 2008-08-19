@@ -29,7 +29,9 @@ void timer_handler(struct regs *r)
     if (timer_ticks % timer_hz == 0)
     {
 		secondsFromBoot++;
-		printInt(secondsFromBoot);
+		#ifdef DEBUG
+			putch('.');
+		#endif
     }
 }
 
@@ -41,7 +43,7 @@ uint32 time_s() { return secondsFromBoot; }
 void timer_install()
 {	
     /* Installs 'timer_handler' to IRQ0 */
-    irq_install_handler(0, timer_handler);
+	irq_install_handler(0, timer_handler);
 	timer_phase(100);
 }
 
@@ -49,8 +51,8 @@ void timer_install()
 *  been reached */
 void timer_wait(int ticks)
 {
-    unsigned long eticks;
-
-    eticks = timer_ticks + ticks;
-    while(timer_ticks < eticks);
+	unsigned long eticks;
+	
+	eticks = timer_ticks + ticks;
+	while(timer_ticks < eticks);
 }

@@ -1,3 +1,5 @@
+//#define DEBUG 0
+
 #ifndef __SYSTEM_H
 #define __SYSTEM_H
 

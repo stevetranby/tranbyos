@@ -4,41 +4,41 @@
 /* You will need to code these up yourself!  */
 byte *memcpy(byte *dest, const byte *src, size_t count)
 {
-    const byte *sp = (const byte *)src;
-    byte *dp = (byte *)dest;
-    for(; count != 0; count--) *dp++ = *sp++;
-    return dest;
+const byte *sp = (const byte *)src;
+byte *dp = (byte *)dest;
+for(; count != 0; count--) *dp++ = *sp++;
+return dest;
 }
 
 byte *memset(byte *dest, byte val, size_t count)
 {
-    /* Add code here to set 'count' bytes in 'dest' to 'val'.
-    *  Again, return 'dest' */
+/* Add code here to set 'count' bytes in 'dest' to 'val'.
+*  Again, return 'dest' */
 
-    byte *temp = dest;
-    for( ; count != 0; count--) *temp++ = val;
-    return dest;
+byte *temp = dest;
+for( ; count != 0; count--) *temp++ = val;
+return dest;
 }
 
 uint16 *memsetw(uint16 *dest, uint16 val, size_t count)
 {
-    /* Same as above, but this time, we're working with a 16-bit
-    *  'val' and dest pointer. Your code can be an exact copy of
-    *  the above, provided that your local variables if any, are
-    *  uint16 */
-    uint16 *temp = (uint16 *)dest;
-    for( ; count != 0; count--) *temp++ = val;
-    return dest;
+/* Same as above, but this time, we're working with a 16-bit
+*  'val' and dest pointer. Your code can be an exact copy of
+*  the above, provided that your local variables if any, are
+*  uint16 */
+uint16 *temp = (uint16 *)dest;
+for( ; count != 0; count--) *temp++ = val;
+return dest;
 }
 
 int strlen(const uint8 *str)
 {
-    /* This loops through character array 'str', returning how
-    *  many characters it needs to check before it finds a 0.
-    *  In simple words, it returns the length in bytes of a string */
-    size_t retval;
-    for(retval = 0; *str != '\0'; str++) retval++;
-    return retval;
+/* This loops through character array 'str', returning how
+*  many characters it needs to check before it finds a 0.
+*  In simple words, it returns the length in bytes of a string */
+size_t retval;
+for(retval = 0; *str != '\0'; str++) retval++;
+return retval;
 }
 
 /* We will use this later on for reading from the I/O ports to get data
@@ -46,9 +46,9 @@ int strlen(const uint8 *str)
 *  'inline assembly' in these routines to actually do the work */
 uint8 inportb (uint16 _port)
 {
-    uint8 rv;
-    __asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
-    return rv;
+uint8 rv;
+__asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
+return rv;
 }
 
 /* We will use this to write to I/O ports to send bytes to devices. This
@@ -57,7 +57,7 @@ uint8 inportb (uint16 _port)
 *  cannot be done in C */
 void outportb (uint16 _port, uint8 _data)
 {
-    __asm__ __volatile__ ("outb %1, %0" : : "dN" (_port), "a" (_data));
+__asm__ __volatile__ ("outb %1, %0" : : "dN" (_port), "a" (_data));
 }
 
 /* This is a very simple main() function. All it does is sit in an
@@ -65,33 +65,33 @@ void outportb (uint16 _port, uint8 _data)
 int _main(multiboot_info_t* mbd, uint32 magic)
 {
 	gdt_install();
-    idt_install();
-    isrs_install();
-    irq_install();
+	idt_install();
+	isrs_install();
+	irq_install();
 	
 	init_mm();
 	
-    init_video();	
-    timer_install();
-    keyboard_install();
+	init_video();
+	timer_install();
+	keyboard_install();
 	
 	__asm__ __volatile__ ("sti");
 	
 	puts("\n");
-    puts("Tranix: Tran[byU]nix\n"); 
-    puts("By Steve Tranby\n");
+	puts("Tranix: Tran[byU]nix\n"); 
+	puts("By Steve Tranby\n");
 	puts("\n");
-    settextcolor(0x02, 0x00);
-    puts("With Help from:");
-    puts("    http://www.osdev.org/\n");
-    puts("    http://www.osdever.net/bkerndev/index.php\n");
+	settextcolor(0x02, 0x00);
+	puts("With Help from:");
+	puts("    http://www.osdev.org/\n");
+	puts("    http://www.osdever.net/bkerndev/index.php\n");
 	puts("\n");
-    settextcolor(0x03, 0x00);
-    puts("This operating system is a test bed for me to \n");
-    puts("experiment with writing an operating system kernel\n");
-    puts("and possibly more\n");
-    puts("\n");
-    puts("\n");
+	settextcolor(0x03, 0x00);
+	puts("This operating system is a test bed for me to \n");
+	puts("experiment with writing an operating system kernel\n");
+	puts("and possibly more\n");
+	puts("\n");
+	puts("\n");
 
 	int i;
 	int * p = 0;
@@ -137,21 +137,18 @@ int _main(multiboot_info_t* mbd, uint32 magic)
 		printInt((int)&p);
 		putch(':');
 		printInt((int)*p);
-		putch('\n');
+		putch('\t');
 	}
 	
-	/* 
 	// Test Division By 0
-	i = 10 / 0;
-	putch(i);	
-	*/
+	// i = 10 / 0; putch(i);
+	
 	
 	/* ...and leave this loop in. There is an endless loop in
 	*  'start.asm' also, if you accidentally delete this next line */
-    settextcolor(0x04, 0x0b);
-    puts("Starting Infinite Loop!\n");
-	settextcolor(0x00, 0x01);
-    for (;;);
+	settextcolor(0x0f, 0x00);
+	puts("Starting Infinite Loop!\n");
+	for (;;);
 	return 0;
 }
 
