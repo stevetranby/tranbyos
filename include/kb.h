@@ -1,6 +1,45 @@
 #ifndef __KB_H
 #define __KB_H
 
+// maybe move to it's own include file
+// http://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html#ss1.1
+#define SCAN_NULL
+#define SCAN_
+#define SCAN_1 3
+#define SCAN_2
+#define SCAN_3
+#define SCAN_4
+#define SCAN_5
+#define SCAN_6
+#define SCAN_7
+#define SCAN_8
+#define SCAN_9
+#define SCAN_0
+#define SCAN_MINUS
+#define SCAN_EQUAL
+#define SCAN_BACKSPACE
+#define SCAN_TAB
+#define SCAN_Q
+#define SCAN_W
+#define SCAN_E
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+#define SCAN_
+
 #define KBDUS_DOWNARROW		137
 #define KBDUS_PAGEDOWN		138
 #define KBDUS_INSERT			139
