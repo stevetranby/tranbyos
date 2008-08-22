@@ -3,8 +3,24 @@
 
 #define KBDUS_DOWNARROW		137
 #define KBDUS_PAGEDOWN		138
-#define KBDUS_INSERT		139
-
+#define KBDUS_INSERT			139
+#define KBDUS_CONTROL		140
+#define KBDUS_LEFT_SHIFT	141
+#define KBDUS_RIGHT_SHIFT	142
+#define KBDUS_ALT				143
+#define KBDUS_CAPSLOCK		144
+#define KBDUS_F1				145
+#define KBDUS_F2				146
+#define KBDUS_F3				147
+#define KBDUS_F4				148
+#define KBDUS_F5				149
+#define KBDUS_F6				150
+#define KBDUS_F7				151
+#define KBDUS_F8				152
+#define KBDUS_F9				153
+#define KBDUS_F10				154
+#define KBDUS_F11				155
+#define KBDUS_F12				156
 
 /* KBDUS means US Keyboard Layout. This is a scancode table
 *  used to layout a standard US keyboard. I have left some
@@ -13,41 +29,38 @@
 *  whatever you want using a macro, if you wish! */
 unsigned char kbdus[128] =
 {
-	0,  27, '1', '2', '3', '4', '5', '6', '7', '8',		/* 9 */
-	'9', '0', '-', '=', '\b', 							/* Backspace */
-	'\t', 												/* Tab */
-	'q', 'w', 'e', 'r',									/* 19 */
-	't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', 		/* Enter key */
-	0,													/* 29   - Control */
-	'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',	/* 39 */
-	'\'', '`', 0,										/* Left shift */
-	'\\', 'z', 'x', 'c', 'v', 'b', 'n',					/* 49 */
-	'm', ',', '.', '/',   0,							/* Right shift */
-	'*',
-	0,		/* Alt */
-	' ',	/* Space bar */
-	0,		/* Caps lock */
-	0,		/* 59 - F1 key ... > */
-	0,   0,   0,   0,   0,   0,   0,   0,
-	0,		/* < ... F10 */
-	0,		/* 69 - Num lock*/
-	0,		/* Scroll Lock */
-	0,		/* Home key */
-	0,		/* Up Arrow */
-	0,		/* Page Up */
+	0,  27, '1', '2', '3', '4', '5', '6', '7', '8',			/* 9 */
+	'9', '0', '-', '=', '\b', 										/* Backspace */
+	'\t', 																/* Tab */
+	'q', 'w', 'e', 'r', 												/* 19 */
+	't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', 			/* Enter key */
+	KB_CONTROL, 														/* 29 - Control */
+	'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', 		/* 39 */
+	'\'', '`', KBDUS_LEFT_SHIFT, 									/* Left shift */
+	'\\', 'z', 'x', 'c', 'v', 'b', 'n', 						/* 49 */
+	'm', ',', '.', '/',   KB_RIGHT_SHIFT,						/* Right shift */
+	'*', KBDUS_ALT, 													/* Alt */
+	' ',																	/* Space bar */
+	KBDUS_CAPSLOCK, 													/* Caps lock */
+	KBDUS_F1, KBDUS_F2, KBDUS_F3, KBDUS_F4, KBDUS_F5,
+	KBDUS_F6, KBDUS_F7, KBDUS_F8, KBDUS_F9, KBDUS_F10,  	/* < ... F10 */
+	KBDUS_NUM_LOCK,		/* 69 - Num lock*/
+	KBDUS_SCROLL_LOCK,	/* Scroll Lock */
+	KBDUS_HOME,				/* Home key */
+	KBDUS_UP_ARROW,		/* Up Arrow */
+	KBDUS_PAGE_UP,			/* Page Up */
 	'-',
-	0,		/* Left Arrow */
+	KBDUS_RIGHT_ARROW,		/* Left Arrow */
 	0,
-	0,		/* Right Arrow */
+	KBDUS_RIGHT_ARROW,		/* Right Arrow */
 	'+',
-	0,		/* 79 - End key*/
+	KBDUS_END,				/* 79 - End key*/
 	KBDUS_DOWNARROW,		/* Down Arrow */
 	KBDUS_PAGEDOWN,		/* Page Down */
-	KBDUS_INSERT,		/* Insert Key */
-	0,		/* Delete Key */
+	KBDUS_INSERT,			/* Insert Key */
+	KBDUS_DELETE,			/* Delete Key */
 	0,   0,   0,
-	0,		/* F11 Key */
-	0,		/* F12 Key */
+	KBDUS_F11, KBDUS_F12,
 	0,		/* All other keys are undefined */
 };
 

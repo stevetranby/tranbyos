@@ -54,6 +54,8 @@ void print_heap_magic() {
 }
 
 byte * kmalloc(size_t nblks) {
+	if(free_ptr + nblks > MAX_BLOCKS) 
+		return NULL;
 	byte *tmp = free_ptr;
 	free_ptr = free_ptr + nblks + 1;
 	return tmp;
