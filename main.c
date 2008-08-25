@@ -44,7 +44,7 @@ return retval;
 /* We will use this later on for reading from the I/O ports to get data
 *  from devices such as the keyboard. We are using what is called
 *  'inline assembly' in these routines to actually do the work */
-uint8 inportb (uint16 _port)
+uint8 inb (uint16 _port)
 {
 uint8 rv;
 __asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
@@ -55,9 +55,16 @@ return rv;
 *  will be used in the next tutorial for changing the textmode cursor
 *  position. Again, we use some inline assembly for the stuff that simply
 *  cannot be done in C */
-void outportb (uint16 _port, uint8 _data)
+void outb (uint16 _port, uint8 _data)
 {
 __asm__ __volatile__ ("outb %1, %0" : : "dN" (_port), "a" (_data));
+}
+
+uint8 inportb(uint16 _port) {
+	return inb(_port);
+}
+void outportb(uint16 _port, uint8 _data) {
+	outb (_port,_data);
 }
 
 /* */
@@ -96,6 +103,10 @@ int _main(multiboot_info_t* mbd, uint32 magic)
 
 	// -- BEG HARD DISK ACCESS TESTING ---
 
+	print_hd_device_types();
+	putch('\n');
+
+/*
 	// 0x1F7 : Read
 	// bit 7 = 1  controller is executing a command
 	// bit 6 = 1  drive is ready
@@ -108,12 +119,12 @@ int _main(multiboot_info_t* mbd, uint32 magic)
 
 	// Testing Hard Disk Access and Info Gathering
 
-	outportb(0x1F6, 0xA0); // drive and head port, drive 0, head 0
+	outportb(0x1F6, 0xA0); // drive and head port, drive 0, head 0 (101dhhhh - d:drive, h:head)
 	outportb(0x1F2, 0x01); // sector count port, read 1 sector
 	outportb(0x1F3, 0x01); // sector # port, read sector 1
 	outportb(0x1F4, 0x00); // cyl low port, cyl 0
 	outportb(0x1F5, 0x00); // cyl high port, rest of cyl 0
-	outportb(0x1F7, 0x20); // cmd port, read with retry
+	outportb(0x1F7, 0x30); // cmd port, read with retry
 	
 	for(i=0; i<2; ++i) {
 		uint8 status = inportb(0x1F7);
@@ -139,19 +150,22 @@ int _main(multiboot_info_t* mbd, uint32 magic)
 	}
 
 	// Don't continue until sector buffer is ready (not executing)
-	while(inportb(0x1F7) & 0x80) {}
+	//while(inportb(0x1F7) & 0x80) {}
 
 	// should check for any errors
+*/
 
+/*
    // read the bytes of this sector
 	byte data;
 	for(i=0; i<512; ++i) {
 		data = inportb(0x1F0);
 		printHex(data); putch(',');
 	}
+*/
 
-	putch('\n');
-	putch('\n');
+//	putch('\n');
+//	putch('\n');
 
 	// 
 

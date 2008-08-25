@@ -12,9 +12,10 @@ all:
 	gcc $(CFLAGS) -c -o timer.o timer.c
 	gcc $(CFLAGS) -c -o kb.o kb.c
 	gcc $(CFLAGS) -c -o mm.o mm.c
+	gcc $(CFLAGS) -c -o hd.o hd.c
 	
-	ld -T link.ld -r -o kernel.o start.o main.o scrn.o gdt.o idt.o isrs.o irq.o timer.o kb.o mm.o
-	ld -T link.ld -o kernel.bin start.o main.o scrn.o gdt.o idt.o isrs.o irq.o timer.o kb.o mm.o
+	ld -T link.ld -r -o kernel.o start.o main.o scrn.o gdt.o idt.o isrs.o irq.o timer.o kb.o mm.o hd.o
+	ld -T link.ld -o kernel.bin start.o main.o scrn.o gdt.o idt.o isrs.o irq.o timer.o kb.o mm.o hd.o
 
 clean:
 	rm *.o

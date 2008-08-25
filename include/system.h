@@ -27,6 +27,8 @@ extern byte		*memcpy(byte *dest, const byte *src, size_t count);
 extern byte 	*memset(byte *dest, byte val, size_t count);
 extern uint16	*memsetw(uint16 *dest, uint16 val, size_t count);
 extern int 		strlen(const byte *str);
+extern byte 	inb (uint16 _port);
+extern void 	outb (uint16 _port, byte _data);
 extern byte 	inportb (uint16 _port);
 extern void 	outportb (uint16 _port, byte _data);
 
@@ -75,10 +77,13 @@ extern uint32 time_s();
 /* KEYBOARD.C */
 extern void keyboard_install();
 
-/* MM.C */
+// MM.C
 extern void init_mm();
 extern void print_heap_magic();
 extern byte *kmalloc(size_t size);
+
+// HD.C
+extern void print_hd_device_types();
 
 #endif
 
