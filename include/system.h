@@ -37,6 +37,8 @@ extern void puts(char *str);
 extern void settextcolor(byte forecolor, byte backcolor);
 extern void init_video();
 extern void printInt(int num);
+extern void printHex(byte b);
+extern void printHexDigit(byte digit);
 
 /* GDT.C */
 extern void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned char gran);

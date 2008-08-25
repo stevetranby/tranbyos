@@ -1,21 +1,21 @@
 #include <system.h>
 
-#define BLACK			0
-#define BLUE			01	
-#define GREEN			02
-#define CYAN			03
-#define RED				04
-#define MAGENTA			05
-#define BROWN			06	
-#define LIGHT_GREY		07	
-#define DARK_GREY		08	
-#define LIGHT_BLUE		09
-#define LIGHT_GREEN		10
-#define LIGHT_CYAN		11
-#define LIGHT_RED		12	
-#define LIGHT_MAGENTA	13
-#define LIGHT_BROWN		14
-#define WHITE			15
+#define BLACK				0x0
+#define BLUE				0x01	
+#define GREEN				0x02
+#define CYAN				0x03
+#define RED					0x04
+#define MAGENTA			0x05
+#define BROWN				0x06	
+#define LIGHT_GREY		0x07	
+#define DARK_GREY			0x08	
+#define LIGHT_BLUE		0x09
+#define LIGHT_GREEN		0x10
+#define LIGHT_CYAN		0x11
+#define LIGHT_RED			0x12	
+#define LIGHT_MAGENTA	0x13
+#define LIGHT_BROWN		0x14
+#define WHITE				0x15
 /*
  * These define our textpointer, our background and foreground
  * colors (attributes), and x and y cursor coordinates 
@@ -80,7 +80,7 @@ void cls()
     uint16 blank;
     int i;
 
-    /* Again, we need the 'short' that will be used to
+    /* Again, we need the 16-bits that will be used to
     *  represent a space with color */
     blank = 0x20 | (attrib << 8);
 
@@ -89,7 +89,7 @@ void cls()
     for(i = 0; i < 25; i++)
         memsetw (textmemptr + i * 80, blank, 80);
 
-    /* Update out virtual cursor, and then move the
+    /* Update our virtual cursor, and then move the
     *  hardware cursor */
     csr_x = 0;
     csr_y = 0;
@@ -202,6 +202,31 @@ void printInt(int number) {
 		c = buf[cur];
 		putch(c);
 	}	
+}
+
+// print out the byte in hex 
+void printHex(byte b) {
+	byte low = b & 0xf;
+	byte high = (b >> 4) & 0xf;
+	
+	putch('0'); putch('x');
+	printHexDigit(high);
+	printHexDigit(low);
+}
+
+void printHexDigit(byte digit) {
+	if(digit < 10) 
+		printInt(digit);
+	else {
+		switch(digit) {
+			case 10: putch('a'); break;
+			case 11: putch('b'); break;
+			case 12: putch('c'); break;
+			case 13: putch('d'); break;
+			case 14: putch('e'); break;
+			case 15: putch('f'); break;
+		}
+	}
 }
 
 /* Sets the forecolor and backcolor that we will use */

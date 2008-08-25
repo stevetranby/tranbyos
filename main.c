@@ -60,10 +60,11 @@ void outportb (uint16 _port, uint8 _data)
 __asm__ __volatile__ ("outb %1, %0" : : "dN" (_port), "a" (_data));
 }
 
-/* This is a very simple main() function. All it does is sit in an
-*  infinite loop. This will be like our 'idle' loop */
+/* */
 int _main(multiboot_info_t* mbd, uint32 magic)
 {
+	int i;
+
 	gdt_install();
 	idt_install();
 	isrs_install();
@@ -78,7 +79,7 @@ int _main(multiboot_info_t* mbd, uint32 magic)
 	__asm__ __volatile__ ("sti");
 	
 	puts("\n");
-	puts("Tranix: Tran[byU]nix\n"); 
+	puts("Tranbonix OS\n"); 
 	puts("By Steve Tranby\n");
 	puts("\n");
 	settextcolor(0x02, 0x00);
@@ -93,7 +94,69 @@ int _main(multiboot_info_t* mbd, uint32 magic)
 	puts("\n");
 	puts("\n");
 
-	int i;
+	// -- BEG HARD DISK ACCESS TESTING ---
+
+	// 0x1F7 : Read
+	// bit 7 = 1  controller is executing a command
+	// bit 6 = 1  drive is ready
+	// bit 5 = 1  write fault
+	// bit 4 = 1  seek complete
+	// bit 3 = 1  sector buffer requires servicing
+	// bit 2 = 1  disk data read corrected
+	// bit 1 = 1  index - set to 1 each revolution
+	// bit 0 = 1  previous command ended in an error
+
+	// Testing Hard Disk Access and Info Gathering
+
+	outportb(0x1F6, 0xA0); // drive and head port, drive 0, head 0
+	outportb(0x1F2, 0x01); // sector count port, read 1 sector
+	outportb(0x1F3, 0x01); // sector # port, read sector 1
+	outportb(0x1F4, 0x00); // cyl low port, cyl 0
+	outportb(0x1F5, 0x00); // cyl high port, rest of cyl 0
+	outportb(0x1F7, 0x20); // cmd port, read with retry
+	
+	for(i=0; i<2; ++i) {
+		uint8 status = inportb(0x1F7);
+	
+		uint8 status_execmd = status & 0x80; // 1000 0000
+		uint8 status_drvrdy = status & 0x40; // 0100 0000
+		uint8 status_wrtflt = status & 0x20; // 0010 0000
+		uint8 status_skcmpl = status & 0x10; // 0001 0000
+		uint8 status_sbrqsv = status & 0x08; // 0000 1000
+		uint8 status_ddrcor = status & 0x04; // 0000 0100
+		uint8 status_idxrev = status & 0x02; // 0000 0010
+		uint8 status_cmderr = status & 0x01; // 0000 0001
+	
+		printInt(status_execmd >> 7);
+		printInt(status_drvrdy >> 6);
+		printInt(status_wrtflt >> 5);
+		printInt(status_skcmpl >> 4);
+		printInt(status_sbrqsv >> 3);
+		printInt(status_ddrcor >> 2);
+		printInt(status_idxrev >> 1);
+		printInt(status_cmderr); 
+		putch('\n');
+	}
+
+	// Don't continue until sector buffer is ready (not executing)
+	while(inportb(0x1F7) & 0x80) {}
+
+	// should check for any errors
+
+   // read the bytes of this sector
+	byte data;
+	for(i=0; i<512; ++i) {
+		data = inportb(0x1F0);
+		printHex(data); putch(',');
+	}
+
+	putch('\n');
+	putch('\n');
+
+	// 
+
+	// -- END HARD DISK ACCESS TESTING ---
+
 	int * p = 0;
 	puts("The address of p is: ");
 	printInt((int)&p);

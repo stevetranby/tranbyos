@@ -3,6 +3,7 @@
 
 // maybe move to it's own include file
 // http://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html#ss1.1
+/*
 #define SCAN_NULL
 #define SCAN_
 #define SCAN_1 3
@@ -39,13 +40,14 @@
 #define SCAN_
 #define SCAN_
 #define SCAN_
+*/
 
 #define KBDUS_DOWNARROW		137
 #define KBDUS_PAGEDOWN		138
 #define KBDUS_INSERT			139
 #define KBDUS_CONTROL		140
-#define KBDUS_LEFT_SHIFT	141
-#define KBDUS_RIGHT_SHIFT	142
+#define KBDUS_LEFTSHIFT		141
+#define KBDUS_RIGHTSHIFT	142
 #define KBDUS_ALT				143
 #define KBDUS_CAPSLOCK		144
 #define KBDUS_F1				145
@@ -60,6 +62,15 @@
 #define KBDUS_F10				154
 #define KBDUS_F11				155
 #define KBDUS_F12				156
+#define KBDUS_NUMLOCK		157
+#define KBDUS_SCROLLLOCK	158
+#define KBDUS_HOME			159
+#define KBDUS_DELETE			160
+#define KBDUS_PAGEUP			161
+#define KBDUS_UPARROW		162
+#define KBDUS_RIGHTARROW	163
+#define KBDUS_LEFTARROW		164
+#define KBDUS_END				165
 
 /* KBDUS means US Keyboard Layout. This is a scancode table
 *  used to layout a standard US keyboard. I have left some
@@ -73,25 +84,25 @@ unsigned char kbdus[128] =
 	'\t', 																/* Tab */
 	'q', 'w', 'e', 'r', 												/* 19 */
 	't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', 			/* Enter key */
-	KB_CONTROL, 														/* 29 - Control */
+	KBDUS_CONTROL, 														/* 29 - Control */
 	'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', 		/* 39 */
-	'\'', '`', KBDUS_LEFT_SHIFT, 									/* Left shift */
+	'\'', '`', KBDUS_LEFTSHIFT, 									/* Left shift */
 	'\\', 'z', 'x', 'c', 'v', 'b', 'n', 						/* 49 */
-	'm', ',', '.', '/',   KB_RIGHT_SHIFT,						/* Right shift */
+	'm', ',', '.', '/',   KBDUS_RIGHTSHIFT,						/* Right shift */
 	'*', KBDUS_ALT, 													/* Alt */
 	' ',																	/* Space bar */
 	KBDUS_CAPSLOCK, 													/* Caps lock */
 	KBDUS_F1, KBDUS_F2, KBDUS_F3, KBDUS_F4, KBDUS_F5,
 	KBDUS_F6, KBDUS_F7, KBDUS_F8, KBDUS_F9, KBDUS_F10,  	/* < ... F10 */
-	KBDUS_NUM_LOCK,		/* 69 - Num lock*/
-	KBDUS_SCROLL_LOCK,	/* Scroll Lock */
+	KBDUS_NUMLOCK,		/* 69 - Num lock*/
+	KBDUS_SCROLLLOCK,	/* Scroll Lock */
 	KBDUS_HOME,				/* Home key */
-	KBDUS_UP_ARROW,		/* Up Arrow */
-	KBDUS_PAGE_UP,			/* Page Up */
+	KBDUS_UPARROW,		/* Up Arrow */
+	KBDUS_PAGEUP,			/* Page Up */
 	'-',
-	KBDUS_RIGHT_ARROW,		/* Left Arrow */
+	KBDUS_LEFTARROW,		/* Left Arrow */
 	0,
-	KBDUS_RIGHT_ARROW,		/* Right Arrow */
+	KBDUS_RIGHTARROW,		/* Right Arrow */
 	'+',
 	KBDUS_END,				/* 79 - End key*/
 	KBDUS_DOWNARROW,		/* Down Arrow */
