@@ -83,6 +83,9 @@ extern void print_heap_magic();
 extern byte *kmalloc(size_t size);
 
 // HD.C
+extern int reset_devices(void);
+extern void hd_write_b(uint32 sn, byte *data, int n, uint8 slave);
+extern void hd_read_b(uint32 sn, uint32 sc, uint8 slave);
 extern void print_hd_device_types();
 
 #endif
