@@ -3,9 +3,18 @@
 #ifndef __SYSTEM_H
 #define __SYSTEM_H
 
+// Defined Constants
 #define NULL 0
 #define TRUE 1
 #define FALSE 0
+
+// Defined Macros
+#define sti() __asm__ __volatile__ ("sti");
+#define cli() __asm__ __volatile__ ("cli");
+#define nop() __asm__ __volatile__ ("nop");
+#define iret() __asm__ __volatile__ ("iret");
+#define pusha() __asm__ __volatile__ ("pusha");
+#define popa() __asm__ __volatile__ ("popa");
 
 /*
  * Types: these types are used to clarify what is meant when using them
@@ -17,10 +26,13 @@
  * know that these are the correct typedefs.
  */
 typedef unsigned int 	size_t;
+typedef unsigned int	uint;
 typedef unsigned int	uint32;
 typedef unsigned short	uint16;
 typedef unsigned char	uint8;
-typedef unsigned char	byte;
+typedef uint8			byte;
+typedef uint16			word;
+typedef uint32			dword;
 
 /* MAIN.C */
 extern byte		*memcpy(byte *dest, const byte *src, size_t count);
@@ -40,6 +52,7 @@ extern void settextcolor(byte forecolor, byte backcolor);
 extern void init_video();
 extern void printInt(int num);
 extern void printHex(byte b);
+extern void printHex_w(word w);
 extern void printHexDigit(byte digit);
 
 /* GDT.C */
@@ -83,9 +96,12 @@ extern void print_heap_magic();
 extern byte *kmalloc(size_t size);
 
 // HD.C
+extern int is_ready(void);
+extern int reset_controller(void);
+extern int select_device(uint device);
 extern int reset_devices(void);
-extern void hd_write_b(uint32 sn, byte *data, int n, uint8 slave);
-extern void hd_read_b(uint32 sn, uint32 sc, uint8 slave);
+extern int hd_write_b(uint32 sn, byte *data, int n, uint8 slave);
+extern int hd_read_b(uint32 sn, uint32 sc, uint8 slave);
 extern void print_hd_device_types();
 
 #endif

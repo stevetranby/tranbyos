@@ -44,7 +44,7 @@
 #define HD_ST_IDX		0x02	// ?
 #define HD_ST_ECC		0x04	// corrected errors
 #define HD_ST_DRQ		0x08	// Set when drive has PIO data to transfer, or is ready to accept PIO data.
-#define HD_ST_SRV		0x10	// Overlapped Mode Service Request
+#define HD_ST_SK		0x10	// Overlapped Mode Service Request (seek)
 #define HD_ST_DFE		0x20	// Drive fault errors (does not set ERR!)
 #define HD_ST_RDY		0x40	// Bit is clear when drive is spun down, or after an error. Set otherwise.
 #define HD_ST_BSY		0x80	// drive is preparing to accept/send data -- wait until this bit clears. If it never clears, then do a soft-reset. When set other status bits are meaningless.
@@ -52,20 +52,23 @@
 // Values for HD_CMD
 #define HD_CMD_RESTORE		0x10	//
 #define HD_CMD_READ			0x20	//
-#define HD_CMD_WRITE			0x30	//
+#define HD_CMD_WRITE		0x30	//
 #define HD_CMD_VERIFY		0x40	//
 #define HD_CMD_FORMAT		0x50	//
 #define HD_CMD_INIT			0x60	//
 #define HD_CMD_SEEK			0x70	//
 #define HD_CMD_DIAGNOSE		0x90	//
 #define HD_CMD_SPECIFY		0x91	//
+#define HD_CMD_IDENTIFY		0xEC	//
 
 // Bits for HD_ERROR
 #define HD_ERR_MARK		0x01		//
 #define HD_ERR_TRACK0	0x02		//
-#define HD_ERR_ABORT		0x04		//
-#define HD_ERR_ID			0x10		//
+#define HD_ERR_ABORT	0x04		//
+#define HD_ERR_ID		0x10		//
 #define HD_ERR_ECC		0x40		//
 #define HD_ERR_BBD		0x80		//
 
+
 #endif
+

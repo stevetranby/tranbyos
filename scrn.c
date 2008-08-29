@@ -68,10 +68,10 @@ void move_csr(void)
     *  learn more, you should look up some VGA specific
     *  programming documents. A great start to graphics:
     *  http://www.brackeen.com/home/vga */
-    outportb(0x3D4, 14);
-    outportb(0x3D5, temp >> 8);
-    outportb(0x3D4, 15);
-    outportb(0x3D5, temp);
+    outb(0x3D4, 14);
+    outb(0x3D5, temp >> 8);
+    outb(0x3D4, 15);
+    outb(0x3D5, temp);
 }
 
 /* Clears the screen */
@@ -205,13 +205,18 @@ void printInt(int number) {
 }
 
 // print out the byte in hex 
-void printHex(byte b) {
-	byte low = b & 0xf;
-	byte high = (b >> 4) & 0xf;
-	
+void printHex(byte b) {	
 	putch('0'); putch('x');
-	printHexDigit(high);
-	printHexDigit(low);
+	printHexDigit((b >> 4) & 0x0f);
+	printHexDigit((b) & 0x0f);
+}
+
+void printHex_w(word w) {
+	putch('0'); putch('x');
+	printHexDigit((w>>12) & 0x0f);
+	printHexDigit((w>>8) & 0x0f);
+	printHexDigit((w>>4) & 0x0f);
+	printHexDigit((w) & 0x0f);
 }
 
 void printHexDigit(byte digit) {
