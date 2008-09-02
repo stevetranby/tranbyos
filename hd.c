@@ -4,6 +4,7 @@
 
 int wait_busy(void) {
 	while((inb(HD_ST) & HD_ST_BSY)) ;
+	return 1;
 }
 
 int is_ready(void) {
@@ -11,14 +12,11 @@ int is_ready(void) {
 	return 0;
 }
 
-int reset_controller(void) {
-	int i;	
-	outb(HD_ST, 0x04);	
-	for(i=0;i<10000;++i) nop();
-	outb(HD_ST, 0x00);	
-	for(i=0;i<10000;++i) if(is_ready()) break;
-	if(!is_ready()) return 1;
-	return 0; /* okay */	
+void inline hd_delay400ns() {
+	inb(HD_ST);
+	inb(HD_ST);
+	inb(HD_ST);
+	inb(HD_ST);
 }
 
 int select_device(uint device) {
@@ -34,72 +32,19 @@ int select_device(uint device) {
 }
 
 // issue software reset
-int reset_devices(void)
+int soft_reset(void)
 {
-    // write status
-    outb(HD_ST, 0x02);
-    timer_wait(5);
-    outb(HD_DCR, HD_DCR_SRST);
-    timer_wait(5);
-
-    // If there is a device 0, wait for device 0 to set BSY=0
-    int t;
-    for(t=0; t<99999; ++t)
-    {
-        if((inb(HD_ST) & HD_ST_BSY) == 0)
-            break;
-    }
-    if(t==99999)
-        puts("Device 0 reset timeout\n");
-
-    return 0;
+	outb(0x3f6, 0x04);
+	outb(0x3f6, 0x00);
+	// wait 400ns
+	hd_delay400ns();
+	// wait while busy and not ready	
+	while((inb(0x3f6) & 0xc0) != 0x40) ;
+	return 0;
 }
-
-/*
-static int drive_busy(void) {
-	uint32 i;	
-	for(i=0; i<10000; ++i) 
-		if(HD_ST_RDY == (inb(HD_ST) & (HD_ST_BSY | HD_ST_RDY)))
-			break;
-			
-	i = inb(HD_ST);
-	i &= HD_ST_BSY | HD_ST_RDY | HD_ST_SK;
-	if(i == (HD_ST_RDY | HD_ST_SK))
-		return (0);
-	puts("HD Controller times out\n");
-	return(1);	
-}
-*/
-
-/*
-static void reset_hd(int nr) {
-	reset_controller();
-	hd_out(0,1,1,0,0,HD_CMD_SPECIFY);
-}
-*/
-
-/*
-static void hd_out(int drive, int sc, int sn, int head, int cyl, int cmd)
-{
-	register int port asm("dx");
-	
-	if(!controller_ready()) {
-		puts("Controller Not Ready");
-		return;
-	}
-	
-	outb(HD_CMD, cmd);
-	port=HD_DATA;
-	outb(HD_SC, sc);
-	outb(HD_SN, sn);
-	outb(HD_CL, 0x00);
-	outb(HD_CH, 0x00);
-	outb(HD_DH, 0xa0 | (drive << 4));
-}
-*/
 
 void hd_print_status(void)
-{
+{	
     uint8 status = inb(0x3F6); // alternate status port
 
     uint8 status_execmd = status & 0x80; // 1000 0000
@@ -120,10 +65,56 @@ void hd_print_status(void)
     printInt(status_ddrcor >> 2);
     printInt(status_idxrev >> 1);
     printInt(status_cmderr);
+	putch(' ');
+	    
+    int i,j,k;     
+    j = time_ticks();
+    printInt(j);
+    if(j<10) k=1;
+    else if(j<100) k=2;
+    else if(j<1000) k=3;
+    else if(j<10000) k=4;
+    else k=5;
+            
+    for(i=0;i<9+k;++i) putch('\b');
+    timer_wait(1);
+}
 
-    int i;
-    for(i=0;i<8;++i)
-        putch('\b');
+void hd_print_error(void)
+{	
+    uint8 err = inb(0x1f1); // alternate status port
+
+    uint8 err_BBK = err & 0x80; // 1000 0000
+    uint8 err_UNC = err & 0x40; // 0100 0000
+    //uint8 err_NA = status & 0x20; // 0010 0000
+    uint8 err_IDNF = err & 0x10; // 0001 0000
+    //uint8 err_NA = status & 0x08; // 0000 1000
+    uint8 err_ABRT = err & 0x04; // 0000 0100
+    uint8 err_TKONF = err & 0x02; // 0000 0010
+    uint8 err_AMNF = err & 0x01; // 0000 0001
+
+
+    printInt(err_BBK >> 7);
+    printInt(err_UNC >> 6);
+    //printInt(status_wrtflt >> 5);
+    printInt(err_IDNF >> 4);
+    //printInt(status_sbrqsv >> 3);
+    printInt(err_ABRT >> 2);
+    printInt(err_TKONF >> 1);
+    printInt(err_AMNF);
+	putch(' ');
+	    
+    int i,j,k;     
+    j = time_ticks();
+    printInt(j);
+    if(j<10) k=1;
+    else if(j<100) k=2;
+    else if(j<1000) k=3;
+    else if(j<10000) k=4;
+    else k=5;
+            
+    for(i=0;i<6+k;++i) putch('\b');
+    //timer_wait(50);
 }
 
 int hd_write_b(uint32 sn, byte *data, int n, uint8 slave)
@@ -221,7 +212,8 @@ void print_hd_device_types()
         puts("Primary Slave Drive Unknown.\n");
 
     // Soft Reset
-    reset_devices();
+    soft_reset();
+    
     //outb(HD_DCR, HD_DCR_SRST);
 
     outb(HD_DH, 0xa0);
@@ -304,7 +296,7 @@ void print_hd_device_types()
 
 
     // Soft Reset
-    reset_devices();
+    soft_reset();
 
     // 2nd IDE Controller
     outb(HD2_ST, 0x08);
@@ -337,7 +329,7 @@ void print_hd_device_types()
         puts("Secondary Slave Drive Unknown.\n");
 
     // Soft Reset
-    reset_devices();
+    soft_reset();
     //outb(HD2_DCR, HD_DCR_SRST);
 
     outb(HD_DH, 0xa0);

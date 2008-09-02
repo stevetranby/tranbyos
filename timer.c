@@ -3,7 +3,7 @@
 /* This will keep track of how many ticks that the system
 *  has been running for */
 int 	timer_ticks = 0;
-int		timer_hz = 100;
+int		timer_hz = 500;
 uint32 	secondsFromBoot = 0;
 
 /* Determine the timer tick rate in Hz. */
@@ -26,13 +26,12 @@ void timer_handler(struct regs *r)
     /* Increment our 'tick count' */
     timer_ticks++;
 
-    if (timer_ticks % timer_hz == 0)
-    {
-		secondsFromBoot++;
-		#ifdef DEBUG
-			putch('.');
-		#endif
+    if (timer_ticks % timer_hz == 0) {
+		secondsFromBoot++;		
     }
+    #ifdef DEBUG
+		putch('.');
+	#endif
 }
 
 uint32 time_ticks() { return timer_ticks; }
@@ -54,5 +53,5 @@ void timer_wait(int ticks)
 	unsigned long eticks;
 	
 	eticks = timer_ticks + ticks;
-	while(timer_ticks < eticks);
+	while(timer_ticks < eticks) {}
 }

@@ -7,6 +7,7 @@
 #define NULL 0
 #define TRUE 1
 #define FALSE 0
+//#define DEBUG
 
 // Defined Macros
 #define sti() __asm__ __volatile__ ("sti");
@@ -96,10 +97,13 @@ extern void print_heap_magic();
 extern byte *kmalloc(size_t size);
 
 // HD.C
+extern void hd_delay400ns();
 extern int is_ready(void);
 extern int reset_controller(void);
 extern int select_device(uint device);
-extern int reset_devices(void);
+extern int soft_reset(void);
+extern void hd_print_status(void);
+extern void hd_print_error(void);
 extern int hd_write_b(uint32 sn, byte *data, int n, uint8 slave);
 extern int hd_read_b(uint32 sn, uint32 sc, uint8 slave);
 extern void print_hd_device_types();

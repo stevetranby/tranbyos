@@ -21,6 +21,7 @@
 #define HD_DH			0x1f6			// Drive select bit, 101DHHHH
 #define HD_ST			0x1f7			// Status port (read)
 #define HD_CMD			0x1f7			// Command port (write)
+#define HD_ALTSTAT		0x3f6		// Alternative Status
 #define HD_DCR			0x3f6 		// Device Control Register (Alternative Status)
 
 #define HD2_DATA		0x170			// Data port

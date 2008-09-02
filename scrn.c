@@ -205,14 +205,12 @@ void printInt(int number) {
 }
 
 // print out the byte in hex 
-void printHex(byte b) {	
-	putch('0'); putch('x');
+void printHex(byte b) {		
 	printHexDigit((b >> 4) & 0x0f);
 	printHexDigit((b) & 0x0f);
 }
 
-void printHex_w(word w) {
-	putch('0'); putch('x');
+void printHex_w(word w) {	
 	printHexDigit((w>>12) & 0x0f);
 	printHexDigit((w>>8) & 0x0f);
 	printHexDigit((w>>4) & 0x0f);
