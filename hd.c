@@ -34,12 +34,12 @@ int select_device(uint device) {
 // issue software reset
 int soft_reset(void)
 {
-	outb(0x3f6, 0x04);
-	outb(0x3f6, 0x00);
+	outb(HD_DCR, 0x04);
+	outb(HD_DCR, 0x00);
 	// wait 400ns
 	hd_delay400ns();
 	// wait while busy and not ready	
-	while((inb(0x3f6) & 0xc0) != 0x40) ;
+	while((inb(HD_ALTSTAT) & 0xc0) != 0x40) hd_print_status() ;
 	return 0;
 }
 
@@ -117,35 +117,33 @@ void hd_print_error(void)
     //timer_wait(50);
 }
 
-int hd_write_b(uint32 sn, byte *data, int n, uint8 slave)
+// slave - 0 or 1 depending on if slave drive
+int ata_pio_write_w(int sn, word *data, int n, byte slave)
 {
-	int i;
 	
-	for(i=0;i<10000;++i) if(is_ready()) break;
-	if(!is_ready()) return 0;
-	if(!select_device(0)) return 0; // selecting master
-	
-    outb(HD_SC, 1); // sector count port, read 1 sector
-    outb(HD_SN, 1); // sector # port, read sector 1
-    outb(HD_CL, 0); // cyl low port, cyl 0
-    outb(HD_CH, 0); // cyl high port, rest of cyl 0
-    outb(HD_DH, (0x80|0x20));
-    outb(HD_CMD, HD_CMD_WRITE); // cmd port, read with retry
-
-	timer_wait(10);
-
-	while(((inb(HD_ST) & (HD_ST_BSY|HD_ST_DRQ)) != HD_ST_DRQ) || (inb(HD_ST) & HD_ST_ERR)) {}
-    if(inb(HD_ST) & HD_ST_ERR) return 0;	
-
-	// write out data
-    for(i=0; i<SECTOR_BYTES; ++i) outb(HD_DATA, data[i]);
+    // get the sector count from data size
+    int sc = ((n + (SECTOR_WORDS/2)) / SECTOR_WORDS) + 1;
+    
+	outb(HD_DH, 0xA0 | slave << 4); 
+    outb(HD_SC, n);
+    outb(HD_SN, 0x01);
+    outb(HD_CL, 0x00);
+    outb(HD_CH, 0x00);
+    outb(HD_CMD, 0x30);
+    
+    while( !(inb(0x1F7) & 0x08) ) hd_print_status();
     
     
-    
-    return 1;
+    puts("Writing data: ");
+    for(i=0; i < n; ++i) {
+        outw(HD_DATA, data[i]);
+        hd_print_status();
+    }
+    putch('\n');
+    puts("Finished Writing");
 }
 
-int hd_read_b(uint32 sn, uint32 sc, uint8 slave)
+int hd_read_w(uint32 sn, uint32 sc, uint8 slave)
 {
 	if(sn < 1) return 0;
 	

@@ -109,6 +109,12 @@ void irq_handler(struct regs *r)
     {
         handler(r);
     }
+    
+    if(r->int_no == 46) {
+	    puts("IRQ: ");
+	    printInt(r->int_no-32);
+	    putch('\n');
+    }
 
 	/* If the IDT entry that was invoked was greater than 40
 	*  (meaning IRQ8 - 15), then we need to send an EOI to
