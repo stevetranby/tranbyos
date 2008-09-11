@@ -5,36 +5,29 @@
 #define SECTOR_WORDS	256
 #define SECTOR_DWORD	128
 
-#define HD_BASE		0x1F0
-#define HD2_BAS		0X170
+// could use if wanting more than one controller
+#define IDE_PRIMARY		1
+#define IDE_SECONDARY	0
 
-// #define HD_IRQ			IRQ14
-// #define HD2_IRQ		IRQ15
+// could use if want a programmed way to access ATA registers
+#define IDE0_BASE		0x1F0
+#define IDE1_BASE		0X170
+
+#define HD0_IRQ			IRQ14
+#define HD1_IRQ			IRQ15
 
 #define HD_DATA		0x1f0			// Data port
 #define HD_FEAT		0x1f1			// Features (write)
 #define HD_ERR			0x1f1			// Error Info (read)
 #define HD_SC			0x1f2			// Sector Count
-#define HD_SN			0x1f3			// Sector Number
-#define HD_CL			0x1f4			// Cylinder low-byte (Partial Disk Sector Address)
-#define HD_CH			0x1f5			// Cylinder high-byte (Partial Disk Sector Address)
+#define HD_SN			0x1f3			// Sector Number (Low Byte of LBA - Partial Disk Sector Address)
+#define HD_CL			0x1f4			// Cylinder low-byte (Mid Byte of LBA - Partial Disk Sector Address)
+#define HD_CH			0x1f5			// Cylinder high-byte (High Byte of LBA - Partial Disk Sector Address)
 #define HD_DH			0x1f6			// Drive select bit, 101DHHHH
 #define HD_ST			0x1f7			// Status port (read)
 #define HD_CMD			0x1f7			// Command port (write)
-#define HD_ALTSTAT		0x3f6		// Alternative Status
+#define HD_ST_ALT		0x3f6		// Alternative Status
 #define HD_DCR			0x3f6 		// Device Control Register (Alternative Status)
-
-#define HD2_DATA		0x170			// Data port
-#define HD2_FEAT		0x171			// Features (write)
-#define HD2_ERR		0x171			// Error Info (read)
-#define HD2_SC			0x172			// Sector Count
-#define HD2_SN			0x173			// Partial Disk Sector Address
-#define HD2_CL			0x174			// Partial Disk Sector Address
-#define HD2_CH			0x175			// Partial Disk Sector Address
-#define HD2_DH			0x176			// Drive select bit, Flag bits, Extra address bits
-#define HD2_ST			0x177			// Status port (read)
-#define HD2_CMD		0x177			// Command port (write)
-#define HD2_DCR		0x3f7 		// Secondary Bus DCR
 
 #define HD_DCR_HOB	0x80			// SEt this to read back high-order byte of last LBA48 value sent to IO port.
 #define HD_DCR_SRST	0x04			// Software Reset -- set this to reset all ATA drives on a bus, if one is misbehaving.

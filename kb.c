@@ -1,6 +1,10 @@
 #include <system.h>
 #include <kb.h>
 
+// currently allow up to 255 characters to be buffered for use
+char chbuf[255];
+bool keyready = 0;
+
 /* Handles the keyboard interrupt */
 void keyboard_handler(struct regs *r)
 {

@@ -28,10 +28,8 @@ void timer_handler(struct regs *r)
 
     if (timer_ticks % timer_hz == 0) {
 		secondsFromBoot++;		
-    }
-    #ifdef DEBUG
-		putch('.');
-	#endif
+    }    
+	//trace(".");	
 }
 
 uint32 time_ticks() { return timer_ticks; }

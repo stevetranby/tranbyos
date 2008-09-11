@@ -3,11 +3,14 @@
 #ifndef __SYSTEM_H
 #define __SYSTEM_H
 
+#define _DEBUG_
+
 // Defined Constants
 #define NULL 0
 #define TRUE 1
+#define true 1
 #define FALSE 0
-//#define DEBUG
+#define false 0
 
 // Defined Macros
 #define sti() __asm__ __volatile__ ("sti");
@@ -16,6 +19,12 @@
 #define iret() __asm__ __volatile__ ("iret");
 #define pusha() __asm__ __volatile__ ("pusha");
 #define popa() __asm__ __volatile__ ("popa");
+
+#ifdef _DEBUG_
+#define trace(x) puts(x);
+#else
+#define trace(x)
+#endif
 
 /*
  * Types: these types are used to clarify what is meant when using them
@@ -35,34 +44,8 @@ typedef uint8			byte;
 typedef uint16			word;
 typedef uint32			dword;
 
-/* MAIN.C */
-extern byte		*memcpy(byte *dest, const byte *src, size_t count);
-extern byte 	*memset(byte *dest, byte val, size_t count);
-extern uint16	*memsetw(uint16 *dest, uint16 val, size_t count);
-extern int 		strlen(const byte *str);
-extern byte 	inb (uint16 _port);
-extern void 	outb (uint16 _port, byte _data);
-extern byte 	inportb (uint16 _port);
-extern void 	outportb (uint16 _port, byte _data);
-
-/* scrn.c */
-extern void cls();
-extern void putch(char c);
-extern void puts(char *str);
-extern void settextcolor(byte forecolor, byte backcolor);
-extern void init_video();
-extern void printInt(int num);
-extern void printHex(byte b);
-extern void printHex_w(word w);
-extern void printHexDigit(byte digit);
-
-/* GDT.C */
-extern void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned char gran);
-extern void gdt_install();
-
-/* IDT.C */
-extern void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags);
-extern void idt_install();
+typedef unsigned int	bool;
+typedef bool			boolean;
 
 /* This defines what the stack looks like after an ISR was running */
 struct regs
@@ -72,6 +55,42 @@ struct regs
     unsigned int int_no, err_code;    /* our 'push byte #' and ecodes do this */
     unsigned int eip, cs, eflags, useresp, ss;   /* pushed by the processor automatically */ 
 };
+
+
+/* MAIN.C */
+extern byte		*memcpy(byte *dest, const byte *src, size_t count);
+extern byte 	*memset(byte *dest, byte val, size_t count);
+extern uint16	*memsetw(uint16 *dest, uint16 val, size_t count);
+extern int 		strlen(const byte *str);
+
+/* IO.C */
+extern byte 	inb (uint16 _port);
+extern void 	outb (uint16 _port, byte _data);
+extern word 	inw (uint16 _port);
+extern void 	outw (uint16 _port, word _data);
+extern void 	print_port(uint16 port);
+
+/* scrn.c */
+extern void cls();
+extern char getch();
+extern void putch(char c);
+extern void puts(char *str);
+extern void settextcolor(byte forecolor, byte backcolor);
+extern void init_video();
+extern void printInt(int num);
+extern void printHex(byte b);
+extern void printHex_w(word w);
+extern void printHexDigit(byte digit);
+extern void printBinaryByte(byte num);
+
+/* GDT.C */
+extern void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned char gran);
+extern void gdt_install();
+
+/* IDT.C */
+extern void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags);
+extern void idt_install();
+
 
 /* ISRS.C */
 extern void fault_handler(struct regs *r);
@@ -92,21 +111,17 @@ extern uint32 time_s();
 extern void keyboard_install();
 
 // MM.C
-extern void init_mm();
-extern void print_heap_magic();
+extern void init_mm(void);
+extern void print_heap_magic(void);
 extern byte *kmalloc(size_t size);
 
 // HD.C
-extern void hd_delay400ns();
-extern int is_ready(void);
-extern int reset_controller(void);
-extern int select_device(uint device);
-extern int soft_reset(void);
-extern void hd_print_status(void);
-extern void hd_print_error(void);
-extern int hd_write_b(uint32 sn, byte *data, int n, uint8 slave);
-extern int hd_read_b(uint32 sn, uint32 sc, uint8 slave);
-extern void print_hd_device_types();
+extern void ata_delay400ns(void);
+extern int ata_soft_reset(void);
+extern int ata_pio_read_w(int controller, int slave, int sn, word *data, int n);
+extern int ata_pio_write_w(int controller, int slave, int sn, word *data, int n);
+extern int ata_controller_present(int controller);
+extern int ata_drive_present(int controller, int drive);
 
 #endif
 

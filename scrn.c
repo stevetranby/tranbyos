@@ -96,6 +96,10 @@ void cls()
     move_csr();
 }
 
+char getch() {
+	return 0;
+}
+
 /* Puts a single character on the screen */
 void putch(char c)
 {
@@ -230,6 +234,13 @@ void printHexDigit(byte digit) {
 			case 15: putch('f'); break;
 		}
 	}
+}
+
+void printBinaryByte(byte num) {
+	while(num>0) {
+		printInt((num & 0x01));
+		num = num >> 1;
+	}	
 }
 
 /* Sets the forecolor and backcolor that we will use */
