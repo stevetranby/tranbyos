@@ -236,11 +236,18 @@ void printHexDigit(byte digit) {
 	}
 }
 
-void printBinaryByte(byte num) {
-	while(num>0) {
-		printInt((num & 0x01));
-		num = num >> 1;
+void printBin_b(byte num) {
+	int i = 8;
+	while(i--) {
+		printInt((num & (1<<i)) >> i);		
 	}	
+}
+
+void printBin_w(word num) {
+	int i = 16;
+	while(i--) {	
+		printInt((num & (1<<i)) >> i);		
+	}
 }
 
 /* Sets the forecolor and backcolor that we will use */

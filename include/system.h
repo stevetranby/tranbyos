@@ -3,7 +3,7 @@
 #ifndef __SYSTEM_H
 #define __SYSTEM_H
 
-#define _DEBUG_
+//#define _DEBUG_
 
 // Defined Constants
 #define NULL 0
@@ -11,6 +11,10 @@
 #define true 1
 #define FALSE 0
 #define false 0
+
+#define KILO (1024)
+#define MEGA (1024*1024)
+#define GIGA (1024*1024*1024)
 
 // Defined Macros
 #define sti() __asm__ __volatile__ ("sti");
@@ -21,7 +25,7 @@
 #define popa() __asm__ __volatile__ ("popa");
 
 #ifdef _DEBUG_
-#define trace(x) puts(x);
+#define trace(x) puts(x)
 #else
 #define trace(x)
 #endif
@@ -81,7 +85,8 @@ extern void printInt(int num);
 extern void printHex(byte b);
 extern void printHex_w(word w);
 extern void printHexDigit(byte digit);
-extern void printBinaryByte(byte num);
+extern void printBin_b(byte num);
+extern void printBin_w(word num);
 
 /* GDT.C */
 extern void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned char gran);
@@ -117,9 +122,11 @@ extern byte *kmalloc(size_t size);
 
 // HD.C
 extern void ata_delay400ns(void);
+extern void ata_wait_busy();
+extern void ata_wait_drq();
 extern int ata_soft_reset(void);
-extern int ata_pio_read_w(int controller, int slave, int sn, word *data, int n);
-extern int ata_pio_write_w(int controller, int slave, int sn, word *data, int n);
+extern int ata_pio_read_w(int controller, int slave, int sn, int sc, word *data);
+extern int ata_pio_write_w(int controller, int slave, int sn, int sc, word *data);
 extern int ata_controller_present(int controller);
 extern int ata_drive_present(int controller, int drive);
 

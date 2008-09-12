@@ -1,9 +1,9 @@
 #ifndef __HD_H
 #define __HD_H
 
-#define SECTOR_BYTES	512
-#define SECTOR_WORDS	256
-#define SECTOR_DWORD	128
+#define SECTOR_BYTES		512
+#define SECTOR_WORDS		256
+#define SECTOR_DWORD		128 	
 
 // could use if wanting more than one controller
 #define IDE_PRIMARY		1
@@ -28,6 +28,19 @@
 #define HD_CMD			0x1f7			// Command port (write)
 #define HD_ST_ALT		0x3f6		// Alternative Status
 #define HD_DCR			0x3f6 		// Device Control Register (Alternative Status)
+
+#define HD1_DATA			0x170			// Data port
+#define HD1_FEAT			0x171			// Features (write)
+#define HD1_ERR			0x171			// Error Info (read)
+#define HD1_SC			0x172			// Sector Count
+#define HD1_SN			0x173			// Sector Number (Low Byte of LBA - Partial Disk Sector Address)
+#define HD1_CL			0x174			// Cylinder low-byte (Mid Byte of LBA - Partial Disk Sector Address)
+#define HD1_CH			0x175			// Cylinder high-byte (High Byte of LBA - Partial Disk Sector Address)
+#define HD1_DH			0x176			// Drive select bit, 101DHHHH
+#define HD1_ST			0x177			// Status port (read)
+#define HD1_CMD			0x177			// Command port (write)
+#define HD1_ST_ALT		0x3f7		// Alternative Status
+#define HD1_DCR			0x3f7 		// Device Control Register (Alternative Status)
 
 #define HD_DCR_HOB	0x80			// SEt this to read back high-order byte of last LBA48 value sent to IO port.
 #define HD_DCR_SRST	0x04			// Software Reset -- set this to reset all ATA drives on a bus, if one is misbehaving.

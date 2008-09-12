@@ -81,60 +81,121 @@ int _main(multiboot_info_t* mbd, uint32 magic)
     puts("experiment with writing an operating system kernel\n");
     puts("and possibly more\n");
     puts("\n");
-    puts("\n");
     
     getch();
 	settextcolor(0x0f, 0x00);
 	
     // -- BEG HARD DISK ACCESS TESTING ---
-    
+        
     ata_soft_reset();
+        
+    // wait while busy
+   	ata_wait_busy();
+    cli();
+    // wait while not ready
+    while(!(inb(HD_ST)&HD_ST_RDY));
+    outb(HD_DH, 0xF0);
+    outb(HD_CMD, 0xEC);
+    while(!(inb(HD_ST)&HD_ST_DRQ));    
+    word ident_data[256];
+    for(i=0;i<256; ++i) {
+    	ident_data[i] = inw(HD_DATA);
+    }
+    sti();            
+    
+    // 00 - Useful if not Hard Disk
+    printHex_w(ident_data[0]);
+    
+    // 01,03,06 - CHS              
+    puts("\nC: ");printInt(ident_data[1]);    
+    puts(" H: ");printInt(ident_data[3]);
+    puts(" S: ");printInt(ident_data[6]);       
+    
+    // 10-19 - Serial Number
+    puts("\nSerial: ");
+    for(i=10;i<19;++i) {
+    	putch((ident_data[i] >> 8) & 0xff);
+    	putch(ident_data[i] & 0xff);
+    }
+    // 23-26 Firmware Revision
+    puts("\nFirmware: ");
+    for(i=23;i<26;++i) {
+    	putch((ident_data[i] >> 8) & 0xff);
+    	putch(ident_data[i] & 0xff);    
+    }
+    // 27-46 - Model Name
+    puts("\nModel: ");
+    for(i=27;i<46;++i) {
+    	putch((ident_data[i] >> 8) & 0xff);
+    	putch(ident_data[i] & 0xff);
+    }
+    
+    // 49 - (bit 9) LBA Supported
+    if(ident_data[49] & 0x0100) puts("\nLBA Supported!");
+    
+    if(ident_data[59] & 0x0100) puts("\nMultiple sector setting is valid!");    
+    
+    // 60/61 - taken as DWORD => total # LBA28 sectors (if > 0, supports LBA28)
+    uint32 lba_capacity = (ident_data[61] << 16) + ident_data[60]; 
+    uint32 lba_bytes = (lba_capacity/MEGA*SECTOR_BYTES);   
+    puts("\nLBA Capacity: ");printInt(lba_capacity);puts(" Sectors");
+    puts("\nLBA Capacity: ");printInt(lba_bytes);puts("MB");
+    
+    
     
     if(ata_controller_present(0)){
-		puts("\nController 0 EXISTS");
+		trace("\nController 0 EXISTS");
 	} else {
-		puts("\nController 0 NOT EXIST");
+		trace("\nController 0 NOT EXIST");
 	}	
 	
     if(ata_controller_present(1)){
-		puts(" Controller 1 EXISTS");
+		trace(" Controller 1 EXISTS");
 	} else {
-		puts(" Controller 1 NOT EXIST");
-	}	
+		trace(" Controller 1 NOT EXIST");
+	}		
+	
+	//ata_soft_reset();
 	
 	if(ata_drive_present(0, 0)){
-		puts("\nController 0 Drive 0 EXISTS");
+		trace("\nPri Drive 0 EXISTS");
 	} else {
-		puts("\nController 0 Drive 0 NOT EXIST");
+		trace("\nPri Drive 0 NOT EXIST");
 	}	
 	
     if(ata_drive_present(0, 1)){
-		puts(" Controller 0 Drive 1 EXISTS");
+		trace(" Pri Drive 1 EXISTS");
 	} else {
-		puts(" Controller 0 Drive 1 NOT EXIST");
+		trace(" Pri Drive 1 NOT EXIST");
 	}	
 	
     if(ata_drive_present(1, 0)){
-		puts("\nController 1 Drive 0 EXISTS");
+		trace("\nSec Drive 0 EXISTS");
 	} else {
-		puts("\nController 1 Drive 0 NOT EXIST");
+		trace("\nSec Drive 0 NOT EXIST");
 	}	
 	
     if(ata_drive_present(1,1)){
-		puts(" Controller 1 Drive 1 EXISTS");
+		trace(" Sec Drive 1 EXISTS");
 	} else {
-		puts(" Controller 1 Drive 1 NOT EXIST");
-	}	
-	
+		trace(" Sec Drive 1 NOT EXIST");
+	}		
+		
 	word data[512], data2[512];
     for(i=0;i<512;++i) data[i]=0x5A;
-    ata_pio_write_w(0,0,1,data,1);
-    ata_pio_read_w(0,0,1,data2,1);
+    
+    ata_pio_write_w(0,1,1,1,data);
+    putch('\n'); for(i=0;i<10;++i) printHex_w(data[i]);    
+        
+    while((inb(HD_ST_ALT) & 0xc0) != 0x40);
+    
+    ata_pio_read_w(0,1,1,1,data2);     
+    putch('\n'); for(i=0;i<10;++i) printHex_w(data2[i]);
 	
     getch();
     // -- END HARD DISK ACCESS TESTING ---
 
-    
+    /*
     	int * p = 0;
     	puts("\nThe address of p is: ");
     	printInt((int)&p);    	
@@ -178,6 +239,9 @@ int _main(multiboot_info_t* mbd, uint32 magic)
     	printInt((int)*p);
     	putch('\t');
 }
+
+*/
+
 
     // Test Division By 0
     // i = 10 / 0; putch(i);

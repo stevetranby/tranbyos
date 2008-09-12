@@ -45,5 +45,5 @@ __asm__ __volatile__ ("outl %1, %0" : : "dN" (_port), "a" (_data));
 
 void print_port(uint16 port)
 {	
-	printBinaryByte(inb(port));	
+	printBin_b(inb(port));	
 }
