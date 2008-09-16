@@ -2,9 +2,13 @@
 
 /* This will keep track of how many ticks that the system
 *  has been running for */
-int 	timer_ticks = 0;
-int		timer_hz = 500;
+uint32 	timer_ticks = 0;
+uint32	timer_hz = 1000;
 uint32 	secondsFromBoot = 0;
+
+uint32 ticks_to_seconds = 1/timer_hz;
+//uint32 ticks_to_ms = 1000/timer_hz;
+//uint32 ticks_to_us = 1000000/timer_hz;
 
 /* Determine the timer tick rate in Hz. */
 void timer_phase(int hz)
@@ -24,16 +28,13 @@ void timer_phase(int hz)
 void timer_handler(struct regs *r)
 {
     /* Increment our 'tick count' */
-    timer_ticks++;
-
-    if (timer_ticks % timer_hz == 0) {
-		secondsFromBoot++;		
-    }    
-	//trace(".");	
+    timer_ticks++;    
 }
 
-uint32 time_ticks() { return timer_ticks; }
-uint32 time_s() { return secondsFromBoot; }
+uint32 getTicks() { return timer_ticks; }
+uint32 getSeconds() { 
+	timer_ticks / ticksToSeconds; 
+}
 
 /* Sets up the system clock by installing the timer handler
 *  into IRQ0 */
@@ -50,6 +51,24 @@ void timer_wait(int ticks)
 {
 	unsigned long eticks;
 	
+	eticks = timer_ticks + ticks;
+	while(timer_ticks < eticks) {}
+}
+
+void delay_us(uint32 us) {
+	uint32 eticks;	
+	eticks = timer_ticks + ticks;
+	while(timer_ticks < eticks) {}
+}
+
+void delay_ms(uint32 ms) {
+	uint32 eticks;	
+	eticks = timer_ticks + ticks;
+	while(timer_ticks < eticks) {}
+}
+
+void delay_s(uint32 s) {
+	uint32 eticks;	
 	eticks = timer_ticks + ticks;
 	while(timer_ticks < eticks) {}
 }

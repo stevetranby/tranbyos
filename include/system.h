@@ -124,6 +124,7 @@ extern byte *kmalloc(size_t size);
 extern void ata_delay400ns(void);
 extern void ata_wait_busy();
 extern void ata_wait_drq();
+extern void ata_wait_ready();
 extern int ata_soft_reset(void);
 extern int ata_pio_read_w(int controller, int slave, int sn, int sc, word *data);
 extern int ata_pio_write_w(int controller, int slave, int sn, int sc, word *data);

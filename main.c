@@ -89,14 +89,12 @@ int _main(multiboot_info_t* mbd, uint32 magic)
         
     ata_soft_reset();
         
-    // wait while busy
-   	ata_wait_busy();
     cli();
     // wait while not ready
-    while(!(inb(HD_ST)&HD_ST_RDY));
+    ata_wait_ready();    
     outb(HD_DH, 0xF0);
     outb(HD_CMD, 0xEC);
-    while(!(inb(HD_ST)&HD_ST_DRQ));    
+    ata_wait_drq();    
     word ident_data[256];
     for(i=0;i<256; ++i) {
     	ident_data[i] = inw(HD_DATA);

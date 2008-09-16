@@ -10,10 +10,57 @@ void inline ata_delay400ns()
 }
 
 void ata_wait_busy() {
-	while((inb(HD_ST_ALT) & 0xc0) != 0x40);
+	byte status;	
+	int timer = 10000;
+	while(1) {
+		status = inb(HD_ST_ALT);
+		if ( (status & HD_ST_BSY) ) {
+			break;
+		}	
+		if ( (status & HD_ST_ERR) ) {
+			puts(" Error in ata_wait_drq! ");
+		}	
+		if (--timer < 0) { 
+			puts(" Timeout in ata_wait_busy! "); 
+			break; 
+		}		
+	}	
 }
+
 void ata_wait_drq() {
-	while( !(inb(HD_ST) & HD_ST_DRQ) );
+	byte status;	
+	int timer = 10000;
+	while(1) {
+		status = inb(HD_ST_ALT);
+		if ( !(status & HD_ST_DRQ) ) {
+			break;
+		}		
+		if ( (status & HD_ST_ERR) ) {
+			puts(" Error in ata_wait_drq! ");
+		}
+		if (--timer < 0) { 
+			puts(" Timeout in ata_wait_drq! "); 
+			break; 
+		}		
+	}	
+}
+
+void ata_wait_ready() {
+	byte status;	
+	int timer = 10000;
+	while(1) {
+		status = inb(HD_ST_ALT);
+		if ( !(status & HD_ST_RDY) ) {
+			break;
+		}	
+		if ( (status & HD_ST_ERR) ) {
+			puts(" Error in ata_wait_drq! ");
+		}	
+		if (--timer < 0) { 
+			puts(" Timeout in ata_wait_ready! "); 
+			break; 
+		}		
+	}	
 }
 
 // issue software reset
