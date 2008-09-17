@@ -36,7 +36,7 @@ void keyboard_handler(struct regs *r)
 		*  you would add 128 to the scancode when you look for it */
         if(kbdus[scancode] == KBDUS_INSERT) {
 			puts("Elasped Time (in seconds): ");
-			printInt( time_s() );
+			printInt( timer_seconds() );
 			putch('\n');
 		} else {
 			putch(kbdus[scancode]);

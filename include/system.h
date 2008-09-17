@@ -107,10 +107,12 @@ extern void irq_uninstall_handler(int irq);
 extern void irq_install();
 
 /* TIMER.C */
-extern void timer_wait(int ticks);
 extern void timer_install();
-extern uint32 time_ticks();
-extern uint32 time_s();
+extern uint32 timer_ticks();
+extern uint32 timer_seconds();
+extern void delay_ticks(int ticks);
+extern void delay_ms(uint32 ms);
+extern void delay_s(uint32 s);
 
 /* KEYBOARD.C */
 extern void keyboard_install();

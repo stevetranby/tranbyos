@@ -82,6 +82,19 @@ int _main(multiboot_info_t* mbd, uint32 magic)
     puts("and possibly more\n");
     puts("\n");
     
+//        
+//    puts("Start Ticks: "); printInt(timer_ticks()); putch('\n');
+//    puts("Start Seconds: "); printInt(timer_seconds()); putch('\n');
+//    
+//    for(i=0;i<10;i++) {
+//    	//putch('.');
+//    	delay_ms(1);
+//    }
+//        
+//    puts("End Ticks: "); printInt(timer_ticks()); putch('\n');
+//    puts("End Seconds: "); printInt(timer_seconds()); putch('\n');
+    
+        
     getch();
 	settextcolor(0x0f, 0x00);
 	
