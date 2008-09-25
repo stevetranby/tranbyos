@@ -66,9 +66,9 @@ int _main(multiboot_info_t* mbd, uint32 magic)
 
     __asm__ __volatile__ ("sti");
 
-    
+
     puts("\n");
-    puts("Tranbonix OS\n"); 
+    puts("Tranbonix OS\n");
     puts("By Steve Tranby\n");
     puts("\n");
     settextcolor(0x02, 0x00);
@@ -81,47 +81,47 @@ int _main(multiboot_info_t* mbd, uint32 magic)
     puts("experiment with writing an operating system kernel\n");
     puts("and possibly more\n");
     puts("\n");
-    
-//        
+
+//
 //    puts("Start Ticks: "); printInt(timer_ticks()); putch('\n');
 //    puts("Start Seconds: "); printInt(timer_seconds()); putch('\n');
-//    
+//
 //    for(i=0;i<10;i++) {
 //    	//putch('.');
 //    	delay_ms(1);
 //    }
-//        
+//
 //    puts("End Ticks: "); printInt(timer_ticks()); putch('\n');
 //    puts("End Seconds: "); printInt(timer_seconds()); putch('\n');
-    
-        
+
+
     getch();
 	settextcolor(0x0f, 0x00);
-	
+
     // -- BEG HARD DISK ACCESS TESTING ---
-        
+
     ata_soft_reset();
-        
+
     cli();
     // wait while not ready
-    ata_wait_ready();    
+    ata_wait_ready();
     outb(HD_DH, 0xF0);
     outb(HD_CMD, 0xEC);
-    ata_wait_drq();    
+    ata_wait_drq();
     word ident_data[256];
     for(i=0;i<256; ++i) {
     	ident_data[i] = inw(HD_DATA);
     }
-    sti();            
-    
+    sti();
+
     // 00 - Useful if not Hard Disk
     printHex_w(ident_data[0]);
-    
-    // 01,03,06 - CHS              
-    puts("\nC: ");printInt(ident_data[1]);    
+
+    // 01,03,06 - CHS
+    puts("\nC: ");printInt(ident_data[1]);
     puts(" H: ");printInt(ident_data[3]);
-    puts(" S: ");printInt(ident_data[6]);       
-    
+    puts(" S: ");printInt(ident_data[6]);
+
     // 10-19 - Serial Number
     puts("\nSerial: ");
     for(i=10;i<19;++i) {
@@ -132,7 +132,7 @@ int _main(multiboot_info_t* mbd, uint32 magic)
     puts("\nFirmware: ");
     for(i=23;i<26;++i) {
     	putch((ident_data[i] >> 8) & 0xff);
-    	putch(ident_data[i] & 0xff);    
+    	putch(ident_data[i] & 0xff);
     }
     // 27-46 - Model Name
     puts("\nModel: ");
@@ -140,80 +140,80 @@ int _main(multiboot_info_t* mbd, uint32 magic)
     	putch((ident_data[i] >> 8) & 0xff);
     	putch(ident_data[i] & 0xff);
     }
-    
+
     // 49 - (bit 9) LBA Supported
     if(ident_data[49] & 0x0100) puts("\nLBA Supported!");
-    
-    if(ident_data[59] & 0x0100) puts("\nMultiple sector setting is valid!");    
-    
+
+    if(ident_data[59] & 0x0100) puts("\nMultiple sector setting is valid!");
+
     // 60/61 - taken as DWORD => total # LBA28 sectors (if > 0, supports LBA28)
-    uint32 lba_capacity = (ident_data[61] << 16) + ident_data[60]; 
-    uint32 lba_bytes = (lba_capacity/MEGA*SECTOR_BYTES);   
+    uint32 lba_capacity = (ident_data[61] << 16) + ident_data[60];
+    uint32 lba_bytes = (lba_capacity/MEGA*SECTOR_BYTES);
     puts("\nLBA Capacity: ");printInt(lba_capacity);puts(" Sectors");
     puts("\nLBA Capacity: ");printInt(lba_bytes);puts("MB");
-    
-    
-    
+
+
+
     if(ata_controller_present(0)){
 		trace("\nController 0 EXISTS");
 	} else {
 		trace("\nController 0 NOT EXIST");
-	}	
-	
+	}
+
     if(ata_controller_present(1)){
 		trace(" Controller 1 EXISTS");
 	} else {
 		trace(" Controller 1 NOT EXIST");
-	}		
-	
+	}
+
 	//ata_soft_reset();
-	
+
 	if(ata_drive_present(0, 0)){
 		trace("\nPri Drive 0 EXISTS");
 	} else {
 		trace("\nPri Drive 0 NOT EXIST");
-	}	
-	
+	}
+
     if(ata_drive_present(0, 1)){
 		trace(" Pri Drive 1 EXISTS");
 	} else {
 		trace(" Pri Drive 1 NOT EXIST");
-	}	
-	
+	}
+
     if(ata_drive_present(1, 0)){
 		trace("\nSec Drive 0 EXISTS");
 	} else {
 		trace("\nSec Drive 0 NOT EXIST");
-	}	
-	
+	}
+
     if(ata_drive_present(1,1)){
 		trace(" Sec Drive 1 EXISTS");
 	} else {
 		trace(" Sec Drive 1 NOT EXIST");
-	}		
-		
+	}
+
 	word data[512], data2[512];
     for(i=0;i<512;++i) data[i]=0x5A;
-    
+
     ata_pio_write_w(0,1,1,1,data);
-    putch('\n'); for(i=0;i<10;++i) printHex_w(data[i]);    
-        
+    putch('\n'); for(i=0;i<10;++i) printHex_w(data[i]);
+
     while((inb(HD_ST_ALT) & 0xc0) != 0x40);
-    
-    ata_pio_read_w(0,1,1,1,data2);     
+
+    ata_pio_read_w(0,1,1,1,data2);
     putch('\n'); for(i=0;i<10;++i) printHex_w(data2[i]);
-	
+
     getch();
     // -- END HARD DISK ACCESS TESTING ---
 
     /*
     	int * p = 0;
     	puts("\nThe address of p is: ");
-    	printInt((int)&p);    	
+    	printInt((int)&p);
     	// DEBUG::Testing heap code
     	puts("\nHeap Magic: ");
-    	print_heap_magic();    	
-    	
+    	print_heap_magic();
+
     	byte *t = kmalloc(4);
     	byte *s = kmalloc(8);
     	for(i=0; i<4; ++i) {
@@ -235,7 +235,7 @@ int _main(multiboot_info_t* mbd, uint32 magic)
     		printInt((int)s[i*2+1]);
     		putch('\n');
     	}
-        
+
     puts("\nSize of RAM Lower=");
     printInt((int)mbd->mem_lower * 1024);
     puts(" Upper=");
@@ -256,7 +256,7 @@ int _main(multiboot_info_t* mbd, uint32 magic)
 
     // Test Division By 0
     // i = 10 / 0; putch(i);
-    
+
     //
     settextcolor(0x0f, 0x00);
     puts("\nStarting Infinite Loop!");
