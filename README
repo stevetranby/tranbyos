@@ -3,6 +3,13 @@ Tranby OS
 
 Developing x86 simple operating system to learn the fundamentals of the boot process, device interaction, among other things...
 
+### Resources
+
+- http://www.osdever.net/tutorials/view/getting-started-in-os-development
+- http://mikeos.berlios.de/
+- http://www.jamesmolloy.co.uk/tutorial_html/index.html
+- http://wiki.osdev.org/Main_Page
+- http://wiki.osdev.org/Bare_bones
 
 OLD README
 ----------
