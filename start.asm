@@ -11,9 +11,6 @@
 [BITS 32]
 
 
-
-
-
 ; This is the kernel's entry point. We could either call main here,
 ; or we can use this to setup the stack or other nice stuff, like
 ; perhaps setting up the GDT and segments. Please note that interrupts
@@ -25,7 +22,7 @@ global idt_load		; Allows the C code to link to this
 global _sys_heap	; Allows the C code to link to this 
 
 extern _main		; have to specify '_main' instead of 'main' since we're using ELF format
-extern gp			; Says that 'gp' is in another file
+extern gp		; Says that 'gp' is in another file
 extern idtp
 
 start:
@@ -41,7 +38,7 @@ mboot:
     MULTIBOOT_AOUT_KLUDGE	equ 1<<16
     MULTIBOOT_HEADER_MAGIC	equ 0x1BADB002
     MULTIBOOT_HEADER_FLAGS	equ MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO | MULTIBOOT_AOUT_KLUDGE
-    MULTIBOOT_CHECKSUM	equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
+    MULTIBOOT_CHECKSUM		equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
     EXTERN code, bss, end
 
     ; This is the GRUB Multiboot header. A boot signature

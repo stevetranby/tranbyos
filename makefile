@@ -1,28 +1,45 @@
-TARGET=i586-elf
-CROSSPATH=/usr/cross/bin
 CFLAGS=-g -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -I./include
-GCC=$(CROSSPATH)/$(TARGET)-gcc
-LINKER=$(CROSSPATH)/$(TARGET)-ld
+GCC=gcc
+LINKER=ld
+BD=build
 
-all:
-	nasm -f elf -o start.o start.asm
+all: build
+	echo "All..."
 	
-	$(GCC) $(CFLAGS) -c -o main.o main.c
-	$(GCC) $(CFLAGS) -c -o scrn.o scrn.c
-	$(GCC) $(CFLAGS) -c -o gdt.o gdt.c
-	$(GCC) $(CFLAGS) -c -o idt.o idt.c
-	$(GCC) $(CFLAGS) -c -o isrs.o isrs.c
-	$(GCC) $(CFLAGS) -c -o irq.o irq.c
-	$(GCC) $(CFLAGS) -c -o timer.o timer.c
-	$(GCC) $(CFLAGS) -c -o kb.o kb.c
-	$(GCC) $(CFLAGS) -c -o mm.o mm.c
-	$(GCC) $(CFLAGS) -c -o hd.o hd.c
-	$(GCC) $(CFLAGS) -c -o io.o io.c
-	
-	$(LINKER) -T link.ld -r -o kernel.o start.o main.o scrn.o gdt.o idt.o isrs.o irq.o timer.o kb.o mm.o hd.o io.o
-	$(LINKER) -T link.ld -o kernel.bin start.o main.o scrn.o gdt.o idt.o isrs.o irq.o timer.o kb.o mm.o hd.o io.o
+build: link
+	echo "Building..."
+
+link: compile	
+	echo "Linking..."
+	#$(LINKER) -T link.ld -o kernel.bin $(BD)/start.o $(BD)/main.o $(BD)/scrn.o $(BD)/gdt.o $(BD)/idt.o $(BD)/isrs.o $(BD)/irq.o $(BD)/timer.o $(BD)/kb.o $(BD)/mm.o $(BD)/hd.o $(BD)/io.o
+	$(LINKER) -T link.ld -o kernel.bin $(BD)/*.o
+
+compile: assemble
+	echo "Compiling..."
+	$(GCC) $(CFLAGS) -c -o $(BD)/main.o main.c
+	$(GCC) $(CFLAGS) -c -o $(BD)/scrn.o scrn.c
+	$(GCC) $(CFLAGS) -c -o $(BD)/gdt.o gdt.c
+	$(GCC) $(CFLAGS) -c -o $(BD)/idt.o idt.c
+	$(GCC) $(CFLAGS) -c -o $(BD)/isrs.o isrs.c
+	$(GCC) $(CFLAGS) -c -o $(BD)/irq.o irq.c
+	$(GCC) $(CFLAGS) -c -o $(BD)/timer.o timer.c
+	$(GCC) $(CFLAGS) -c -o $(BD)/kb.o kb.c
+	$(GCC) $(CFLAGS) -c -o $(BD)/mm.o mm.c
+	$(GCC) $(CFLAGS) -c -o $(BD)/hd.o hd.c
+	$(GCC) $(CFLAGS) -c -o $(BD)/io.o io.c
+
+assemble:
+	echo "Assembling..."
+	nasm -f aout -o $(BD)/start.o start.asm
+
+test: build
+	echo "Testing"
+
+run: build
+	echo "Running"
 	
 clean:
-	rm *.o
+	echo "Cleaning..."
+	rm $(BD)/*.o
 
 	
