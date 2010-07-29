@@ -1,5 +1,11 @@
 build/*
 bin/*
+tmp-loop
+tmp-loop/*
 *.o
 *.bin
+*.iso
+*~
+#*#
+*.img
 

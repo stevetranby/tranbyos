@@ -1,0 +1,5 @@
+tranbyos:
+	title tranbyos
+	root (fd0)
+	kernel /boot/tranbyos.bin
+

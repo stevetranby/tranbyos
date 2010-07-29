@@ -1,24 +1,25 @@
+OSNAME=tranbyos
 CFLAGS=-g -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -I./include
 CC=gcc
 SDIR=src
 ODIR=obj
 BDIR=bin
-SRC_FILES := $(wildcard)
-OBJ_FILES := $(wildcard)
+SFILES := $(wildcard $(SDIR)/*.c) #not used, as some recommend not using wildcards in case you add or copy a source file
+OFILES := $(wildcard $(ODIR)/*.o) #not used, as some recommend not using wildcards in case you add or copy a source file
 
 all: build
-	echo "All..."
+	@echo "All..."
 	
 build: link
-	echo "Building..."
+	@echo "Building..."
 
-link: compile	
-	echo "Linking..."
-	ld -T link.ld -o $(BDIR)/kernel.bin $(ODIR)/start.o $(ODIR)/main.o $(ODIR)/scrn.o $(ODIR)/gdt.o $(ODIR)/idt.o $(ODIR)/isrs.o $(ODIR)/irq.o $(ODIR)/timer.o $(ODIR)/kb.o $(ODIR)/mm.o $(ODIR)/hd.o $(ODIR)/io.o
-	#ld -T link.ld -o $(BDIR)/kernel.bin $(ODIR)/*.o
+link: compile
+	@echo "Linking..."
+	ld -T link.ld -o $(BDIR)/$(OSNAME).bin $(ODIR)/start.o $(ODIR)/main.o $(ODIR)/scrn.o $(ODIR)/gdt.o $(ODIR)/idt.o $(ODIR)/isrs.o $(ODIR)/irq.o $(ODIR)/timer.o $(ODIR)/kb.o $(ODIR)/mm.o $(ODIR)/hd.o $(ODIR)/io.o
+	#ld -T link.ld -o $(BDIR)/$(OSNAME).bin $(ODIR)/*.o
 
 compile: assemble
-	echo "Compiling..."
+	@echo "Compiling..."
 	$(CC) $(CFLAGS) -c -o $(ODIR)/main.o $(SDIR)/main.c
 	$(CC) $(CFLAGS) -c -o $(ODIR)/scrn.o $(SDIR)/scrn.c
 	$(CC) $(CFLAGS) -c -o $(ODIR)/gdt.o $(SDIR)/gdt.c
@@ -31,28 +32,52 @@ compile: assemble
 	$(CC) $(CFLAGS) -c -o $(ODIR)/hd.o $(SDIR)/hd.c
 	$(CC) $(CFLAGS) -c -o $(ODIR)/io.o $(SDIR)/io.c
 
-assemble:
-	echo "Assembling..."
-	nasm -f aout -o $(ODIR)/start.o start.asm
+assemble: dirs
+	@echo "\nAssembling...\n"
+	nasm -f aout -o $(ODIR)/start.o $(SDIR)/start.asm
 
-makeiso:
+dirs:
+	mkdir -p $(BDIR)
+	mkdir -p $(ODIR)
+	mkdir -p $(SDIR)
+	@echo "\nDirectories Created.\n"
 
-makeflp: 
-	mkdosfs -C $(BDIR)/diskimage.flp 1440
+iso:
+	mkisofs -o $(BDIR)/$(OSNAME).iso -b $(BDIR)/$(OSNAME).flp
 
-makefloppy:
+disk: build
+	@echo "\nInjecting Kernel Into Grub Image\n"
+
+	@echo "\nCreating Grub Config File\n"
+	@echo $(OSNAME)":\n\ttitle "$(OSNAME)"\n\troot (fd0)\n\tkernel /boot/"$(OSNAME)".bin\n" > grub.lst
+	@echo 
+	
+	rm -rf tmp-loop
+	mkdir tmp-loop 
+	sudo mount -o loop -t vfat grub_disk.img tmp-loop 
+	sudo cp $(BDIR)/$(OSNAME).bin tmp-loop/boot/$(OSNAME).bin
+	sudo cp grub.lst tmp-loop/boot/menu.cfg
+	sudo umount -f tmp-loop || exit
+	
+	@echo "Creating Blank QEMU Hard Drive Images For Testing"
+	qemu-img create -f qcow2 $(OSNAME)-hd-4mb.img 4MB
+	qemu-img create -f qcow2 $(OSNAME)-hd-8mb.img 8MB	
 
 #TODO: Add Scripts or Programs to Disk Image
 
 test: build
-	echo "Testing"
-
-run: build
-	echo "Running"
+	@echo "\nTesting...\n"	
 	
-clean:
-	echo "Cleaning..."
-	rm $(BDIR)/*
-	rm $(ODIR)/*.o
+
+run: disk
+	@echo "\nRun in QEMU\n"	
+	qemu -m 64 -hda $(OSNAME)-hd-32mb.img -hdb $(OSNAME)-hd-64mb.img -fda grub_disk.img 
+
+#TODO: Should the directories bin/ and obj/ be removed, or just all the files inside?
+#TODO: Should all the bin/* and obj/* files be removed, or should they just be overwritten each time?
+clean: 
+	@echo Files Cleaned.
+	rm -f $(BDIR)/*
+	rm -f $(ODIR)/*.o
 
 	
