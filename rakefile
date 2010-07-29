@@ -1,0 +1,58 @@
+# Testing out converting Makefile to Rakefile
+# Probably should stick with make for now being that it's installed by gnu toolchain by default
+
+task :default => [:build]
+  puts "Finished."
+end
+
+task :build => [:link]
+  puts "Build it and they will come."
+end
+
+task :link => [:compile]
+  #$(LINKER) -T link.ld -o kernel.bin $(BD)/start.o $(BD)/main.o $(BD)/scrn.o $(BD)/gdt.o $(BD)/idt.o $(BD)/isrs.o $(BD)/irq.o $(BD)/timer.o $(BD)/kb.o $(BD)/mm.o $(BD)/hd.o $(BD)/io.o
+  $(LINKER) -T link.ld -o kernel.bin $(BD)/*.o
+  puts "Link it up Scotty"
+end
+
+task :compile => [:assemble]
+  $(GCC) $(CFLAGS) -c -o $(BD)/main.o main.c
+  $(GCC) $(CFLAGS) -c -o $(BD)/scrn.o scrn.c
+  $(GCC) $(CFLAGS) -c -o $(BD)/gdt.o gdt.c
+  $(GCC) $(CFLAGS) -c -o $(BD)/idt.o idt.c
+  $(GCC) $(CFLAGS) -c -o $(BD)/isrs.o isrs.c
+  $(GCC) $(CFLAGS) -c -o $(BD)/irq.o irq.c
+  $(GCC) $(CFLAGS) -c -o $(BD)/timer.o timer.c
+  $(GCC) $(CFLAGS) -c -o $(BD)/kb.o kb.c
+  $(GCC) $(CFLAGS) -c -o $(BD)/mm.o mm.c
+  $(GCC) $(CFLAGS) -c -o $(BD)/hd.o hd.c
+  $(GCC) $(CFLAGS) -c -o $(BD)/io.o io.c
+  puts "Rectifying Splines."
+end
+
+task :assemble
+  nasm -f aout -o $(BD)/start.o start.asm
+  puts "No dis-assemble. Johnny 5 is alive."
+end
+
+task :makeiso => [:build]
+  puts "Making ISO."
+end
+
+task :makedisk => [:build]
+	mkdosfs -C $(BD)/diskimage.flp 1440
+  puts "Making Floppy Disk."
+end
+
+task :start => [:makedisk]
+  puts "Starting Emulator with Disk Image."
+end
+
+task :clean 
+  rm $(BD)/*.o
+end
+
+CFLAGS=-g -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -I./include
+GCC=gcc
+LINKER=ld
+BD=build	

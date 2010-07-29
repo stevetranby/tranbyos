@@ -1,7 +1,10 @@
 CFLAGS=-g -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -I./include
-GCC=gcc
-LINKER=ld
-BD=build
+CC=gcc
+SDIR=src
+ODIR=obj
+BDIR=bin
+SRC_FILES := $(wildcard)
+OBJ_FILES := $(wildcard)
 
 all: build
 	echo "All..."
@@ -11,26 +14,35 @@ build: link
 
 link: compile	
 	echo "Linking..."
-	#$(LINKER) -T link.ld -o kernel.bin $(BD)/start.o $(BD)/main.o $(BD)/scrn.o $(BD)/gdt.o $(BD)/idt.o $(BD)/isrs.o $(BD)/irq.o $(BD)/timer.o $(BD)/kb.o $(BD)/mm.o $(BD)/hd.o $(BD)/io.o
-	$(LINKER) -T link.ld -o kernel.bin $(BD)/*.o
+	ld -T link.ld -o $(BDIR)/kernel.bin $(ODIR)/start.o $(ODIR)/main.o $(ODIR)/scrn.o $(ODIR)/gdt.o $(ODIR)/idt.o $(ODIR)/isrs.o $(ODIR)/irq.o $(ODIR)/timer.o $(ODIR)/kb.o $(ODIR)/mm.o $(ODIR)/hd.o $(ODIR)/io.o
+	#ld -T link.ld -o $(BDIR)/kernel.bin $(ODIR)/*.o
 
 compile: assemble
 	echo "Compiling..."
-	$(GCC) $(CFLAGS) -c -o $(BD)/main.o main.c
-	$(GCC) $(CFLAGS) -c -o $(BD)/scrn.o scrn.c
-	$(GCC) $(CFLAGS) -c -o $(BD)/gdt.o gdt.c
-	$(GCC) $(CFLAGS) -c -o $(BD)/idt.o idt.c
-	$(GCC) $(CFLAGS) -c -o $(BD)/isrs.o isrs.c
-	$(GCC) $(CFLAGS) -c -o $(BD)/irq.o irq.c
-	$(GCC) $(CFLAGS) -c -o $(BD)/timer.o timer.c
-	$(GCC) $(CFLAGS) -c -o $(BD)/kb.o kb.c
-	$(GCC) $(CFLAGS) -c -o $(BD)/mm.o mm.c
-	$(GCC) $(CFLAGS) -c -o $(BD)/hd.o hd.c
-	$(GCC) $(CFLAGS) -c -o $(BD)/io.o io.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/main.o $(SDIR)/main.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/scrn.o $(SDIR)/scrn.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/gdt.o $(SDIR)/gdt.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/idt.o $(SDIR)/idt.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/isrs.o $(SDIR)/isrs.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/irq.o $(SDIR)/irq.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/timer.o $(SDIR)/timer.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/kb.o $(SDIR)/kb.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/mm.o $(SDIR)/mm.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/hd.o $(SDIR)/hd.c
+	$(CC) $(CFLAGS) -c -o $(ODIR)/io.o $(SDIR)/io.c
 
 assemble:
 	echo "Assembling..."
-	nasm -f aout -o $(BD)/start.o start.asm
+	nasm -f aout -o $(ODIR)/start.o start.asm
+
+makeiso:
+
+makeflp: 
+	mkdosfs -C $(BDIR)/diskimage.flp 1440
+
+makefloppy:
+
+#TODO: Add Scripts or Programs to Disk Image
 
 test: build
 	echo "Testing"
@@ -40,6 +52,7 @@ run: build
 	
 clean:
 	echo "Cleaning..."
-	rm $(BD)/*.o
+	rm $(BDIR)/*
+	rm $(ODIR)/*.o
 
 	
