@@ -1,25 +1,25 @@
 #include <system.h>
 
-#define BLACK				0x0
-#define BLUE				0x01	
-#define GREEN				0x02
-#define CYAN				0x03
-#define RED					0x04
-#define MAGENTA			0x05
-#define BROWN				0x06	
-#define LIGHT_GREY		0x07	
-#define DARK_GREY			0x08	
-#define LIGHT_BLUE		0x09
-#define LIGHT_GREEN		0x10
-#define LIGHT_CYAN		0x11
-#define LIGHT_RED			0x12	
+#define BLACK		0x0
+#define BLUE		0x01	
+#define GREEN		0x02
+#define CYAN		0x03
+#define RED		0x04
+#define MAGENTA		0x05
+#define BROWN		0x06	
+#define LIGHT_GREY	0x07	
+#define DARK_GREY	0x08	
+#define LIGHT_BLUE	0x09
+#define LIGHT_GREEN	0x10
+#define LIGHT_CYAN	0x11
+#define LIGHT_RED	0x12	
 #define LIGHT_MAGENTA	0x13
-#define LIGHT_BROWN		0x14
-#define WHITE				0x15
+#define LIGHT_BROWN	0x14
+#define WHITE		0x15
+
 /*
  * These define our textpointer, our background and foreground
  * colors (attributes), and x and y cursor coordinates 
- *
  */
 uint16 *textmemptr;		// word pointer
 uint16 attrib = 0x0F;		// attribute for text colors

@@ -1,9 +1,5 @@
-//#define DEBUG 0
-
 #ifndef __SYSTEM_H
 #define __SYSTEM_H
-
-//#define _DEBUG_
 
 // Defined Constants
 #define NULL 0
@@ -39,17 +35,16 @@
  * we are using 32-bit-x86 (IA-32) and gcc/nasm supporting 32-bits, we 
  * know that these are the correct typedefs.
  */
-typedef unsigned int 	size_t;
-typedef unsigned int	uint;
-typedef unsigned int	uint32;
-typedef unsigned short	uint16;
-typedef unsigned char	uint8;
-typedef uint8			byte;
-typedef uint16			word;
-typedef uint32			dword;
+typedef unsigned int 	  size_t;
+typedef unsigned char	  uint8;
+typedef unsigned short  uint16;
+typedef unsigned int    uint32;
+typedef uint8	          byte;
+typedef uint16      		word;
+typedef uint32			    dword;
 
 typedef unsigned int	bool;
-typedef bool			boolean;
+typedef bool			    boolean;
 
 /* This defines what the stack looks like after an ISR was running */
 struct regs
@@ -132,6 +127,7 @@ extern int ata_pio_read_w(int controller, int slave, int sn, int sc, word *data)
 extern int ata_pio_write_w(int controller, int slave, int sn, int sc, word *data);
 extern int ata_controller_present(int controller);
 extern int ata_drive_present(int controller, int drive);
+uint32 chs2bytes(word c, word h, word s);
 
 #endif
 

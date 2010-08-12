@@ -79,11 +79,11 @@
 *  whatever you want using a macro, if you wish! */
 unsigned char kbdus[128] =
 {
-	0,  27, '1', '2', '3', '4', '5', '6', '7', '8',			/* 9 */
-	'9', '0', '-', '=', '\b', 										/* Backspace */
-	'\t', 																/* Tab */
-	'q', 'w', 'e', 'r', 												/* 19 */
-	't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', 			/* Enter key */
+	0,  27, '1', '2', '3', '4', '5', '6', '7', '8',	  /* 9 */
+	'9', '0', '-', '=', '\b', 										    /* Backspace */
+	'\t', 																            /* Tab */
+	'q', 'w', 'e', 'r', 												      /* 19 */
+	't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',     /* Enter key */
 	KBDUS_CONTROL, 														/* 29 - Control */
 	'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', 		/* 39 */
 	'\'', '`', KBDUS_LEFTSHIFT, 									/* Left shift */

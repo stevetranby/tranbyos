@@ -21,7 +21,7 @@ void ata_wait_busy() {
 			puts(" Error in ata_wait_drq! ");
 		}
 		if (--timer < 0) {
-			puts(" Timeout in ata_wait_busy! ");
+			trace(" Timeout in ata_wait_busy! ");
 			break;
 		}
 	}
@@ -39,7 +39,7 @@ void ata_wait_drq() {
 			puts(" Error in ata_wait_drq! ");
 		}
 		if (--timer < 0) {
-			puts(" Timeout in ata_wait_drq! ");
+			trace(" Timeout in ata_wait_drq! ");
 			break;
 		}
 	}
@@ -57,7 +57,7 @@ void ata_wait_ready() {
 			puts(" Error in ata_wait_drq! ");
 		}
 		if (--timer < 0) {
-			puts(" Timeout in ata_wait_ready! ");
+			trace(" Timeout in ata_wait_ready! ");
 			break;
 		}
 	}
@@ -171,4 +171,14 @@ int ata_pio_read_w(int controller, int slave, int sn, int sc, word *data)
     trace(" Finished Reading");
 
     return 1;
+}
+
+// Calculate CHS to BYTES
+uint32 chs2bytes(word c, word h, word s) {
+  uint32 sectorbytes = SECTOR_BYTES;
+  uint32 bytes = sectorbytes*c*h*s;
+//  uint32 kilobytes = bytes/1024;
+//  uint32 megabytes = bytes/1048576;
+//  uint32 gigabytes = bytes/1073741824;
+  return bytes;
 }

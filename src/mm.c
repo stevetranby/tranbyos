@@ -30,7 +30,6 @@ byte *free_ptr;
 //static block_t *freelist;
 
 
-
 // Initialize the Memory Manager
 void init_mm() {
 	// Let's start simple and create just a standard heap
