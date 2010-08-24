@@ -67,13 +67,13 @@ _I'll write more as I have time to work on this_
 Extensive How-To In Progress
 ------------------------------------------
 
-https://docs.google.com/document/edit?id=17-3cOyXNgPmjh05qogS-h6hKn6WDllWs0xOVhEWvj9I&hl=en
+[Google Doc on How To Build OS](https://docs.google.com/document/edit?id=17-3cOyXNgPmjh05qogS-h6hKn6WDllWs0xOVhEWvj9I&hl=en)
 
 Resources
 ------------------------------------------
 
-- http://www.osdever.net/tutorials/view/getting-started-in-os-development
-- http://mikeos.berlios.de/
+- [http://www.osdever.net/tutorials/view/getting-started-in-os-development](http://www.osdever.net/tutorials/view/getting-started-in-os-development)
+- [http://mikeos.berlios.de/](http://mikeos.berlios.de/)
 - http://www.jamesmolloy.co.uk/tutorial_html/index.html
 - http://wiki.osdev.org/Main_Page
 - http://wiki.osdev.org/Bare_bones
@@ -92,12 +92,14 @@ Tips/Problems
 
 Prob: 
   undefined reference to '__stack_chk_fail'
+
 Desc: 
   This problem occurs when the gcc compiler thinks you have a possible buffer
   overflow, or the code cannot be statically proven to be safe to such a bug.
+
 Soln: 
   add -fno-stack-protector to the CFLAGS as an argument to gcc
-  http://hackinglinux.blogspot.com/2006/11/resolving-stackchkfail-error.html
+  [http://hackinglinux.blogspot.com/2006/11/resolving-stackchkfail-error.html](http://hackinglinux.blogspot.com/2006/11/resolving-stackchkfail-error.html)
 
 -------------
 
