@@ -60,8 +60,14 @@ disk: build
 	sudo umount -f tmp-loop || exit
 	
 	@echo "Creating Blank QEMU Hard Drive Images For Testing"
-	qemu-img create -f qcow2 $(OSNAME)-hd-4mb.img 4MB
-	qemu-img create -f qcow2 $(OSNAME)-hd-8mb.img 8MB	
+
+	# QEMU version pre 0.14
+	#qemu-img create -f qcow2 $(OSNAME)-hd-32mb.img 32MB
+	#qemu-img create -f qcow2 $(OSNAME)-hd-64mb.img 64MB
+
+	# QEMU version 0.14
+	qemu-img create -f qcow2 $(OSNAME)-hd-32mb.img 32M
+	qemu-img create -f qcow2 $(OSNAME)-hd-64mb.img 64M
 
 #TODO: Add Scripts or Programs to Disk Image
 
