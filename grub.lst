@@ -1,5 +1,6 @@
 tranbyos:
 	title tranbyos
 	root (fd0)
+	set gfxmode=auto
 	kernel /boot/tranbyos.bin
 

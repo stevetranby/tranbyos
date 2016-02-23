@@ -1,4 +1,4 @@
 #!/bin/sh
 mount /dev/fd0
-cp kernel.bin /media/floppy
+cp bin/tranbyos.bin /media/floppy
 umount /media/floppy
