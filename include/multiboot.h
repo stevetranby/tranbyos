@@ -46,57 +46,81 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 /* Types. */
 
 /* The Multiboot header. */
-typedef struct multiboot_header
+typedef struct
 {
-	unsigned long magic;
-	unsigned long flags;
-	unsigned long checksum;
-	unsigned long header_addr;
-	unsigned long load_addr;
-	unsigned long load_end_addr;
-	unsigned long bss_end_addr;
-	unsigned long entry_addr;
+	u32 magic;
+	u32 flags;
+	u32 checksum;
+	u32 header_addr;
+	u32 load_addr;
+	u32 load_end_addr;
+	u32 bss_end_addr;
+	u32 entry_addr;
 } multiboot_header_t;
 
 /* The symbol table for a.out. */
-typedef struct aout_symbol_table
+typedef struct
 {
-	unsigned long tabsize;
-	unsigned long strsize;
-	unsigned long addr;
-	unsigned long reserved;
+	u32 tabsize;
+	u32 strsize;
+	u32 addr;
+	u32 reserved;
 } aout_symbol_table_t;
 
 /* The section header table for ELF. */
-typedef struct elf_section_header_table
+typedef struct
 {
-	unsigned long num;
-	unsigned long size;
-	unsigned long addr;
-	unsigned long shndx;
+	u32 num;
+	u32 size;
+	u32 addr;
+	u32 shndx;
 } elf_section_header_table_t;
 
 /* The Multiboot information. */
-typedef struct multiboot_info
+// See: https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Boot_002dtime-configuration
+typedef struct
 {
-	unsigned long flags;
-	unsigned long mem_lower;
-	unsigned long mem_upper;
-	unsigned long boot_device;
-	unsigned long cmdline;
-	unsigned long mods_count;
-	unsigned long mods_addr;
+	u32 flags;
+	
+	u32 mem_lower;
+	u32 mem_upper;
+	
+	u32 boot_device;
+	u32 cmdline;
+	
+	u32 mods_count;
+	u32 mods_addr;
+	
 	union
 	{
 		aout_symbol_table_t aout_sym;
 		elf_section_header_table_t elf_sec;
 	} u;
-	unsigned long mmap_length;
-	unsigned long mmap_addr;
+	
+	u32 mmap_length;
+	u32 mmap_addr;
+
+	u32 drives_length;
+	u32 drives_addr;
+	
+	u32 config_table;
+	
+	u32 boot_loader_name;
+	
+	u32 apm_table;
+
+	// TODO: create vbe struct 
+	u32 vbe_control_info;
+	u32 vbe_mode_info;
+	u32 vbe_mode;
+	u32 vbe_interface_seg;
+	u32 vbe_interface_off;
+	u32 vbe_interface_len;
+
 } multiboot_info_t;
 
 /* The module structure. */
-typedef struct module
+typedef struct
 {
 	unsigned long mod_start;
 	unsigned long mod_end;
@@ -106,7 +130,7 @@ typedef struct module
 
 /* The memory map. Be careful that the offset 0 is base_addr_low
 but no size. */
-typedef struct memory_map
+typedef struct
 {
 	unsigned long size;
 	unsigned long base_addr_low;

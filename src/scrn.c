@@ -1,35 +1,24 @@
 #include <system.h>
 
-#define BLACK		0x0
-#define BLUE		0x01	
-#define GREEN		0x02
-#define CYAN		0x03
-#define RED		0x04
-#define MAGENTA		0x05
-#define BROWN		0x06	
-#define LIGHT_GREY	0x07	
-#define DARK_GREY	0x08	
-#define LIGHT_BLUE	0x09
-#define LIGHT_GREEN	0x10
-#define LIGHT_CYAN	0x11
-#define LIGHT_RED	0x12	
-#define LIGHT_MAGENTA	0x13
-#define LIGHT_BROWN	0x14
-#define WHITE		0x15
-
 /*
  * These define our textpointer, our background and foreground
- * colors (attributes), and x and y cursor coordinates 
+ * colors (attributes), and x and y cursor coordinates
  */
-uint16 *textmemptr;		// word pointer
-uint16 attrib = 0x0F;		// attribute for text colors
-uint16 csr_x = 0, csr_y = 0;	// since these shouldn't ever be neg.
+u16* textmemptr;		// word pointer
+u16  attrib = 0x0F;		// attribute for text colors
+u16  csr_x = 0;
+u16  csr_y = 0;	// since these shouldn't ever be neg.
+
+u16* vidmemptr;        // word pointer
+
+bool write_to_serial;
+bool write_to_stdout;
 
 /* Scrolls the screen */
 void scroll(void)
 {
-    uint16 blank;
-    size_t temp;
+    u16 blank;
+    u32 temp;
 
     /* A blank is defined as a space... we need to give it
     *  backcolor too */
@@ -41,11 +30,11 @@ void scroll(void)
         /* Move the current text chunk that makes up the screen
         *  back in the buffer by a line */
         temp = csr_y - 25 + 1;
-        memcpy ((byte *)textmemptr, (byte *)(textmemptr + temp * 80), (uint16) (25 - temp) * 80 * 2);
+        memcpy ((u8 *)textmemptr, (u8 *)(textmemptr + temp * 80), (u16) (25 - temp) * 80 * 2);
 
         /* Finally, we set the chunk of memory that occupies
         *  the last line of text to our 'blank' character */
-        memsetw ((uint16*)(textmemptr + (25 - temp) * 80), blank, 80);
+        memsetw ((u16*)(textmemptr + (25 - temp) * 80), blank, 80);
         csr_y = 25 - 1;
     }
 }
@@ -54,7 +43,7 @@ void scroll(void)
 *  on the screen under the last character pressed! */
 void move_csr(void)
 {
-    size_t temp;
+    u32 temp;
 
     /* The equation for finding the index in a linear
     *  chunk of memory can be represented by:
@@ -77,7 +66,7 @@ void move_csr(void)
 /* Clears the screen */
 void cls()
 {
-    uint16 blank;
+    u16 blank;
     int i;
 
     /* Again, we need the 16-bits that will be used to
@@ -100,11 +89,12 @@ char getch() {
 	return 0;
 }
 
+// TODO: should store into a buffer instead
 /* Puts a single character on the screen */
-void putch(char c)
+void putch(u8 c)
 {
-    uint16 *where;
-    uint16 att = attrib << 8;
+    u16 *where;
+    u16 att = attrib << 8;
 
     /* Handle a backspace, by moving the cursor back one space */
     if(c == 0x08)
@@ -156,13 +146,10 @@ void putch(char c)
 }
 
 /* Uses the above routine to output a string... */
-void puts(char *text)
+void puts(const char* text)
 {
-    uint16 i;
-
-    for (i = 0; i < strlen((byte *)text); i++)
-    {
-        putch((byte)text[i]);
+    while(*text != 0) {
+        putch(*text++);
     }
 }
 
@@ -173,56 +160,70 @@ void printInt(int number) {
     int isNeg = 0;
 	char buf[MAX_INT_DIGITS];
 	int cur, end, temp=0;
-	
+
 	end = MAX_INT_DIGITS-1;
 	cur = end;
-	
+
 	if(num == 0) {
 		putch('0');
 		return;
 	}
-	
+
 	buf[cur] = '\0';
-	
+
 	// check if negative and print neg character
 	if(num < 0) {
 		isNeg = 1;
 		num = -num;		// abs(num)
 	}
-	
+
 	while(num) {
 		temp = num % 10; // get 'ones' or right most digit
 		--cur;
-		buf[cur] = temp + '0'; // add the digit (temp) to ASCII code '0'				
+		buf[cur] = temp + '0'; // add the digit (temp) to ASCII code '0'
 		num /= 10; // remove right most digit
 	}
-	
-	if(isNeg) 
+
+	if(isNeg)
 		putch('-');
-		
+
 	// print the string
 	char c = '0';
 	for(; cur < end; ++cur) {
 		c = buf[cur];
 		putch(c);
-	}	
+	}
 }
 
-// print out the byte in hex 
-void printHex(byte b) {		
-	printHexDigit((b >> 4) & 0x0f);
+// print out the byte in hex
+void printHex_b(u8 b) {
+	puts("0x");
+    printHexDigit((b >> 4) & 0x0f);
 	printHexDigit((b) & 0x0f);
 }
 
-void printHex_w(word w) {	
-	printHexDigit((w>>12) & 0x0f);
+void printHex_w(u16 w) {
+	puts("0x");
+    printHexDigit((w>>12) & 0x0f);
 	printHexDigit((w>>8) & 0x0f);
 	printHexDigit((w>>4) & 0x0f);
 	printHexDigit((w) & 0x0f);
 }
 
-void printHexDigit(byte digit) {
-	if(digit < 10) 
+void printHex(u32 w) {
+    puts("0x");
+    printHexDigit((w>>28) & 0x0f);
+    printHexDigit((w>>24) & 0x0f);
+    printHexDigit((w>>20) & 0x0f);
+    printHexDigit((w>>16) & 0x0f);
+    printHexDigit((w>>12) & 0x0f);
+    printHexDigit((w>>8) & 0x0f);
+    printHexDigit((w>>4) & 0x0f);
+    printHexDigit((w) & 0x0f);
+}
+
+void printHexDigit(u8 digit) {
+	if(digit < 10)
 		printInt(digit);
 	else {
 		switch(digit) {
@@ -236,22 +237,29 @@ void printHexDigit(byte digit) {
 	}
 }
 
-void printBin_b(byte num) {
+void printBinary_b(u8 num) {
 	int i = 8;
 	while(i--) {
-		printInt((num & (1<<i)) >> i);		
-	}	
-}
-
-void printBin_w(word num) {
-	int i = 16;
-	while(i--) {	
-		printInt((num & (1<<i)) >> i);		
+		printInt((num & (1<<i)) >> i);
 	}
 }
 
+void printBinary_w(u16 num) {
+	int i = 16;
+	while(i--) {
+		printInt((num & (1<<i)) >> i);
+	}
+}
+
+void printBinary(u32 num) {
+    int i = 32;
+    while(i--) {
+        printInt((num & (1<<i)) >> i);
+    }
+}
+
 /* Sets the forecolor and backcolor that we will use */
-void settextcolor(byte forecolor, byte backcolor)
+void settextcolor(u8 forecolor, u8 backcolor)
 {
     /* Top 4 bytes are the background, bottom 4 bytes
     *  are the foreground color */
@@ -259,9 +267,10 @@ void settextcolor(byte forecolor, byte backcolor)
 }
 
 /* Sets our text-mode VGA pointer, then clears the screen for us */
-void init_video(void)
+void init_video()
 {
-    textmemptr = (uint16 *)0xB8000;
+    textmemptr = (u16*)0xB8000;
+    vidmemptr = (u16*)0xA0000;
     cls();
 }
 

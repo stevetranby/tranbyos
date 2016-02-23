@@ -30,7 +30,7 @@ extern void idt_load();
 
 /* Use this function to set an entry in the IDT. Alot simpler
 *  than twiddling with the GDT ;) */
-void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags)
+void idt_set_gate(u8 num, u32 base, u16 sel, u8 flags)
 {
 	/* We'll leave you to try and code this function: take the
 	*  argument 'base' and split it up into a high and low 16-bits,
@@ -56,7 +56,7 @@ void idt_install()
     idtp.base = (unsigned int)&idt;
 
     /* Clear out the entire IDT, initializing it to zeros */
-    memset((byte *)&idt, 0, sizeof(struct idt_entry) * 256);
+    memset((u8 *)&idt, 0, sizeof(struct idt_entry) * 256);
 
     /* Add any new ISRs to the IDT here using idt_set_gate */
 

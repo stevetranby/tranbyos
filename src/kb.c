@@ -6,7 +6,7 @@ char chbuf[255];
 bool keyready = 0;
 
 /* Handles the keyboard interrupt */
-void keyboard_handler(struct regs *r)
+void keyboard_handler(regs *r)
 {
   unsigned char scancode;
 
@@ -19,7 +19,6 @@ void keyboard_handler(struct regs *r)
   {
      /* You can use this one to see if the user released the
      *  shift, alt, or control keys... */
-     
   }
   else
   {
@@ -35,7 +34,7 @@ void keyboard_handler(struct regs *r)
 		*  to the above layout to correspond to 'shift' being
 		*  held. If shift is held using the larger lookup table,
 		*  you would add 128 to the scancode when you look for it */
-    if(kbdus[scancode] == KBDUS_INSERT) {
+    if(kbdus[scancode] == KBDUS_SPACE) {
 			puts("Elasped Time (in seconds): ");
 			printInt( timer_seconds() );
 			putch('\n');

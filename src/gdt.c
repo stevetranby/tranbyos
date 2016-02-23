@@ -30,7 +30,7 @@ struct gdt_ptr gp;
 extern void gdt_flush();
 
 /* Setup a descriptor in the Global Descriptor Table */
-void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned char gran)
+void gdt_set_gate(s32 num, u32 base, u32 limit, u8 access, u8 gran)
 {
     /* Setup the descriptor base address */
     gdt[num].base_low = (base & 0xFFFF);
@@ -55,7 +55,7 @@ void gdt_install()
 {
     /* Setup the GDT pointer and limit */
     gp.limit = (sizeof(struct gdt_entry) * 3) - 1;
-    gp.base = (unsigned int)&gdt;
+    gp.base = (u32)&gdt;
 
     /* Our NULL descriptor */
     gdt_set_gate(0, 0, 0, 0, 0);

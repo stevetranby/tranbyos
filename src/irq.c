@@ -28,13 +28,13 @@ void *irq_routines[16] =
 };
 
 /* This installs a custom IRQ handler for the given IRQ */
-void irq_install_handler(int irq, void (*handler)(struct regs *r))
+void irq_install_handler(u32 irq, void (*handler)(regs *r))
 {
     irq_routines[irq] = handler;
 }
 
 /* This clears the handler for a given IRQ */
-void irq_uninstall_handler(int irq)
+void irq_uninstall_handler(u32 irq)
 {
     irq_routines[irq] = 0;
 }
@@ -68,8 +68,8 @@ void irq_install()
 {
     irq_remap();
 
-    idt_set_gate(32, (unsigned)irq0, 0x08, 0x8E);
-    idt_set_gate(33, (unsigned)irq1, 0x08, 0x8E);
+    idt_set_gate(32, (u32)irq0, 0x08, 0x8E);
+    idt_set_gate(33, (u32)irq1, 0x08, 0x8E);
     idt_set_gate(34, (unsigned)irq2, 0x08, 0x8E);
     idt_set_gate(35, (unsigned)irq3, 0x08, 0x8E);
     idt_set_gate(36, (unsigned)irq4, 0x08, 0x8E);
@@ -97,10 +97,10 @@ void irq_install()
 *  interrupt at BOTH controllers, otherwise, you only send
 *  an EOI command to the first controller. If you don't send
 *  an EOI, you won't raise any more IRQs */
-void irq_handler(struct regs *r)
+void irq_handler(regs *r)
 {
     /* This is a blank function pointer */
-    void (*handler)(struct regs *r);
+    void (*handler)(regs *r);
 
 	/* Find out if we have a custom handler to run for this
 	*  IRQ, and then finally, run it */

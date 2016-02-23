@@ -3,7 +3,7 @@
 
 #define SECTOR_BYTES		512
 #define SECTOR_WORDS		256
-#define SECTOR_DWORD		128 	
+#define SECTOR_DWORDS		128 	
 
 // could use if wanting more than one controller
 #define IDE_PRIMARY		1
@@ -75,7 +75,6 @@
 #define HD_ERR_ID		0x10		//
 #define HD_ERR_ECC		0x40		//
 #define HD_ERR_BBD		0x80		//
-
 
 #endif
 

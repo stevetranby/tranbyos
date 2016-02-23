@@ -11,22 +11,22 @@ typedef struct freeblock freeblock_t;
 struct block {
 	char *base;
 	block_t *next;
-	size_t len;
+	u32 len;
 };
 
 struct freeblock {
 	char *base;
 	freeblock_t *next;
-	size_t len;
+	u32 len;
 };
 
 // This is in start.asm at the end of the file (it's basically the same as the stack pointer + 4k;
-extern byte _sys_heap;
-extern byte end;
+extern u8 _sys_heap;
+extern u8 end;
 
 //static void *brkval;
-byte *heap_ptr;
-byte *free_ptr;
+u8 *heap_ptr;
+u8 *free_ptr;
 //static block_t *freelist;
 
 
@@ -52,16 +52,16 @@ void print_heap_magic() {
 	putch('\n');
 }
 
-byte * kmalloc(size_t nblks) {
-	if((size_t)free_ptr + nblks > MAX_BLOCKS) 
+u8 * kmalloc(u32 nblks) {
+	if((u32)free_ptr + nblks > MAX_BLOCKS) 
 		return NULL;
-	byte *tmp = free_ptr;
+	u8 *tmp = free_ptr;
 	free_ptr = free_ptr + nblks + 1;
 	return tmp;
 }
 
 /*
-void * malloc(size_t size) {
+void * malloc(u32 size) {
 	// Find free block(s) for memory of size nbytes	
 	// Set that block(s) to used
 	// Possibly store some extra information

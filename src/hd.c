@@ -10,7 +10,7 @@ void inline ata_delay400ns()
 }
 
 void ata_wait_busy() {
-	byte status;
+	u8 status;
 	int timer = 10000;
 	while(1) {
 		status = inb(HD_ST_ALT);
@@ -28,7 +28,7 @@ void ata_wait_busy() {
 }
 
 void ata_wait_drq() {
-	byte status;
+	u8 status;
 	int timer = 10000;
 	while(1) {
 		status = inb(HD_ST_ALT);
@@ -46,7 +46,7 @@ void ata_wait_drq() {
 }
 
 void ata_wait_ready() {
-	byte status;
+	u8 status;
 	int timer = 10000;
 	while(1) {
 		status = inb(HD_ST_ALT);
@@ -85,7 +85,7 @@ int ata_controller_present(int controller)
 	cli();
 	outb(HD_SN, 0xa5);
 	ata_delay400ns();
-	byte temp = inb(HD_SN);
+	u8 temp = inb(HD_SN);
 	if(temp == 0xa5) {
 		ret = 1;
 	}
@@ -100,14 +100,14 @@ int ata_drive_present(int controller, int slave) {
 	if(controller == IDE_PRIMARY) {
 		outb(HD_DH, 0xa0 | slave << 4);
 		ata_delay400ns();
-		byte temp = inb(HD_ST);
+		u8 temp = inb(HD_ST);
 		if(temp & HD_ST_BSY) {
 			ret = 1;
 		}
 	} else {
 		outb(HD1_DH, 0xa0 | slave << 4);
 		ata_delay400ns();
-		byte temp = inb(HD1_ST);
+		u8 temp = inb(HD1_ST);
 		if(temp & HD_ST_BSY) {
 			ret = 1;
 		}
@@ -118,7 +118,7 @@ int ata_drive_present(int controller, int slave) {
 
 // controller - 0=primary, 1=secondary
 // slave - 0 or 1 depending on if slave drive
-int ata_pio_write_w(int controller, int slave, int sn, int sc, word *data)
+int ata_pio_write_w(int controller, int slave, int sn, int sc, u16 *data)
 {
     int i;
 
@@ -146,7 +146,7 @@ int ata_pio_write_w(int controller, int slave, int sn, int sc, word *data)
 
 // controller - 0=primary, 1=secondary
 // slave - 0 or 1 depending on if slave drive
-int ata_pio_read_w(int controller, int slave, int sn, int sc, word *data)
+int ata_pio_read_w(int controller, int slave, int sn, int sc, u16 *data)
 {
     int i=0;
     // get the sector count from data size
@@ -173,12 +173,13 @@ int ata_pio_read_w(int controller, int slave, int sn, int sc, word *data)
     return 1;
 }
 
-// Calculate CHS to BYTES
-uint32 chs2bytes(word c, word h, word s) {
-  uint32 sectorbytes = SECTOR_BYTES;
-  uint32 bytes = sectorbytes*c*h*s;
-//  uint32 kilobytes = bytes/1024;
-//  uint32 megabytes = bytes/1048576;
-//  uint32 gigabytes = bytes/1073741824;
-  return bytes;
+// Calculate CHS to u8S
+u32 chs2bytes(u16 c, u16 h, u16 s)
+{
+  u32 bytes = SECTOR_BYTES;
+  u32 u8s = bytes * c * h * s;
+  //u32 kilou8s = u8s/1024;
+  //u32 megau8s = u8s/1048576;
+  //u32 gigau8s = u8s/1073741824;
+  return u8s;
 }
