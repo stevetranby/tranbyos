@@ -12,8 +12,8 @@ BUILD_DIR=tools
 SRC=src
 OBJ_DIR=obj
 BIN_DIR=bin
-ASM_DIR="$(SRC)/asm"
-INC_DIR="$(SRC)/include"
+ASM_DIR=$(SRC)/asm
+INC_DIR=$(SRC)/include
 
 # these are not used, as some recommend not using wildcards 
 # in case you add or copy a source file.

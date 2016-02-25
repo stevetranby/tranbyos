@@ -1,12 +1,26 @@
 // /**/
 //
 // Stream Setup and Prep:
-//
 // - Practice Streaming Something Simple
 // - Decide on one or two major features "unique" to the OS
 // - Create a list of topics for the first 10 streams
 // - Decide on rough time limit, stick to it as close as possible
 // - Setup Patreon
+//
+// Stream Topics:
+// - Bootloader
+// - Virtual Machine, QEMU, Bochs, VirtualBox
+// - Bootloaders, GRUB, MultiBoot
+// - Setting up GRUB-based kernel
+// - Interrupts
+// - Process Structure
+// - Memory Manager
+// - Memory Paging and Page Table
+// - Caching and TLB
+// - IRQs, ISRs, GDT, IDT, etc
+// - Processor Modes (Real, Protected, Long)
+// - x86, x86_64, Arm64
+//
 //
 //
 // Ideas:
