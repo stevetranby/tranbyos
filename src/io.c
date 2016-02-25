@@ -1,6 +1,19 @@
-#include <system.h>
+#include "include/system.h"
 
-// TODO: maybe just move these into .asm? why bother just because 
+#define global static
+#define internal static inline
+#define asm_volatile __asm__ __volatile__
+
+static inline u8 inb_dummy(u16 port)
+{
+    u8 ret;
+    asm_volatile ( "inb %[port], %[ret]"
+                  : [ret] "=a"(ret)
+                  : [port] "Nd"(port) );
+    return ret;
+}
+
+// TODO: maybe just move these into .asm? why bother just because
 //       we want everything in C?
 
 /* We will use this later on for reading from the I/O ports to get data
@@ -9,21 +22,21 @@
 u8 inb (u16 _port)
 {
     u8 rv;
-__asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
+    __asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
     return rv;
 }
 
 u16 inw(u16 _port)
 {
     u16 rv;
-__asm__ volatile ("inw %1, %0" : "=a" (rv) : "dN" (_port));
+    __asm__ volatile ("inw %1, %0" : "=a" (rv) : "dN" (_port));
     return rv;
 }
 
 u32 ind(u16 _port)
 {
     u32 rv;
-__asm__ volatile ("inl %1, %0" : "=a" (rv) : "dN" (_port));
+    __asm__ volatile ("inl %1, %0" : "=a" (rv) : "dN" (_port));
     return rv;
 }
 
@@ -83,19 +96,28 @@ steveis_awesome_t is_transmit_empty() {
    return inb(PORT + 5) & 0x20;
 }
  
-void write_serial_b(u8 a) {
+void serial_write_b(u8 a) {
    while (is_transmit_empty() == 0)
    		; 
    outb(PORT,a);
 }
 
-void write_serial(char* str) {
+void serial_writeln(c_str str) {
+    while (*str != 0) {
+        serial_write_b(*str);
+        str++;
+    }
+    serial_write_b('\r');
+    serial_write_b('\n');
+}
+
+void serial_write(c_str str) {
 	while (*str != 0) {
 		if(*str == '\n') {
-			write_serial_b('\r');
-			write_serial_b('\n');
+			serial_write_b('\r');
+			serial_write_b('\n');
 		}
-		write_serial_b(*str);
+		serial_write_b(*str);
 		str++;
 	}
 }

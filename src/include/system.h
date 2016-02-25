@@ -29,7 +29,7 @@
 #define COLOR_LIGHT_CYAN    0x0b
 #define COLOR_LIGHT_RED     0x0c
 #define COLOR_LIGHT_MAGENTA 0x0d
-#define COLOR_LIGHT_BROWN   0x0e
+#define COLOR_YELLOW        0x0e
 #define COLOR_WHITE         0x0f
 enum class {
     Black
@@ -83,16 +83,17 @@ typedef struct
     u32 eip, cs, eflags, useresp, ss;
 } isr_stack_state;
 
-
+// TODO: get a calendar library
 // Clock "Real" Time (from battery-backed CMOS)
+// second: 0-59, minute: 0-59, day: 0-31, month: 0-12, year: yyyy
 typedef struct 
 {
 	u8 second;
 	u8 minute;
 	u8 hour;
 	u8 day;
-	u8 month;
-	u32 year;
+    u8 month;
+	u16 year;
 } rtc_time;
 
 /////////////////////////////////////
@@ -118,6 +119,7 @@ typedef struct {
 extern u8*  memcpy(u8* dest, const u8* src, u32 count);
 extern u8*  memset(u8* dest, u8 val, u32 count);
 extern u16* memsetw(u16* dest, u16 val, u32 count);
+
 extern u32  strlen(c_str str);
 
 extern u32  rand(void);
@@ -134,16 +136,21 @@ extern void init_serial();
 extern int serial_received();
 extern char read_serial();
 extern int is_transmit_empty();
-extern void write_serial_b(u8 a);
-extern void write_serial(char* str);
-/* scrn.c */
+extern void serial_write_b(u8 a);
+extern void serial_write(c_str str);
+
+// Screen
 extern void cls();
-extern char getch();
+extern u8 getch();
 extern void putch(u8 c);
-extern void puts(const char* str);
-extern void settextcolor(u8 forecolor, u8 backcolor);
+extern void puts(c_str str);
+extern void set_text_color(u8 forecolor, u8 backcolor);
 extern void init_video();
-extern void printInt(int num);
+
+// Number to String Representation
+extern void printInt(i32 num);
+extern void printUInt(u32 num);
+extern void printAddr(void* num);
 extern void printHex_b(u8 b);
 extern void printHex_w(u16 w);
 extern void printHex(u32 w);

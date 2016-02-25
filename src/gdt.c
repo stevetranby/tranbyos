@@ -3,7 +3,7 @@
 /* Defines a GDT entry. We say packed, because it prevents the
 *  compiler from doing things that it thinks is best: Prevent
 *  compiler "optimization" by packing */
-struct gdt_entry
+typedef struct
 {
     unsigned short limit_low;
     unsigned short base_low;
@@ -11,19 +11,19 @@ struct gdt_entry
     unsigned char access;
     unsigned char granularity;
     unsigned char base_high;
-} __attribute__((packed));
+} __attribute__((packed)) gdt_entry;
 
 /* Special pointer which includes the limit: The max bytes
 *  taken up by the GDT, minus 1. Again, this NEEDS to be packed */
-struct gdt_ptr
+typedef struct
 {
     unsigned short limit;
     unsigned int base;
-} __attribute__((packed));
+} __attribute__((packed)) gdt_ptr;
 
-/* Our GDT, with 3 entries, and finally our special GDT pointer */
-struct gdt_entry gdt[3];
-struct gdt_ptr gp;
+/// Global Descriptor Table (GDT) entries
+gdt_entry gdt[3];
+gdt_ptr gp;
 
 /* This will be a function in start.asm. We use this to properly
 *  reload the new segment registers */
@@ -54,7 +54,7 @@ void gdt_set_gate(u32 num, u32 base, u32 limit, u8 access, u8 gran)
 void gdt_install()
 {
     /* Setup the GDT pointer and limit */
-    gp.limit = (sizeof(struct gdt_entry) * 3) - 1;
+    gp.limit = (sizeof(gdt_entry) * 3) - 1;
     gp.base = (u32)&gdt;
 
     /* Our NULL descriptor */

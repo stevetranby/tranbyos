@@ -8,19 +8,14 @@
 ; Utilize 32-bit x86
 [BITS 32]
 
-; This is the kernel's entry point. We could either call main here,
-; or we can use this to setup the stack or other nice stuff, like
-; perhaps setting up the GDT and segments. Please note that interrupts
-; are disabled at this point: More on interrupts later!
-[BITS 32]
 global start
 global gdt_flush	; Allows the C code to link to this
 global idt_load		; Allows the C code to link to this
 global _sys_heap	; Allows the C code to link to this 
 
 extern _main		; have to specify '_main' instead of 'main' since we're using ELF format
-extern gp		; Says that 'gp' is in another file
-extern idtp
+extern gp           ; Says that 'gp' is in another file
+extern idtp         ;
 
 start:
     mov esp, _sys_stack		; This points the stack to our new stack area
@@ -32,7 +27,7 @@ mboot:
     ; Multiboot macros to make a few lines later more readable
     MULTIBOOT_PAGE_ALIGN	equ 1<<0
     MULTIBOOT_MEMORY_INFO	equ 1<<1
-    MULTIBOOT_VIDEO_INFO   equ 1<<2
+    MULTIBOOT_VIDEO_INFO    equ 1<<2
     MULTIBOOT_AOUT_KLUDGE	equ 1<<16
     MULTIBOOT_HEADER_MAGIC	equ 0x1BADB002
     MULTIBOOT_HEADER_FLAGS	equ MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO | MULTIBOOT_VIDEO_INFO | MULTIBOOT_AOUT_KLUDGE
@@ -61,7 +56,6 @@ stublet:
 	call _main
     jmp $           ; jump to self (halta)
 
-
 sse_enabled:
     mov eax, 0x1
     cpuid
@@ -73,8 +67,9 @@ sse_enabled:
 .noSSE:
     ret;
 
+
+;now enable SSE and the like
 enable_sse:
-    ;now enable SSE and the like
     mov eax, cr0
     and ax, 0xFFFB      ;clear coprocessor emulation CR0.EM
     or ax, 0x2          ;set coprocessor monitoring  CR0.MP
@@ -85,7 +80,6 @@ enable_sse:
     ret
 
 _outp_8:
-    ;outb 
     ret;
 _outp_16:
     ;outw
@@ -103,6 +97,49 @@ _inp_32:
     ;inl
     ret;
 
+;    u8 inb (u16 _port)
+;{
+;    u8 rv;
+;__asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
+;    return rv;
+;}
+;
+;u16 inw(u16 _port)
+;{
+;    u16 rv;
+;__asm__ volatile ("inw %1, %0" : "=a" (rv) : "dN" (_port));
+;    return rv;
+;}
+;
+;u32 ind(u16 _port)
+;{
+;    u32 rv;
+;__asm__ volatile ("inl %1, %0" : "=a" (rv) : "dN" (_port));
+;    return rv;
+;}
+;
+;/* We will use this to write to I/O ports to send bytes to devices. This
+;*  will be used in the next tutorial for changing the textmode cursor
+;*  position. Again, we use some inline assembly for the stuff that simply
+;*  cannot be done in C */
+;void outb (u16 _port, u8 _data)
+;{
+;__asm__ __volatile__ ("outb %1, %0" : : "dN" (_port), "a" (_data));
+;}
+;
+;void outw (u16 _port, u16 _data)
+;{
+;__asm__ __volatile__ ("outw %1, %0" : : "dN" (_port), "a" (_data));
+;}
+;
+;void outd (u16 _port, u32 _data)
+;{
+;__asm__ __volatile__ ("outl %1, %0" : : "dN" (_port), "a" (_data));
+;}
+;
+
+
+;--------------------------------------------------------------------
 
 ; Shortly we will add code for loading the GDT right here!
 ; This will set up our new segment registers. We need to do
@@ -110,7 +147,7 @@ _inp_32:
 ; far jump. A jump that includes a segment as well as an offset.
 ; This is declared in C as 'extern void gdt_flush();'
 gdt_flush:
-    lgdt [gp]        ; Load the GDT with our '_gp' which is a special pointer
+    lgdt [gp]         ; Load the GDT with our '_gp' which is a special pointer
     mov ax, 0x10      ; 0x10 is the offset in the GDT to our data segment
     mov ds, ax
     mov es, ax
@@ -121,6 +158,7 @@ gdt_flush:
 flush2:
     ret               ; Returns back to the C code!
 
+;--------------------------------------------------------------------
 
 ; Loads the IDT defined in '_idtp' into the processor.
 ; This is declared in C as 'extern void idt_load();'
@@ -128,22 +166,21 @@ idt_load:
     lidt [idtp]
     ret
 
+;--------------------------------------------------------------------
 ; Interrupt Service Routines (ISR)
 %assign i 0
 %rep    32
-
 ; make handler available to 'C'
-global isr%[i]
-
+global isr %+ i
 ; IRQ handler
-isr%[i]:
+isr %+ i:
     cli
-    push byte 0
-    push byte %[i]
-    jmp isr_common_stub
-
+    push    byte 0
+    push    byte i
+    jmp     isr_common_stub
 %assign i i+1
 %endrep
+
 	
 ; We call a C function in here. We need to let the assembler know
 ; that '_fault_handler' exists in another file
@@ -153,44 +190,53 @@ extern fault_handler
 ; up for kernel mode segments, calls the C-level fault handler,
 ; and finally restores the stack frame.
 isr_common_stub:
-    pusha
+    pusha            ; push all regular registers (ax,bx,cx,dx,etc)
+
     push ds
     push es
     push fs
     push gs
+
     mov ax, 0x10   ; Load the Kernel Data Segment descriptor!
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
+
     mov eax, esp   ; Push us the stack
     push eax
+
     mov eax, fault_handler
+
     call eax       ; A special call, preserves the 'eip' register
+
     pop eax
     pop gs
     pop fs
     pop es
     pop ds
-    popa
+
+    popa           ; pop all regular registers (ax,bx,cx,dx,etc)
+
     add esp, 8     ; Cleans up the pushed error code and pushed ISR number
+
     iret           ; pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP!
 
+;--------------------------------------------------------------------
 ; Interrupt Request (IRQ) handlers
 %assign i 0
 %assign j 32
 %rep    16
 
 ; make handler available to 'C'
-global irq%[i]
+global irq %+ i
 
 ; IRQ handler
-irq%[i]:
-    cli
+irq %+ i:
+    cli                     ; make sure we clear interrupts so we have full control
     push byte 0
-    push byte %[j]
+    push byte j
     jmp irq_common_stub
-
 %assign i i+1
 %assign j j+1
 %endrep
@@ -199,19 +245,21 @@ extern irq_handler
 
 irq_common_stub:
     pusha
+
     push ds
     push es
     push fs
     push gs
 
-    mov ax, 0x10
+    mov ax, 0x10   ; Load the Kernel Data Segment descriptor!
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
-    mov eax, esp
 
+    mov eax, esp   ; Push us the stack
     push eax
+
     mov eax, irq_handler
     call eax
     pop eax
@@ -221,15 +269,25 @@ irq_common_stub:
     pop es
     pop ds
     popa
+
     add esp, 8
+
+    sti                     ; make sure we enable interrupts again
+
     iret
 
-; Here is the definition of our BSS section. Right now, we'll use
-; it just to store the stack. Remember that a stack actually grows
-; downwards, so we declare the size of the data before declaring
-; the identifier '_sys_stack'
+;--------------------------------------------------------------------
+
+; Block Started by Symbol (BSS)
+; - mostly used for uninitialized data (static int i;)
+; - https://en.wikipedia.org/wiki/.bss
+; - often the heap grows upward and thus sys_heap label/extern may be used for
+;
+; NOTE: using for boot stack/heap
+; TODO: adjust once full kernel loaded
+;
 SECTION .bss
     resb 8192               ; This reserves 8KBytes of memory here for the stack
 _sys_stack:
-	resb 1024
+	resb 1024               ; This is the heap
 _sys_heap:

@@ -61,8 +61,8 @@ compile: dirs
 # currently working on 
 assemble: dirs
 	@echo "\nAssembling...\n"
-	#nasm -f aout -o $(OBJ_DIR)/start.o $(SRC)/start.s
 	nasm -f elf -o $(OBJ_DIR)/start.o $(ASM_DIR)/start.s
+	#nasm -f aout -o $(OBJ_DIR)/start.o $(SRC)/start.s
 
 dirs:
 	mkdir -p $(BIN_DIR)
@@ -73,10 +73,15 @@ iso:
 	mkisofs -o $(BIN_DIR)/$(OSNAME).iso -b $(BIN_DIR)/$(OSNAME).flp
 
 copykernel: build
-	@echo "\nInjecting Kernel Into Grub Image\n"
-	@echo "\nCreating Grub Config File\n"
-	@echo $(OSNAME)":\n\ttitle "$(OSNAME)"\n\troot (fd0)\n\tset gfxmode=auto\n\tkernel /boot/"$(OSNAME)".bin\n" > grub.lst
-	@echo
+	@echo "\nInjecting Kernel Into Grub Image"
+	@echo "Creating Grub Config File"
+	@echo $(OSNAME)":\n\ttitle "$(OSNAME)"\n\troot (fd0)\n\tset gfxmode=auto\n\tkernel /boot/"$(OSNAME)".bin\n" > $(BUILD_DIR)/grub.lst
+
+	# OSX Lion Disk Mount
+	hdiutil attach tools/grub_disk.img
+	cp $(BIN_DIR)/$(OSNAME).bin /Volumes/GRUB/boot/$(OSNAME).bin
+	cp $(BUILD_DIR)/grub.lst /Volumes/GRUB/boot/menu.cfg
+	#hdiutil detach /Volumes/GRUB
 
 	# Linux Disk Mount
 	#rm -rf tmp-loop
@@ -86,15 +91,10 @@ copykernel: build
 	#sudo cp grub.lst tmp-loop/boot/menu.cfg
 	#sudo umount -f tmp-loop || exit
 
-	# OSX Lion Disk Mount
-	hdiutil attach $(BUILD_DIR)/grub_disk.img
-	cp $(BIN_DIR)/$(OSNAME).bin /Volumes/GRUB/boot/$(OSNAME).bin
-	cp $(BUILD_DIR)/grub.lst /Volumes/GRUB/boot/menu.cfg
-	#hdiutil detach /Volumes/GRUB
 
 
 disks:
-	@echo "Creating Blank QEMU Hard Drive Images For Testing"
+	@echo "\nCreating Blank QEMU Hard Drive Images For Testing"
 	$(QIMG) create -f qcow2 $(BUILD_DIR)/$(OSNAME)-hd-32mb.img 32M
 	$(QIMG) create -f qcow2 $(BUILD_DIR)/$(OSNAME)-hd-64mb.img 64M
 
@@ -106,9 +106,10 @@ test: build
 
 # -vga [std|cirrus|vmware|qxl|xenfb|tcx|cg3|virtio|none]
 # => VESA VBE virtual graphic card (std 1024x768, cirrus 4096x4096??, vmware fastest if can setup)
+# -rtc [base=utc|localtime|date][,clock=host|vm][,driftfix=none|slew]
 run: copykernel disks
-	@echo "\nRun in QEMU\n"
-	$(QEMU) -m 32 -hda $(BUILD_DIR)/$(OSNAME)-hd-32mb.img -hdb $(BUILD_DIR)/$(OSNAME)-hd-64mb.img -fda $(BUILD_DIR)/grub_disk.img -vga vmware -serial stdio
+	@echo "\nRun in QEMU"
+	$(QEMU) -m 32 -rtc base=localtime,clock=host,driftfix=slew -hda $(BUILD_DIR)/$(OSNAME)-hd-32mb.img -hdb $(BUILD_DIR)/$(OSNAME)-hd-64mb.img -fda $(BUILD_DIR)/grub_disk.img -vga vmware -serial stdio
 
 
 #TODO: Should the directories bin/ and obj/ be removed, or just all the files inside?

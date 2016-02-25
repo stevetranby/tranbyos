@@ -1,3 +1,5 @@
 #pragma once
 
-typedef struct { } block;
+#include "system.h"
+
+//typedef struct { } fs_block;

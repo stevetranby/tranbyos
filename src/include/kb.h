@@ -80,4 +80,8 @@
 *  comments in to give you an idea of what key is what, even
 *  though I set it's array index to 0. You can change that to
 *  whatever you want using a macro, if you wish! */
-extern u8 kbdus[128];
+
+typedef u8 kbscan_t;
+extern kbscan_t kbdus[128];
+extern kbscan_t keyboard_read_next();
+

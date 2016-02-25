@@ -42,18 +42,18 @@ void init_mm() {
 }
 
 void print_heap_magic() {
-	int i;
-	printInt((int)&_sys_heap);
-	putch('|');
-	printInt((int)heap_ptr);
-	putch('|');
-	for(i = 0; i<4; ++i)
+	printAddr(&_sys_heap);
+	puts(" | ");
+	printAddr(heap_ptr);
+	puts(" | ");
+	for(int i = 0; i<4; ++i)
 		putch(heap_ptr[i]);
 	putch('\n');
 }
 
+// Byte Allocator for Heap
 u8 * kmalloc(u32 nblks) {
-	if((u32)free_ptr + nblks > MAX_BLOCKS) 
+    if((u32)free_ptr + nblks > MAX_BLOCKS)
 		return NULL;
 	u8 *tmp = free_ptr;
 	free_ptr = free_ptr + nblks + 1;
