@@ -1,15 +1,10 @@
-; File: start.asm
 ; Author: Steve Tranby
-; Description: An operating system needs to perform some functions in assembly code to work. This file does that.
-; Special Thanks to: 
-;
-
-
 ; Using NASM, GCC (for now), ELF
+
+; GRUB MultiBoot Loader
 
 ; Utilize 32-bit x86
 [BITS 32]
-
 
 ; This is the kernel's entry point. We could either call main here,
 ; or we can use this to setup the stack or other nice stuff, like

@@ -29,6 +29,15 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "85B928231C7EA36700FFA7B7"
+            BuildableName = "TranbyOSDummyC"
+            BlueprintName = "TranbyOSDummyC"
+            ReferencedContainer = "container:TestTranbyOS.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>

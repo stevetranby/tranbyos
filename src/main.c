@@ -22,6 +22,7 @@
 //
 // TODO(steve):
 //
+// - Linux Kernel v0.1: https://www.kernel.org/pub/linux/kernel/Historic/
 // - Switch Processing Modes: Real <--> Protected <--> Long
 //   - http://www.codeproject.com/Articles/45788/The-Real-Protected-Long-mode-assembly-tutorial-for
 // - CPUID: https://github.com/rythie/CPUID-in-Assembly
@@ -40,10 +41,10 @@
 
 // # Completed 
 
-#include <system.h>
+#include "include/system.h"
 
 // Grub2 
-#include "multiboot.h"
+#include "include/multiboot.h"
 
 // drivers
 #include "hd.h"

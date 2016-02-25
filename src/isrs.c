@@ -94,7 +94,7 @@ void isrs_install()
 ///
 char *exception_messages[] =
 {
-    // 0-18
+    // 0x00 - 0x09
     "Division By Zero",
     "Debug",
     "Non Maskable Interrupt",
@@ -104,16 +104,18 @@ char *exception_messages[] =
     "Invalid Opcode",
     "No Coprocessor",
     "Double Fault",
-    "Coprocessor Segment Overrun",
-    "Bad TSS",
+    "Coprocessor Segment Overrun", // 386 and earlier only
+    // 0x0A-0x13
+    "Bad TSS", // Invalid Task State Segment
     "Segment Not Present",
     "Stack Fault",
     "General Protection Fault",
     "Page Fault",
-    "Unknown Interrupt",
+    "Unknown Interrupt [RESERVED]",
     "Coprocessor Fault",
     "Alignment Check",
     "Machine Check",
+    "SIMD Floating-Point Exception",
 
     // 19-??
     "Reserved",
@@ -130,6 +132,8 @@ char *exception_messages[] =
     "Reserved",
     "Reserved"
 };
+
+
 
 // All of our Exception handling Interrupt Service Routines will
 // point to this function. This will tell us what exception has

@@ -8,7 +8,7 @@ CC=i386-elf-gcc
 CXX=i386-elf-g++
 LD=i386-elf-ld
 
-BUILD_DIR=build
+BUILD_DIR=tools
 SRC=src
 OBJ_DIR=obj
 BIN_DIR=bin

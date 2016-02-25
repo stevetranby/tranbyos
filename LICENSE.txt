@@ -1,3 +1,2 @@
 License: MIT or Public Domain
-Copyright: Steve Tranby 2016
-
+Copyright © 2016 Steve Tranby.

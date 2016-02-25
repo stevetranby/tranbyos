@@ -1,3 +1,6 @@
+; TODO: can we move this into C code?
+
+
 ; From: http:// ??????
 
 section .bss ; $Revision: 1.6 $
@@ -35,8 +38,7 @@ mov [version],eax
 mov [features],edx
 ;mov [100000f0h],ebx ;break program for debugging
 
-;;########################## A FOR LOOP ###################################################
-;;for(i = 8; i != 0; i++){
+;; loop
 mov	eax,00000001h
 mov	[curfeat],eax
 mov     eax,-1

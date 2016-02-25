@@ -4,11 +4,6 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>TestTranbyOS.xcscheme</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>0</integer>
-		</dict>
 		<key>TranbyOSDummyC.xcscheme</key>
 		<dict>
 			<key>orderHint</key>

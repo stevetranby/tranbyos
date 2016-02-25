@@ -8,4 +8,4 @@ tmp-loop/*
 *~
 #*#
 *.img
-
+*.xcuserstate

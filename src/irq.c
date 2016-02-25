@@ -1,5 +1,10 @@
 #include <system.h>
 
+// Interrupts & CPU Exception Handling
+// - http://wiki.osdev.org/Interrupts
+// - http://wiki.osdev.org/Exceptions
+// - https://en.wikipedia.org/wiki/Interrupt_descriptor_table
+
 /* These are own ISRs that point to our special IRQ handler
 *  instead of the regular 'fault_handler' function */
 extern void irq0();

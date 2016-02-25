@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		85B928271C7EA36700FFA7B7 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 85B928261C7EA36700FFA7B7 /* main.c */; };
+		85B928301C7EA49000FFA7B7 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 85B9282C1C7EA49000FFA7B7 /* Makefile */; };
+		85B928311C7EA49000FFA7B7 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 85B9282D1C7EA49000FFA7B7 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +27,12 @@
 /* Begin PBXFileReference section */
 		85B928241C7EA36700FFA7B7 /* TranbyOSDummyC */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TranbyOSDummyC; sourceTree = BUILT_PRODUCTS_DIR; };
 		85B928261C7EA36700FFA7B7 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		85B9282B1C7EA49000FFA7B7 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LICENSE.txt; path = ../../LICENSE.txt; sourceTree = "<group>"; };
+		85B9282C1C7EA49000FFA7B7 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../../Makefile; sourceTree = "<group>"; };
+		85B9282D1C7EA49000FFA7B7 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../README.md; sourceTree = "<group>"; };
+		85B9282E1C7EA49000FFA7B7 /* setup */ = {isa = PBXFileReference; lastKnownFileType = folder; name = setup; path = ../../setup; sourceTree = "<group>"; };
+		85B9282F1C7EA49000FFA7B7 /* tests */ = {isa = PBXFileReference; lastKnownFileType = folder; name = tests; path = ../../tests; sourceTree = "<group>"; };
+		85B928321C7EA51500FFA7B7 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; name = src; path = ../../src; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +49,12 @@
 		85B927D81C7E94B300FFA7B7 = {
 			isa = PBXGroup;
 			children = (
+				85B9282B1C7EA49000FFA7B7 /* LICENSE.txt */,
+				85B9282C1C7EA49000FFA7B7 /* Makefile */,
+				85B9282D1C7EA49000FFA7B7 /* README.md */,
+				85B9282E1C7EA49000FFA7B7 /* setup */,
+				85B928321C7EA51500FFA7B7 /* src */,
+				85B9282F1C7EA49000FFA7B7 /* tests */,
 				85B928251C7EA36700FFA7B7 /* TranbyOSDummyC */,
 				85B927E21C7E94B300FFA7B7 /* Products */,
 			);
@@ -139,6 +153,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				85B928311C7EA49000FFA7B7 /* README.md in Sources */,
+				85B928301C7EA49000FFA7B7 /* Makefile in Sources */,
 				85B928271C7EA36700FFA7B7 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -228,12 +244,6 @@
 		85B9281E1C7E95E500FFA7B7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEBUGGING_SYMBOLS = YES;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -241,9 +251,6 @@
 		85B9281F1C7E95E500FFA7B7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -290,6 +297,7 @@
 				85B9282A1C7EA36700FFA7B7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

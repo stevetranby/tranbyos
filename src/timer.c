@@ -37,6 +37,7 @@ void timer_install()
 
 u32 timer_ticks() { return _timer_ticks; }
 u32 timer_seconds() { return ticks_to_s(_timer_ticks); } 
+
 /* This will continuously loop until the given time has
 *  been reached */
 void delay_ticks(int ticks)
