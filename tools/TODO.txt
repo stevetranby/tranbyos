@@ -1,0 +1,37 @@
+
+# Stream Setup and Prep
+- Practice Streaming Something Simple
+- Decide on one or two major features "unique" to the OS
+- Create a list of topics for the first 10 streams
+- Decide on rough time limit, stick to it as close as possible
+- Setup Patreon
+
+# Ideas
+- allow building and run on 
+
+
+# References
+
+## RANDOM
+- CSPNG: https://en.wikipedia.org/wiki/Cryptographically_secure_pseudorandom_number_generator
+- arc4random: http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man3/arc4random.3?query=arc4random&sec=3
+
+---------------
+
+
+# TODO(Now)
+- Switch Processing Modes: Real <--> Protected <--> Long
+  - http://www.codeproject.com/Articles/45788/The-Real-Protected-Long-mode-assembly-tutorial-for
+- CPUID: https://github.com/rythie/CPUID-in-Assembly
+- Processor TLB Structure
+- Context Switch Capability
+- Fork Capability
+- Memory Allocator (malloc-like, free store, index forward and circle around, over time bring all blocks to the latest HEAD)
+  - see the video somewhere on SSD's not like erase, but write okay 
+- Simple Shell (trash - TRAnby SHell)
+
+# TODO(Future)
+- Build on Win10 Support
+- 
+
+# Completed 

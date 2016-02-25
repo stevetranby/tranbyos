@@ -1,4 +1,4 @@
-#include <system.h>
+#include "system.h"
 
 /* These are function prototypes for all of the exception
 *  handlers: The first 32 entries in the IDT are reserved
@@ -35,6 +35,9 @@ extern void isr28();
 extern void isr29();
 extern void isr30();
 extern void isr31();
+
+///////////////////////////////////////////////////////////////////
+// ISRS
 
 /* This is a very repetitive function... it's not hard, it's
 *  just annoying. As you can see, we set the first 32 entries
@@ -84,12 +87,14 @@ void isrs_install()
     idt_set_gate(31, (unsigned)isr31, 0x08, 0x8E);
 }
 
-/* This is a simple string array. It contains the message that
-*  corresponds to each and every exception. We get the correct
-*  message by accessing like:
-*  exception_message[interrupt_number] */
+/// CPU Exception Message
+///
+/// http://wiki.osdev.org/Exceptions
+///
+///
 char *exception_messages[] =
 {
+    // 0-18
     "Division By Zero",
     "Debug",
     "Non Maskable Interrupt",
@@ -98,7 +103,6 @@ char *exception_messages[] =
     "Out of Bounds",
     "Invalid Opcode",
     "No Coprocessor",
-
     "Double Fault",
     "Coprocessor Segment Overrun",
     "Bad TSS",
@@ -107,16 +111,16 @@ char *exception_messages[] =
     "General Protection Fault",
     "Page Fault",
     "Unknown Interrupt",
-
     "Coprocessor Fault",
     "Alignment Check",
     "Machine Check",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
 
+    // 19-??
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
     "Reserved",
     "Reserved",
     "Reserved",
@@ -127,13 +131,13 @@ char *exception_messages[] =
     "Reserved"
 };
 
-/* All of our Exception handling Interrupt Service Routines will
-*  point to this function. This will tell us what exception has
-*  happened! Right now, we simply halt the system by hitting an
-*  endless loop. All ISRs disable interrupts while they are being
-*  serviced as a 'locking' mechanism to prevent an IRQ from
-*  happening and messing up kernel data structures */
-void fault_handler(regs *r)
+// All of our Exception handling Interrupt Service Routines will
+// point to this function. This will tell us what exception has
+// happened! Right now, we simply halt the system by hitting an
+// endless loop. All ISRs disable interrupts while they are being
+// serviced as a 'locking' mechanism to prevent an IRQ from
+// happening and messing up kernel data structures
+void fault_handler(isr_stack_state* r)
 {
     /* Is this a fault whose number is from 0 to 31? */
     if (r->int_no < 32)
@@ -143,7 +147,14 @@ void fault_handler(regs *r)
 		*  infinite loop */
         puts(exception_messages[r->int_no]);
         puts(" Exception. System Halted!\n");
+
+
+        // TODO: Panic()
+
         for (;;);
     }
 }
 
+void kernel_panic()
+{
+}

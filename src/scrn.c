@@ -1,4 +1,4 @@
-#include <system.h>
+#include "system.h"
 
 /*
  * These define our textpointer, our background and foreground
@@ -11,8 +11,8 @@ u16  csr_y = 0;	// since these shouldn't ever be neg.
 
 u16* vidmemptr;        // word pointer
 
-bool write_to_serial;
-bool write_to_stdout;
+b8 write_to_serial;
+b8 write_to_stdout;
 
 /* Scrolls the screen */
 void scroll(void)

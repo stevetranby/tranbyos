@@ -48,19 +48,19 @@ void idt_set_gate(u8 num, u32 base, u16 sel, u8 flags)
     idt[num].flags = flags;
 }
 
-/* Installs the IDT */
+// Install IDT
 void idt_install()
 {
-    /* Sets the special IDT pointer up, just like in 'gdt.c' */
+    // Sets the special IDT pointer up, just like in 'gdt.c'
     idtp.limit = (sizeof (struct idt_entry) * 256) - 1;
     idtp.base = (unsigned int)&idt;
 
-    /* Clear out the entire IDT, initializing it to zeros */
+    // Clear out the entire IDT, initializing it to zeros
     memset((u8 *)&idt, 0, sizeof(struct idt_entry) * 256);
 
-    /* Add any new ISRs to the IDT here using idt_set_gate */
+    // Add any new ISRs to the IDT here using idt_set_gate
 
-    /* Points the processor's internal register to the new IDT */
+    // Points the processor's internal register to the new IDT
     idt_load();
 }
 

@@ -1,9 +1,57 @@
+// /**/
+//
+// Stream Setup and Prep:
+//
+// - Practice Streaming Something Simple
+// - Decide on one or two major features "unique" to the OS
+// - Create a list of topics for the first 10 streams
+// - Decide on rough time limit, stick to it as close as possible
+// - Setup Patreon
+//
+//
+// Ideas:
+///
+// - allow building and run on 
+//
+//
+// References:
+//
+// - CSPNG: https://en.wikipedia.org/wiki/Cryptographically_secure_pseudorandom_number_generator
+// - arc4random: http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man3/arc4random.3?query=arc4random&sec=3
+//
+//
+// TODO(steve):
+//
+// - Switch Processing Modes: Real <--> Protected <--> Long
+//   - http://www.codeproject.com/Articles/45788/The-Real-Protected-Long-mode-assembly-tutorial-for
+// - CPUID: https://github.com/rythie/CPUID-in-Assembly
+// - Processor TLB Structure
+// - Context Switch Capability
+// - Fork Capability
+// - Memory Allocator (malloc-like, free store, index forward and circle around, over time bring all blocks to the latest HEAD)
+//   - see the video somewhere on SSD's not like erase, but write okay 
+// - Simple Shell (trash - TRAnby SHell)
+//
+//
+// TODO(Future):
+//
+// - Build on Win10 Support
+// - 
+
+// # Completed 
+
 #include <system.h>
-#include <hd.h>
-#include <multiboot.h>
+
+// Grub2 
+#include "multiboot.h"
+
+// drivers
+#include "hd.h"
+#include "kb.h"
+#include "fs.h"
 
 // memcpy - copy n bytes from src to dest
-u8 *memcpy(u8* dest, const u8* src, u32 count)
+u8* memcpy(u8* dest, const u8* src, u32 count)
 {
     const u8* sp = (const u8*)src;
     u8* dp = (u8*)dest;
@@ -33,7 +81,7 @@ u16* memsetw(u16* dest, u16 val, u32 count)
 }
 
 // strlen - gets the length of a c-string
-u32 strlen(const u8* str)
+u32 strlen(c_str str)
 {
     u32 retval = 0;
     while(*str != 0) {
@@ -43,25 +91,25 @@ u32 strlen(const u8* str)
 }
 
 #define internal static
-internal unsigned long int next = 1;
+internal u32 next = 1;
 
 // RAND_MAX assumed to be 32767
-int rand(void) 
+u32 rand(void) 
 {
     next = next * 1103515245 + 12345;
-    return (unsigned int)(next/65536) % 32768;
+    return (next/65536) % 32768;
 }
 
-void srand(unsigned int seed)
+void srand(u32 seed)
 {
     next = seed;
 }
 
-bool hasBit(u32 data, u32 bit) {
+b32 hasBit(u32 data, u32 bit) {
     return (data & (1 << bit)) != 0;
 }
 
-bool is_bit_set(unsigned value, unsigned bitindex)
+b32 is_bit_set(u32 value, u32 bitindex)
 {
     return (value & (1 << bitindex)) != 0;
 }
@@ -125,18 +173,13 @@ u32 _main(multiboot_info_t* mbh, u32 magic)
     printHex(mbh->flags);
     puts(", ");
 
-    for(s8 _bit=32; _bit>=0; --_bit) {
+    for(i8 _bit=32; _bit>=0; --_bit) {
         putch(is_bit_set(mbh->flags, _bit) ? 'x' : '.');
-        //putch(hasBit(mbh->flags, _bit) ? 'x' : '.');
-        // if((mbh->flags >> _bit) & 0x0001) {
-        //     putch('x');
-        // } else {
-        //     putch('.');
-        // }
     }
     puts("\n");
 
-    //if(hasBit(mbh->flags, 11)) 
+// TODO: do VBE in real mode
+    if(hasBit(mbh->flags, 11)) 
     {
         puts("VBE Info: ");
         printHex(mbh->vbe_control_info);  puts(", ");
@@ -146,14 +189,11 @@ u32 _main(multiboot_info_t* mbh, u32 magic)
         printHex(mbh->vbe_interface_off); puts(", ");
         printHex(mbh->vbe_interface_len);
         puts("\n");
-
-
-        // 
     }
 
     if(hasBit(mbh->flags, 9)) {
         puts("Bootloader Name: ");
-        puts((s8*)mbh->boot_loader_name);
+        puts((i8*)mbh->boot_loader_name);
         puts("\n");
     }
     
@@ -373,7 +413,7 @@ u32 _main(multiboot_info_t* mbh, u32 magic)
     // TEST Setup VGA Graphics mode
     //set_video_mode(video_mode_13h);
     //set_video_mode(video_mode_13h)
-    int success = init_graph_vga(320,200,1);
+    u32 success = init_graph_vga(320,200,1);
     if(success) 
     {
         write_serial("Video Mode Success!\r\n");

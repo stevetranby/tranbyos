@@ -1,10 +1,12 @@
+#include "include/system.h"
+
 typedef struct VbeInfoBlock {
    char VbeSignature[4];             // == "VESA"
-   uint16_t VbeVersion;                 // == 0x0300 for VBE 3.0
-   uint16_t OemStringPtr[2];            // isa vbeFarPtr
-   uint8_t Capabilities[4];
-   uint16_t VideoModePtr[2];         // isa vbeFarPtr
-   uint16_t TotalMemory;             // as # of 64KB blocks
+   u16 VbeVersion;                 // == 0x0300 for VBE 3.0
+   u16 OemStringPtr[2];            // isa vbeFarPtr
+   u16 Capabilities[4];
+   u16 VideoModePtr[2];         // isa vbeFarPtr
+   u16 TotalMemory;             // as # of 64KB blocks
 } __attribute__((packed)) VbeInfoBlock;
  
 VbeInfoBlock *vib = dos_alloc(512);

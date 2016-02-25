@@ -1,0 +1,297 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		85B928271C7EA36700FFA7B7 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 85B928261C7EA36700FFA7B7 /* main.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		85B928221C7EA36700FFA7B7 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		85B928241C7EA36700FFA7B7 /* TranbyOSDummyC */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TranbyOSDummyC; sourceTree = BUILT_PRODUCTS_DIR; };
+		85B928261C7EA36700FFA7B7 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		85B928211C7EA36700FFA7B7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		85B927D81C7E94B300FFA7B7 = {
+			isa = PBXGroup;
+			children = (
+				85B928251C7EA36700FFA7B7 /* TranbyOSDummyC */,
+				85B927E21C7E94B300FFA7B7 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		85B927E21C7E94B300FFA7B7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				85B928241C7EA36700FFA7B7 /* TranbyOSDummyC */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		85B928251C7EA36700FFA7B7 /* TranbyOSDummyC */ = {
+			isa = PBXGroup;
+			children = (
+				85B928261C7EA36700FFA7B7 /* main.c */,
+			);
+			path = TranbyOSDummyC;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		85B9281C1C7E95E500FFA7B7 /* TranbyOSKernel */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = 85B9281D1C7E95E500FFA7B7 /* Build configuration list for PBXLegacyTarget "TranbyOSKernel" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = /Users/stevetranby/dev/projects/tranbyos;
+			dependencies = (
+			);
+			name = TranbyOSKernel;
+			passBuildSettingsInEnvironment = 1;
+			productName = TranbyOSKernel;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXNativeTarget section */
+		85B928231C7EA36700FFA7B7 /* TranbyOSDummyC */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 85B928281C7EA36700FFA7B7 /* Build configuration list for PBXNativeTarget "TranbyOSDummyC" */;
+			buildPhases = (
+				85B928201C7EA36700FFA7B7 /* Sources */,
+				85B928211C7EA36700FFA7B7 /* Frameworks */,
+				85B928221C7EA36700FFA7B7 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TranbyOSDummyC;
+			productName = TranbyOSDummyC;
+			productReference = 85B928241C7EA36700FFA7B7 /* TranbyOSDummyC */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		85B927D91C7E94B300FFA7B7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0720;
+				ORGANIZATIONNAME = "Steve Tranby";
+				TargetAttributes = {
+					85B9281C1C7E95E500FFA7B7 = {
+						CreatedOnToolsVersion = 7.2.1;
+					};
+					85B928231C7EA36700FFA7B7 = {
+						CreatedOnToolsVersion = 7.2.1;
+					};
+				};
+			};
+			buildConfigurationList = 85B927DC1C7E94B300FFA7B7 /* Build configuration list for PBXProject "TestTranbyOS" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 85B927D81C7E94B300FFA7B7;
+			productRefGroup = 85B927E21C7E94B300FFA7B7 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				85B9281C1C7E95E500FFA7B7 /* TranbyOSKernel */,
+				85B928231C7EA36700FFA7B7 /* TranbyOSDummyC */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		85B928201C7EA36700FFA7B7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				85B928271C7EA36700FFA7B7 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		85B927E61C7E94B300FFA7B7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		85B927E71C7E94B300FFA7B7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		85B9281E1C7E95E500FFA7B7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUGGING_SYMBOLS = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		85B9281F1C7E95E500FFA7B7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		85B928291C7EA36700FFA7B7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		85B9282A1C7EA36700FFA7B7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		85B927DC1C7E94B300FFA7B7 /* Build configuration list for PBXProject "TestTranbyOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				85B927E61C7E94B300FFA7B7 /* Debug */,
+				85B927E71C7E94B300FFA7B7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		85B9281D1C7E95E500FFA7B7 /* Build configuration list for PBXLegacyTarget "TranbyOSKernel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				85B9281E1C7E95E500FFA7B7 /* Debug */,
+				85B9281F1C7E95E500FFA7B7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		85B928281C7EA36700FFA7B7 /* Build configuration list for PBXNativeTarget "TranbyOSDummyC" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				85B928291C7EA36700FFA7B7 /* Debug */,
+				85B9282A1C7EA36700FFA7B7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 85B927D91C7E94B300FFA7B7 /* Project object */;
+}

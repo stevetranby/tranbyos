@@ -1,8 +1,24 @@
-struct tets {
 
-	int a;
-	char b;
-	s16 add;
 
-	
-};
+/*
+ 
+ Simple Filesystem
+ 
+ Block: 
+ - Size: 4K (default)
+ - NextBlock (next block LBA, 0 means last block of file)
+ 
+ File:
+ -
+ - FirstBlock
+ - IsDirectory
+ - IsReadonly
+ 
+ MasterTable:
+ - 
+
+ */
+
+#include "system.h"
+#include "types.h"
+

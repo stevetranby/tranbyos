@@ -1,5 +1,5 @@
-#include <system.h>
-#include <hd.h>
+#include "system.h"
+#include "hd.h"
 
 void inline ata_delay400ns()
 {
@@ -14,7 +14,7 @@ void ata_wait_busy() {
 	int timer = 10000;
 	while(1) {
 		status = inb(HD_ST_ALT);
-		if ( (status & HD_ST_BSY) ) {
+		if ( !(status & HD_ST_BSY) ) {
 			break;
 		}
 		if ( (status & HD_ST_ERR) ) {

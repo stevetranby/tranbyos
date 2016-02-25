@@ -1,4 +1,4 @@
-#include <system.h>
+#include "include/system.h"
 
 /* This will keep track of how many ticks that the system
 *  has been running for */
@@ -16,7 +16,7 @@ u32 _secondsFromBoot = 0;
 *  timer fires. By default, the timer fires 18.222 times
 *  per second. Why 18.222Hz? Some engineer at IBM must've
 *  been smoking something funky */
-void timer_handler(regs *r)
+void timer_handler(isr_stack_state *r)
 {
     /* Increment our 'tick count' */
     _timer_ticks++;    
@@ -65,7 +65,8 @@ void delay_s(u32 s) {
 
 
 //Reading All RTC Time and Date Registers
-#define CURRENT_YEAR        2014                            
+const u16 kCurrentYear = 2014;
+
 // TODO: Change this each year!
   
 // Set by ACPI table parsing code if possible
@@ -175,8 +176,8 @@ rtc_time read_rtc() {
       if(century_register != 0) {
             year += century * 100;
       } else {
-            year += (CURRENT_YEAR / 100) * 100;
-            if(year < CURRENT_YEAR) year += 100;
+            year += (kCurrentYear / 100) * 100;
+            if(year < kCurrentYear) year += 100;
       }
 
       rtc_time ret;

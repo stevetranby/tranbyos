@@ -1,33 +1,20 @@
-#ifndef __SYSTEM_H
-#define __SYSTEM_H
+#pragma once
 
-#include "types.h"
-
+////////////////////////////////////////////////////////////////
 // Defined Constants
+
 #define NULL 0
 #define TRUE 1
 #define true 1
 #define FALSE 0
 #define false 0
 
-#define KILO (1024)
-#define MEGA (1024*1024)
-#define GIGA (1024*1024*1024)
+// TODO: const u32
+#define KILO (1024)            // 2^10
+#define MEGA (1024*1024)       // 2^20
+#define GIGA (1024*1024*1024)  // 2^30
 
-// Defined Macros
-#define sti()   __asm__ __volatile__ ("sti");
-#define cli()   __asm__ __volatile__ ("cli");
-#define nop()   __asm__ __volatile__ ("nop");
-#define iret()  __asm__ __volatile__ ("iret");
-#define pusha() __asm__ __volatile__ ("pusha");
-#define popa()  __asm__ __volatile__ ("popa");
-
-#ifdef _DEBUG_
-#define trace(x) puts(x)
-#else
-#define trace(x)
-#endif
-
+// TODO: const u8
 #define COLOR_BLACK         0x00
 #define COLOR_BLUE          0x01
 #define COLOR_GREEN         0x02
@@ -44,48 +31,60 @@
 #define COLOR_LIGHT_MAGENTA 0x0d
 #define COLOR_LIGHT_BROWN   0x0e
 #define COLOR_WHITE         0x0f
+enum class {
+    Black
+};
 
+////////////////////////////////////////////////////////////////
+// Defined Macros
+
+#define sti()   __asm__ __volatile__ ("sti");
+#define cli()   __asm__ __volatile__ ("cli");
+#define nop()   __asm__ __volatile__ ("nop");
+#define iret()  __asm__ __volatile__ ("iret");
+#define pusha() __asm__ __volatile__ ("pusha");
+#define popa()  __asm__ __volatile__ ("popa");
+
+#ifdef _DEBUG_
+#define trace(x) puts(x)
+#else
+#define trace(x)
+#endif
 
 //////////////////////////////////////////////////////////////////
 
-/*
- * Types: these types are used to clarify what is meant when using them
- * instead of having byte for byte. Also for more concise code.
- * ::NOTE:: These are comiler and architecture specific. The c standard
- * actually defines int >= short >= char = 8-bits, and thus you can't be
- * certain that unsigned int is really 32-bits. However, since we know
- * we are using 32-bit-x86 (IA-32) and gcc/nasm supporting 32-bits, we
- * know that these are the correct typedefs.
- */
-typedef unsigned char    u8;
-typedef unsigned short   u16;
-typedef unsigned int     u32;
-typedef char             s8;
-typedef short            s16;
-typedef int              s32;
-typedef int*             sptr;
-typedef unsigned int*    uptr;
-typedef unsigned int     bool;
+// Jai-inspired types
+// TODO: make sure to #ifdef or include in platform-specific header
+typedef unsigned char   u8;
+typedef unsigned short  u16;
+typedef unsigned int    u32;
+typedef char            i8;
+typedef short           i16;
+typedef int             i32;
+typedef unsigned int    b32;
+typedef unsigned char   b8;
+typedef float           real32;
+typedef double          real64;
+typedef const char*     c_str;
 
-// typedef unsigned char    uint8_t;
-// typedef unsigned short   uint16_t;
-// typedef unsigned int     uint32_t;
-// typedef char             int8_t;
-// typedef short            int16_t;
-// typedef int              int32_t;
+//////////////////////////////////////////////////////////////
+// Structs
 
-typedef char* cstr;
-
-
-/* This defines what the stack looks like after an ISR was running */
+/// This defines what the stack looks like after an ISR was running
 typedef struct
 {
-    unsigned int gs, fs, es, ds;      /* pushed the segs last */
-    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  /* pushed by 'pusha' */
-    unsigned int int_no, err_code;    /* our 'push byte #' and ecodes do this */
-    unsigned int eip, cs, eflags, useresp, ss;   /* pushed by the processor automatically */
-} regs;
+    // pushed the segs last
+    u32 gs, fs, es, ds;
+    // pushed by 'pusha'
+    u32 edi, esi, ebp, esp, ebx, edx, ecx, eax;
+    // our 'push byte #' and ecodes do this
+    u32 int_no, err_code;
+    // pushed by the processor automatically
+    u32 eip, cs, eflags, useresp, ss;
+} isr_stack_state;
 
+
+// Clock "Real" Time (from battery-backed CMOS)
 typedef struct 
 {
 	u8 second;
@@ -96,17 +95,33 @@ typedef struct
 	u32 year;
 } rtc_time;
 
-//////////////////////////////////////////////////////////////////
+/////////////////////////////////////
+// Filesystem (FS)
 
+/// FS Block -
+typedef struct {
+    u32 a;
+    u8 b;
+    i16 add;
+} fs_block;
+
+
+/// FS Master Table
+/// - the top level table storing pointers to block paging tables, etc
+typedef struct {
+} fs_master_table;
+
+//////////////////////////////////////////////////////////////////
+// Func Decls
 
 /* MAIN.C */
-extern u8   *memcpy(u8 *dest, const u8 *src, u32 count);
-extern u8   *memset(u8 *dest, u8 val, u32 count);
-extern u16  *memsetw(u16 *dest, u16 val, u32 count);
-extern u32  strlen(const u8* str);
+extern u8*  memcpy(u8* dest, const u8* src, u32 count);
+extern u8*  memset(u8* dest, u8 val, u32 count);
+extern u16* memsetw(u16* dest, u16 val, u32 count);
+extern u32  strlen(c_str str);
 
-extern int rand(void);
-extern void srand(unsigned int seed);
+extern u32  rand(void);
+extern void srand(u32 seed);
 
 /* IO.C */
 extern u8   inb (u16 _port);
@@ -137,21 +152,22 @@ extern void printBinary_b(u8 num);
 extern void printBinary_w(u16 num);
 extern void printBinary(u32 num);
 
-/* GDT.C */
-extern void gdt_set_gate(s32 num, u32 base, u32 limit, u8 access, u8 gran);
+/// Global Descriptor Table (GDT)
+/// - Defines the memory paging table map
+extern void gdt_set_gate(u32 num, u32 base, u32 limit, u8 access, u8 gran);
 extern void gdt_install();
 
-/* IDT.C */
+/// Interrupt Descriptor Table (IDT)
 extern void idt_set_gate(u8 num, u32 base, u16 sel, u8 flags);
 extern void idt_install();
 
 
-/* ISRS.C */
-extern void fault_handler(regs *r);
+// Interrupt Service Routines (ISR)
+extern void fault_handler(isr_stack_state *r);
 extern void isrs_install();
 
 /* IRQ.C */
-extern void irq_install_handler(u32 irq, void (*handler)(regs *r));
+extern void irq_install_handler(u32 irq, void (*handler)(isr_stack_state *r));
 extern void irq_uninstall_handler(u32 irq);
 extern void irq_install();
 
@@ -159,7 +175,7 @@ extern void irq_install();
 extern void timer_install();
 extern u32 timer_ticks();
 extern u32 timer_seconds();
-extern void delay_ticks(s32 ticks);
+extern void delay_ticks(i32 ticks);
 extern void delay_ms(u32 ms);
 extern void delay_s(u32 s);
 
@@ -188,7 +204,7 @@ extern int ata_drive_present(int controller, int drive);
 u32 chs2bytes(u16 c, u16 h, u16 s);
 
 // vga 
-extern u32 init_graph_vga(u32 width, u32 height, bool chain4);
+extern u32 init_graph_vga(u32 width, u32 height, b8 chain4);
 extern void plot_pixel(u32 x, u32 y, u8 color);
 extern void line_fast(u32 x1, u32 y1, u32 x2, u32 y2, u8 color);
 extern void polygon(u32 num_vertices,  u32 *vertices, u8 color);
@@ -196,5 +212,5 @@ extern void polygon(u32 num_vertices,  u32 *vertices, u8 color);
 extern void vga_tests();
 
 
-#endif
+//#endif
 

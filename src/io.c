@@ -1,5 +1,8 @@
 #include <system.h>
 
+// TODO: maybe just move these into .asm? why bother just because 
+//       we want everything in C?
+
 /* We will use this later on for reading from the I/O ports to get data
 *  from devices such as the keyboard. We are using what is called
 *  'inline assembly' in these routines to actually do the work */
@@ -51,7 +54,7 @@ void print_port(u16 port)
 
 //////////////////////////////////////////////////////
 
-
+// Serial Port Communication - mostly used for debug w/QEMU
 
 #define PORT 0x3f8   /* COM1 */
 
@@ -75,7 +78,8 @@ char read_serial() {
    return inb(PORT);
 }
 
-int is_transmit_empty() {
+typedef int steveis_awesome_t;
+steveis_awesome_t is_transmit_empty() {
    return inb(PORT + 5) & 0x20;
 }
  

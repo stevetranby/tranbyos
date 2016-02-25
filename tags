@@ -1,0 +1,685 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+ASM_DIR	Makefile	/^ASM_DIR="$(SRC)\/asm"$/;"	m
+ArmElfBinutils	setup/cross_compilers/arm-elf-binutils.rb	/^class ArmElfBinutils < Formula$/;"	c
+ArmElfGcc	setup/cross_compilers/arm-elf-gcc.rb	/^class ArmElfGcc < Formula$/;"	c
+ArmElfGdb	setup/cross_compilers/arm-elf-gdb.rb	/^class ArmElfGdb < Formula$/;"	c
+BIN_DIR	Makefile	/^BIN_DIR=bin$/;"	m
+BUILD_DIR	Makefile	/^BUILD_DIR=build$/;"	m
+CC	Makefile	/^CC=i386-elf-gcc$/;"	m
+CFLAGS	Makefile	/^CFLAGS=-g -m32 -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -std=c99 -I.\/src\/include$/;"	m
+COLOR_BLACK	src/include/system.h	/^#define COLOR_BLACK /;"	d
+COLOR_BLUE	src/include/system.h	/^#define COLOR_BLUE /;"	d
+COLOR_BROWN	src/include/system.h	/^#define COLOR_BROWN /;"	d
+COLOR_CYAN	src/include/system.h	/^#define COLOR_CYAN /;"	d
+COLOR_DARK_GREY	src/include/system.h	/^#define COLOR_DARK_GREY /;"	d
+COLOR_GREEN	src/include/system.h	/^#define COLOR_GREEN /;"	d
+COLOR_LIGHT_BLUE	src/include/system.h	/^#define COLOR_LIGHT_BLUE /;"	d
+COLOR_LIGHT_BROWN	src/include/system.h	/^#define COLOR_LIGHT_BROWN /;"	d
+COLOR_LIGHT_CYAN	src/include/system.h	/^#define COLOR_LIGHT_CYAN /;"	d
+COLOR_LIGHT_GREEN	src/include/system.h	/^#define COLOR_LIGHT_GREEN /;"	d
+COLOR_LIGHT_GREY	src/include/system.h	/^#define COLOR_LIGHT_GREY /;"	d
+COLOR_LIGHT_MAGENTA	src/include/system.h	/^#define COLOR_LIGHT_MAGENTA /;"	d
+COLOR_LIGHT_RED	src/include/system.h	/^#define COLOR_LIGHT_RED /;"	d
+COLOR_MAGENTA	src/include/system.h	/^#define COLOR_MAGENTA /;"	d
+COLOR_RED	src/include/system.h	/^#define COLOR_RED /;"	d
+COLOR_WHITE	src/include/system.h	/^#define COLOR_WHITE /;"	d
+CXX	Makefile	/^CXX=i386-elf-g++$/;"	m
+CXXFLAGS	Makefile	/^CXXFLAGS=-g -m32 -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -ffreestanding -O2 -Wextra -fno-exceptions -fno-rtti -I.\/src\/include$/;"	m
+Capabilities	src/vesa.c	/^   u16 Capabilities[4];$/;"	m	struct:VbeInfoBlock	file:
+DynArray	src/string.c	/^typedef struct {} DynArray;$/;"	t	typeref:struct:__anon14	file:
+EXT_C	src/include/multiboot.h	/^# define EXT_C(/;"	d
+FALSE	src/include/system.h	/^#define FALSE /;"	d
+GIGA	src/include/system.h	/^#define GIGA /;"	d
+HD0_IRQ	src/include/hd.h	/^#define HD0_IRQ /;"	d
+HD1_CH	src/include/hd.h	/^#define HD1_CH /;"	d
+HD1_CL	src/include/hd.h	/^#define HD1_CL /;"	d
+HD1_CMD	src/include/hd.h	/^#define HD1_CMD /;"	d
+HD1_DATA	src/include/hd.h	/^#define HD1_DATA /;"	d
+HD1_DCR	src/include/hd.h	/^#define HD1_DCR /;"	d
+HD1_DH	src/include/hd.h	/^#define HD1_DH /;"	d
+HD1_ERR	src/include/hd.h	/^#define HD1_ERR /;"	d
+HD1_FEAT	src/include/hd.h	/^#define HD1_FEAT /;"	d
+HD1_IRQ	src/include/hd.h	/^#define HD1_IRQ /;"	d
+HD1_SC	src/include/hd.h	/^#define HD1_SC /;"	d
+HD1_SN	src/include/hd.h	/^#define HD1_SN /;"	d
+HD1_ST	src/include/hd.h	/^#define HD1_ST /;"	d
+HD1_ST_ALT	src/include/hd.h	/^#define HD1_ST_ALT /;"	d
+HD_CH	src/include/hd.h	/^#define HD_CH /;"	d
+HD_CL	src/include/hd.h	/^#define HD_CL /;"	d
+HD_CMD	src/include/hd.h	/^#define HD_CMD /;"	d
+HD_CMD_DIAGNOSE	src/include/hd.h	/^#define HD_CMD_DIAGNOSE /;"	d
+HD_CMD_FORMAT	src/include/hd.h	/^#define HD_CMD_FORMAT /;"	d
+HD_CMD_IDENTIFY	src/include/hd.h	/^#define HD_CMD_IDENTIFY /;"	d
+HD_CMD_INIT	src/include/hd.h	/^#define HD_CMD_INIT /;"	d
+HD_CMD_READ	src/include/hd.h	/^#define HD_CMD_READ /;"	d
+HD_CMD_RESTORE	src/include/hd.h	/^#define HD_CMD_RESTORE /;"	d
+HD_CMD_SEEK	src/include/hd.h	/^#define HD_CMD_SEEK /;"	d
+HD_CMD_SPECIFY	src/include/hd.h	/^#define HD_CMD_SPECIFY /;"	d
+HD_CMD_VERIFY	src/include/hd.h	/^#define HD_CMD_VERIFY /;"	d
+HD_CMD_WRITE	src/include/hd.h	/^#define HD_CMD_WRITE /;"	d
+HD_DATA	src/include/hd.h	/^#define HD_DATA /;"	d
+HD_DCR	src/include/hd.h	/^#define HD_DCR /;"	d
+HD_DCR_HOB	src/include/hd.h	/^#define HD_DCR_HOB /;"	d
+HD_DCR_NIEN	src/include/hd.h	/^#define HD_DCR_NIEN /;"	d
+HD_DCR_SRST	src/include/hd.h	/^#define HD_DCR_SRST /;"	d
+HD_DH	src/include/hd.h	/^#define HD_DH /;"	d
+HD_ERR	src/include/hd.h	/^#define HD_ERR /;"	d
+HD_ERR_ABORT	src/include/hd.h	/^#define HD_ERR_ABORT /;"	d
+HD_ERR_BBD	src/include/hd.h	/^#define HD_ERR_BBD /;"	d
+HD_ERR_ECC	src/include/hd.h	/^#define HD_ERR_ECC /;"	d
+HD_ERR_ID	src/include/hd.h	/^#define HD_ERR_ID /;"	d
+HD_ERR_MARK	src/include/hd.h	/^#define HD_ERR_MARK /;"	d
+HD_ERR_TRACK0	src/include/hd.h	/^#define HD_ERR_TRACK0 /;"	d
+HD_FEAT	src/include/hd.h	/^#define HD_FEAT /;"	d
+HD_SC	src/include/hd.h	/^#define HD_SC /;"	d
+HD_SN	src/include/hd.h	/^#define HD_SN /;"	d
+HD_ST	src/include/hd.h	/^#define HD_ST /;"	d
+HD_ST_ALT	src/include/hd.h	/^#define HD_ST_ALT /;"	d
+HD_ST_BSY	src/include/hd.h	/^#define HD_ST_BSY /;"	d
+HD_ST_DFE	src/include/hd.h	/^#define HD_ST_DFE /;"	d
+HD_ST_DRQ	src/include/hd.h	/^#define HD_ST_DRQ /;"	d
+HD_ST_ECC	src/include/hd.h	/^#define HD_ST_ECC /;"	d
+HD_ST_ERR	src/include/hd.h	/^#define HD_ST_ERR /;"	d
+HD_ST_IDX	src/include/hd.h	/^#define HD_ST_IDX /;"	d
+HD_ST_RDY	src/include/hd.h	/^#define HD_ST_RDY /;"	d
+HD_ST_SK	src/include/hd.h	/^#define HD_ST_SK /;"	d
+I386ElfBinutils	setup/cross_compilers/i386-elf-binutils.rb	/^class I386ElfBinutils < Formula$/;"	c
+I386ElfGcc	setup/cross_compilers/i386-elf-gcc.rb	/^class I386ElfGcc < Formula$/;"	c
+I386ElfGdb	setup/cross_compilers/i386-elf-gdb.rb	/^class I386ElfGdb < Formula$/;"	c
+I386JosElfBinutils	setup/cross_compilers/i386-jos-elf-binutils.rb	/^class I386JosElfBinutils < Formula$/;"	c
+I386JosElfGcc	setup/cross_compilers/i386-jos-elf-gcc.rb	/^class I386JosElfGcc < Formula$/;"	c
+I386JosElfGdb	setup/cross_compilers/i386-jos-elf-gdb.rb	/^class I386JosElfGdb < Formula$/;"	c
+I586ElfBinutils	setup/cross_compilers/i586-elf-binutils.rb	/^class I586ElfBinutils < Formula$/;"	c
+I586ElfGcc	setup/cross_compilers/i586-elf-gcc.rb	/^class I586ElfGcc < Formula$/;"	c
+I586ElfGdb	setup/cross_compilers/i586-elf-gdb.rb	/^class I586ElfGdb < Formula$/;"	c
+IDE0_BASE	src/include/hd.h	/^#define IDE0_BASE /;"	d
+IDE1_BASE	src/include/hd.h	/^#define IDE1_BASE /;"	d
+IDE_PRIMARY	src/include/hd.h	/^#define IDE_PRIMARY /;"	d
+IDE_SECONDARY	src/include/hd.h	/^#define IDE_SECONDARY /;"	d
+IMG	build/update_image.bat	/^set IMG=c:\\_img\\tranix_kernel_grub.img$/;"	v
+INC_DIR	Makefile	/^INC_DIR="$(SRC)\/include"$/;"	m
+KBDUS_ALT	src/include/kb.h	/^#define KBDUS_ALT	/;"	d
+KBDUS_CAPSLOCK	src/include/kb.h	/^#define KBDUS_CAPSLOCK	/;"	d
+KBDUS_CONTROL	src/include/kb.h	/^#define KBDUS_CONTROL	/;"	d
+KBDUS_DELETE	src/include/kb.h	/^#define KBDUS_DELETE	/;"	d
+KBDUS_DOWNARROW	src/include/kb.h	/^#define KBDUS_DOWNARROW	/;"	d
+KBDUS_END	src/include/kb.h	/^#define KBDUS_END	/;"	d
+KBDUS_F1	src/include/kb.h	/^#define KBDUS_F1	/;"	d
+KBDUS_F10	src/include/kb.h	/^#define KBDUS_F10	/;"	d
+KBDUS_F11	src/include/kb.h	/^#define KBDUS_F11	/;"	d
+KBDUS_F12	src/include/kb.h	/^#define KBDUS_F12	/;"	d
+KBDUS_F2	src/include/kb.h	/^#define KBDUS_F2	/;"	d
+KBDUS_F3	src/include/kb.h	/^#define KBDUS_F3	/;"	d
+KBDUS_F4	src/include/kb.h	/^#define KBDUS_F4	/;"	d
+KBDUS_F5	src/include/kb.h	/^#define KBDUS_F5	/;"	d
+KBDUS_F6	src/include/kb.h	/^#define KBDUS_F6	/;"	d
+KBDUS_F7	src/include/kb.h	/^#define KBDUS_F7	/;"	d
+KBDUS_F8	src/include/kb.h	/^#define KBDUS_F8	/;"	d
+KBDUS_F9	src/include/kb.h	/^#define KBDUS_F9	/;"	d
+KBDUS_HOME	src/include/kb.h	/^#define KBDUS_HOME	/;"	d
+KBDUS_INSERT	src/include/kb.h	/^#define KBDUS_INSERT	/;"	d
+KBDUS_LEFTARROW	src/include/kb.h	/^#define KBDUS_LEFTARROW	/;"	d
+KBDUS_LEFTSHIFT	src/include/kb.h	/^#define KBDUS_LEFTSHIFT	/;"	d
+KBDUS_NUMLOCK	src/include/kb.h	/^#define KBDUS_NUMLOCK	/;"	d
+KBDUS_PAGEDOWN	src/include/kb.h	/^#define KBDUS_PAGEDOWN	/;"	d
+KBDUS_PAGEUP	src/include/kb.h	/^#define KBDUS_PAGEUP	/;"	d
+KBDUS_RIGHTARROW	src/include/kb.h	/^#define KBDUS_RIGHTARROW	/;"	d
+KBDUS_RIGHTSHIFT	src/include/kb.h	/^#define KBDUS_RIGHTSHIFT	/;"	d
+KBDUS_SCROLLLOCK	src/include/kb.h	/^#define KBDUS_SCROLLLOCK	/;"	d
+KBDUS_SPACE	src/include/kb.h	/^#define KBDUS_SPACE	/;"	d
+KBDUS_UPARROW	src/include/kb.h	/^#define KBDUS_UPARROW	/;"	d
+KERNEL	build/update_image.bat	/^set KERNEL=c:\\_projects\\tranixos\\kernel.bin$/;"	v
+KILO	src/include/system.h	/^#define KILO /;"	d
+LD	Makefile	/^LD=i386-elf-ld$/;"	m
+MAX_BLOCKS	src/mm.c	/^#define MAX_BLOCKS	/;"	d	file:
+MAX_INT_DIGITS	src/scrn.c	/^#define MAX_INT_DIGITS /;"	d	file:
+MAX_PALETTE_COUNT	src/vga.c	/^#define MAX_PALETTE_COUNT /;"	d	file:
+MEGA	src/include/system.h	/^#define MEGA /;"	d
+MULTIBOOT_AOUT_KLUDGE	src/asm/start.s	/^    MULTIBOOT_AOUT_KLUDGE	equ 1<<16$/;"	d
+MULTIBOOT_BOOTLOADER_MAGIC	src/include/multiboot.h	/^#define MULTIBOOT_BOOTLOADER_MAGIC /;"	d
+MULTIBOOT_CHECKSUM	src/asm/start.s	/^    MULTIBOOT_CHECKSUM		equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)$/;"	d
+MULTIBOOT_HEADER_FLAGS	src/asm/start.s	/^    MULTIBOOT_HEADER_FLAGS	equ MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO | MULTIBOOT_VIDEO_INFO | MULTIBOOT_AOUT_KLUDGE$/;"	d
+MULTIBOOT_HEADER_FLAGS	src/include/multiboot.h	/^# define MULTIBOOT_HEADER_FLAGS /;"	d
+MULTIBOOT_HEADER_MAGIC	src/asm/start.s	/^    MULTIBOOT_HEADER_MAGIC	equ 0x1BADB002$/;"	d
+MULTIBOOT_HEADER_MAGIC	src/include/multiboot.h	/^#define MULTIBOOT_HEADER_MAGIC /;"	d
+MULTIBOOT_MEMORY_INFO	src/asm/start.s	/^    MULTIBOOT_MEMORY_INFO	equ 1<<1$/;"	d
+MULTIBOOT_PAGE_ALIGN	src/asm/start.s	/^    MULTIBOOT_PAGE_ALIGN	equ 1<<0$/;"	d
+MULTIBOOT_VIDEO_INFO	src/asm/start.s	/^    MULTIBOOT_VIDEO_INFO   equ 1<<2$/;"	d
+ModeInfoBlock	src/vesa.c	/^} __attribute__((packed)) ModeInfoBlock;$/;"	t	typeref:struct:__anon16	file:
+NULL	src/include/system.h	/^#define NULL /;"	d
+OBJ_DIR	Makefile	/^OBJ_DIR=obj$/;"	m
+OSNAME	Makefile	/^OSNAME=tranbyos$/;"	m
+OemStringPtr	src/vesa.c	/^   u16 OemStringPtr[2];            \/\/ isa vbeFarPtr$/;"	m	struct:VbeInfoBlock	file:
+PORT	src/io.c	/^#define PORT /;"	d	file:
+QEMU	Makefile	/^QEMU="qemu-system-i386"$/;"	m
+QIMG	Makefile	/^QIMG="qemu-img"$/;"	m
+RGB_DATA	src/vga.c	/^#define RGB_DATA /;"	d	file:
+RGB_READ	src/vga.c	/^#define RGB_READ /;"	d	file:
+RGB_RESET	src/vga.c	/^#define RGB_RESET /;"	d	file:
+RGB_WRITE	src/vga.c	/^#define RGB_WRITE /;"	d	file:
+R_COM	src/vga.c	/^#define R_COM /;"	d	file:
+R_H200	src/vga.c	/^#define R_H200 /;"	d	file:
+R_H224	src/vga.c	/^#define R_H224 /;"	d	file:
+R_H240	src/vga.c	/^#define R_H240 /;"	d	file:
+R_H256	src/vga.c	/^#define R_H256 /;"	d	file:
+R_H270	src/vga.c	/^#define R_H270 /;"	d	file:
+R_H300	src/vga.c	/^#define R_H300 /;"	d	file:
+R_H360	src/vga.c	/^#define R_H360 /;"	d	file:
+R_H400	src/vga.c	/^#define R_H400 /;"	d	file:
+R_H480	src/vga.c	/^#define R_H480 /;"	d	file:
+R_H564	src/vga.c	/^#define R_H564 /;"	d	file:
+R_H600	src/vga.c	/^#define R_H600 /;"	d	file:
+R_W256	src/vga.c	/^#define R_W256 /;"	d	file:
+R_W320	src/vga.c	/^#define R_W320 /;"	d	file:
+R_W360	src/vga.c	/^#define R_W360 /;"	d	file:
+R_W376	src/vga.c	/^#define R_W376 /;"	d	file:
+R_W400	src/vga.c	/^#define R_W400 /;"	d	file:
+SECTION	src/asm/start.s	/^SECTION .bss$/;"	l
+SECTOR_BYTES	src/include/hd.h	/^#define SECTOR_BYTES /;"	d
+SECTOR_DWORDS	src/include/hd.h	/^#define SECTOR_DWORDS /;"	d
+SECTOR_WORDS	src/include/hd.h	/^#define SECTOR_WORDS /;"	d
+SRC	Makefile	/^SRC=src$/;"	m
+STACK_SIZE	src/include/multiboot.h	/^#define STACK_SIZE /;"	d
+SZ	src/vga.c	/^#define SZ(/;"	d	file:
+String	src/string.c	/^typedef struct {} String;$/;"	t	typeref:struct:__anon13	file:
+TRUE	src/include/system.h	/^#define TRUE /;"	d
+TotalMemory	src/vesa.c	/^   u16 TotalMemory;             \/\/ as # of 64KB blocks$/;"	m	struct:VbeInfoBlock	file:
+VFD	build/update_image.bat	/^set VFD=c:\\_tools\\vfd\\vfd.exe$/;"	v
+VbeInfoBlock	src/vesa.c	/^typedef struct VbeInfoBlock {$/;"	s	file:
+VbeInfoBlock	src/vesa.c	/^} __attribute__((packed)) VbeInfoBlock;$/;"	t	typeref:struct:VbeInfoBlock	file:
+VbeSignature	src/vesa.c	/^   char VbeSignature[4];             \/\/ == "VESA"$/;"	m	struct:VbeInfoBlock	file:
+VbeVersion	src/vesa.c	/^   u16 VbeVersion;                 \/\/ == 0x0300 for VBE 3.0$/;"	m	struct:VbeInfoBlock	file:
+VideoModePtr	src/vesa.c	/^   u16 VideoModePtr[2];         \/\/ isa vbeFarPtr$/;"	m	struct:VbeInfoBlock	file:
+Wchar	src/vesa.c	/^  uint8_t Wchar, Ychar, planes, bpp, banks;$/;"	m	struct:__anon16	file:
+X64ElfBinutils	setup/cross_compilers/x64-elf-binutils.rb	/^class X64ElfBinutils < Formula$/;"	c
+X64ElfGcc	setup/cross_compilers/x64-elf-gcc.rb	/^class X64ElfGcc < Formula$/;"	c
+X64ElfGdb	setup/cross_compilers/x64-elf-gdb.rb	/^class X64ElfGdb < Formula$/;"	c
+Xres	src/vesa.c	/^  uint16_t Xres, Yres;$/;"	m	struct:__anon16	file:
+Ychar	src/vesa.c	/^  uint8_t Wchar, Ychar, planes, bpp, banks;$/;"	m	struct:__anon16	file:
+Yres	src/vesa.c	/^  uint16_t Xres, Yres;$/;"	m	struct:__anon16	file:
+_inp_16	src/asm/start.s	/^_inp_16:$/;"	l
+_inp_32	src/asm/start.s	/^_inp_32:$/;"	l
+_inp_8	src/asm/start.s	/^_inp_8:$/;"	l
+_main	src/main.c	/^u32 _main(multiboot_info_t* mbh, u32 magic)$/;"	f
+_outp_16	src/asm/start.s	/^_outp_16:$/;"	l
+_outp_32	src/asm/start.s	/^_outp_32:$/;"	l
+_outp_8	src/asm/start.s	/^_outp_8:$/;"	l
+_secondsFromBoot	src/timer.c	/^u32 _secondsFromBoot = 0;$/;"	v
+_start	src/asm/cpuid.s	/^_start:					;tell linker entry point$/;"	l
+_sys_heap	src/asm/start.s	/^_sys_heap:$/;"	l
+_sys_stack	src/asm/start.s	/^_sys_stack:$/;"	l
+_timer_hz	src/timer.c	/^u32 _timer_hz = 100;$/;"	v
+_timer_ticks	src/timer.c	/^u32 _timer_ticks = 0;$/;"	v
+a	src/fs.c	/^    int a;$/;"	m	struct:__anon1	file:
+abs	src/vga.c	/^i32 abs(i32 val) { return val < 0 ? -val : val; }$/;"	f
+access	src/gdt.c	/^    unsigned char access;$/;"	m	struct:gdt_entry	file:
+add	src/fs.c	/^	s16 add;$/;"	m	struct:__anon1	file:
+addr	src/include/multiboot.h	/^	u32 addr;$/;"	m	struct:__anon5
+addr	src/include/multiboot.h	/^	u32 addr;$/;"	m	struct:__anon6
+always0	src/idt.c	/^    unsigned char always0;     \/* This will ALWAYS be set to 0! *\/$/;"	m	struct:idt_entry	file:
+aout_sym	src/include/multiboot.h	/^		aout_symbol_table_t aout_sym;$/;"	m	union:__anon7::__anon8
+aout_symbol_table_t	src/include/multiboot.h	/^} aout_symbol_table_t;$/;"	t	typeref:struct:__anon5
+apm_table	src/include/multiboot.h	/^	u32 apm_table;$/;"	m	struct:__anon7
+ata_controller_present	src/hd.c	/^int ata_controller_present(int controller)$/;"	f
+ata_delay400ns	src/hd.c	/^void inline ata_delay400ns()$/;"	f
+ata_drive_present	src/hd.c	/^int ata_drive_present(int controller, int slave) {$/;"	f
+ata_pio_read_w	src/hd.c	/^int ata_pio_read_w(int controller, int slave, int sn, int sc, u16 *data)$/;"	f
+ata_pio_write_w	src/hd.c	/^int ata_pio_write_w(int controller, int slave, int sn, int sc, u16 *data)$/;"	f
+ata_soft_reset	src/hd.c	/^int ata_soft_reset(void)$/;"	f
+ata_wait_busy	src/hd.c	/^void ata_wait_busy() {$/;"	f
+ata_wait_drq	src/hd.c	/^void ata_wait_drq() {$/;"	f
+ata_wait_ready	src/hd.c	/^void ata_wait_ready() {$/;"	f
+attrib	src/scrn.c	/^u16  attrib = 0x0F;		\/\/ attribute for text colors$/;"	v
+attributes	src/vesa.c	/^  uint16_t attributes;$/;"	m	struct:__anon16	file:
+b	src/fs.c	/^	char b;$/;"	m	struct:__anon1	file:
+b32	src/include/system.h	/^typedef unsigned int     b32;$/;"	t
+b8	src/include/system.h	/^typedef unsigned char    b8;$/;"	t
+bank_size	src/vesa.c	/^  uint8_t memory_model, bank_size, image_pages;$/;"	m	struct:__anon16	file:
+banks	src/vesa.c	/^  uint8_t Wchar, Ychar, planes, bpp, banks;$/;"	m	struct:__anon16	file:
+banner	setup/build-homebrew-cross-compiler.sh	/^banner() {$/;"	f
+banner	setup/build-homebrew-cross-compiler.sh	/^banner();$/;"	f
+base	src/gdt.c	/^    unsigned int base;$/;"	m	struct:gdt_ptr	file:
+base	src/idt.c	/^    unsigned int base;$/;"	m	struct:idt_ptr	file:
+base	src/mm.c	/^	char *base;$/;"	m	struct:block	file:
+base	src/mm.c	/^	char *base;$/;"	m	struct:freeblock	file:
+base_addr_high	src/include/multiboot.h	/^	unsigned long base_addr_high;$/;"	m	struct:__anon10
+base_addr_low	src/include/multiboot.h	/^	unsigned long base_addr_low;$/;"	m	struct:__anon10
+base_hi	src/idt.c	/^    unsigned short base_hi;$/;"	m	struct:idt_entry	file:
+base_high	src/gdt.c	/^    unsigned char base_high;$/;"	m	struct:gdt_entry	file:
+base_lo	src/idt.c	/^    unsigned short base_lo;$/;"	m	struct:idt_entry	file:
+base_low	src/gdt.c	/^    unsigned short base_low;$/;"	m	struct:gdt_entry	file:
+base_middle	src/gdt.c	/^    unsigned char base_middle;$/;"	m	struct:gdt_entry	file:
+block	src/include/fs.h	/^typedef struct { } block;/;"	t	typeref:struct:__anon3
+block	src/mm.c	/^struct block {$/;"	s	file:
+block_t	src/mm.c	/^typedef struct block block_t;$/;"	t	typeref:struct:block	file:
+blue_mask	src/vesa.c	/^  uint8_t blue_mask, blue_position;$/;"	m	struct:__anon16	file:
+blue_position	src/vesa.c	/^  uint8_t blue_mask, blue_position;$/;"	m	struct:__anon16	file:
+boot_device	src/include/multiboot.h	/^	u32 boot_device;$/;"	m	struct:__anon7
+boot_loader_name	src/include/multiboot.h	/^	u32 boot_loader_name;$/;"	m	struct:__anon7
+bpp	src/vesa.c	/^  uint8_t Wchar, Ychar, planes, bpp, banks;$/;"	m	struct:__anon16	file:
+bss_end_addr	src/include/multiboot.h	/^	u32 bss_end_addr;$/;"	m	struct:__anon4
+byte	src/vga.c	/^typedef char byte;$/;"	t	file:
+c_str	src/include/system.h	/^typedef const char* c_str;$/;"	t
+century_register	src/timer.c	/^int century_register = 0x00;                                $/;"	v
+chbuf	src/kb.c	/^char chbuf[255];$/;"	v
+checksum	src/include/multiboot.h	/^	u32 checksum;$/;"	m	struct:__anon4
+chs2bytes	src/hd.c	/^u32 chs2bytes(u16 c, u16 h, u16 s)$/;"	f
+cli	src/include/system.h	/^#define cli(/;"	d
+cls	src/scrn.c	/^void cls()$/;"	f
+cmdline	src/include/multiboot.h	/^	u32 cmdline;$/;"	m	struct:__anon7
+cmos_address	src/timer.c	/^      cmos_address = 0x70,$/;"	e	enum:__anon15	file:
+cmos_data	src/timer.c	/^      cmos_data    = 0x71$/;"	e	enum:__anon15	file:
+cmp	src/asm/cpuid.s	/^cmp ebx,0 $/;"	l
+config_table	src/include/multiboot.h	/^	u32 config_table;$/;"	m	struct:__anon7
+cpuid	src/asm/cpuid.s	/^cpuid$/;"	l
+cs	src/include/system.h	/^    unsigned int eip, cs, eflags, useresp, ss;   \/* pushed by the processor automatically *\/$/;"	m	struct:__anon11
+csr_x	src/scrn.c	/^u16  csr_x = 0;$/;"	v
+csr_y	src/scrn.c	/^u16  csr_y = 0;	\/\/ since these shouldn't ever be neg.$/;"	v
+curfeat	src/asm/cpuid.s	/^curfeat		resd	4$/;"	l
+day	src/include/system.h	/^	u8 day;$/;"	m	struct:__anon12
+delay_ms	src/timer.c	/^void delay_ms(u32 ms) {$/;"	f
+delay_s	src/timer.c	/^void delay_s(u32 s) {$/;"	f
+delay_ticks	src/timer.c	/^void delay_ticks(int ticks)$/;"	f
+directcolor_attributes	src/vesa.c	/^  uint8_t directcolor_attributes;$/;"	m	struct:__anon16	file:
+drives_addr	src/include/multiboot.h	/^	u32 drives_addr;$/;"	m	struct:__anon7
+drives_length	src/include/multiboot.h	/^	u32 drives_length;$/;"	m	struct:__anon7
+ds	src/include/system.h	/^    unsigned int gs, fs, es, ds;      \/* pushed the segs last *\/$/;"	m	struct:__anon11
+dword	src/vga.c	/^typedef unsigned long dword;$/;"	t	file:
+eax	src/include/system.h	/^    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  \/* pushed by 'pusha' *\/$/;"	m	struct:__anon11
+ebp	src/include/system.h	/^    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  \/* pushed by 'pusha' *\/$/;"	m	struct:__anon11
+ebx	src/include/system.h	/^    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  \/* pushed by 'pusha' *\/$/;"	m	struct:__anon11
+ecx	src/include/system.h	/^    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  \/* pushed by 'pusha' *\/$/;"	m	struct:__anon11
+edi	src/include/system.h	/^    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  \/* pushed by 'pusha' *\/$/;"	m	struct:__anon11
+edx	src/include/system.h	/^    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  \/* pushed by 'pusha' *\/$/;"	m	struct:__anon11
+eflags	src/include/system.h	/^    unsigned int eip, cs, eflags, useresp, ss;   \/* pushed by the processor automatically *\/$/;"	m	struct:__anon11
+eip	src/include/system.h	/^    unsigned int eip, cs, eflags, useresp, ss;   \/* pushed by the processor automatically *\/$/;"	m	struct:__anon11
+elf_sec	src/include/multiboot.h	/^		elf_section_header_table_t elf_sec;$/;"	m	union:__anon7::__anon8
+elf_section_header_table_t	src/include/multiboot.h	/^} elf_section_header_table_t;$/;"	t	typeref:struct:__anon6
+enable_sse	src/asm/start.s	/^enable_sse:$/;"	l
+entry_addr	src/include/multiboot.h	/^	u32 entry_addr;$/;"	m	struct:__anon4
+err_code	src/include/system.h	/^    unsigned int int_no, err_code;    \/* our 'push byte #' and ecodes do this *\/$/;"	m	struct:__anon11
+es	src/include/system.h	/^    unsigned int gs, fs, es, ds;      \/* pushed the segs last *\/$/;"	m	struct:__anon11
+esi	src/include/system.h	/^    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  \/* pushed by 'pusha' *\/$/;"	m	struct:__anon11
+esp	src/include/system.h	/^    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  \/* pushed by 'pusha' *\/$/;"	m	struct:__anon11
+exception_messages	src/isrs.c	/^char *exception_messages[] =$/;"	v
+extern	src/asm/start.s	/^extern _main		; have to specify '_main' instead of 'main' since we're using ELF format$/;"	l
+extern	src/asm/start.s	/^extern fault_handler$/;"	l
+extern	src/asm/start.s	/^extern gp		; Says that 'gp' is in another file$/;"	l
+extern	src/asm/start.s	/^extern idtp$/;"	l
+extern	src/asm/start.s	/^extern irq_handler$/;"	l
+false	src/include/system.h	/^#define false /;"	d
+fault_handler	src/isrs.c	/^void fault_handler(regs *r)$/;"	f
+features	src/asm/cpuid.s	/^features	resd	4$/;"	l
+findMode	src/vesa.c	/^u16 findMode(int x, int y, int d)$/;"	f
+flags	src/idt.c	/^    unsigned char flags;       \/* Set using the above table! *\/$/;"	m	struct:idt_entry	file:
+flags	src/include/multiboot.h	/^	u32 flags;$/;"	m	struct:__anon4
+flags	src/include/multiboot.h	/^	u32 flags;$/;"	m	struct:__anon7
+flush2	src/asm/start.s	/^flush2:$/;"	l
+free_ptr	src/mm.c	/^u8 *free_ptr;$/;"	v
+freeblock	src/mm.c	/^struct freeblock {$/;"	s	file:
+freeblock_t	src/mm.c	/^typedef struct freeblock freeblock_t;$/;"	t	typeref:struct:freeblock	file:
+fs	src/include/system.h	/^    unsigned int gs, fs, es, ds;      \/* pushed the segs last *\/$/;"	m	struct:__anon11
+fs_block	src/fs.c	/^} fs_block;$/;"	t	typeref:struct:__anon1	file:
+fs_map	src/fs.c	/^} fs_map;$/;"	t	typeref:struct:__anon2	file:
+gdt	src/gdt.c	/^struct gdt_entry gdt[3];$/;"	v	typeref:struct:gdt_entry
+gdt_entry	src/gdt.c	/^struct gdt_entry$/;"	s	file:
+gdt_flush	src/asm/start.s	/^gdt_flush:$/;"	l
+gdt_install	src/gdt.c	/^void gdt_install()$/;"	f
+gdt_ptr	src/gdt.c	/^struct gdt_ptr$/;"	s	file:
+gdt_set_gate	src/gdt.c	/^void gdt_set_gate(u32 num, u32 base, u32 limit, u8 access, u8 gran)$/;"	f
+get_RTC_register	src/timer.c	/^u8 get_RTC_register(int reg) {$/;"	f
+get_update_in_progress_flag	src/timer.c	/^int get_update_in_progress_flag() {$/;"	f
+getch	src/scrn.c	/^char getch() {$/;"	f
+global	src/asm/start.s	/^global _sys_heap	; Allows the C code to link to this $/;"	l
+global	src/asm/start.s	/^global gdt_flush	; Allows the C code to link to this$/;"	l
+global	src/asm/start.s	/^global idt_load		; Allows the C code to link to this$/;"	l
+global	src/asm/start.s	/^global irq0$/;"	l
+global	src/asm/start.s	/^global irq1$/;"	l
+global	src/asm/start.s	/^global irq10$/;"	l
+global	src/asm/start.s	/^global irq11$/;"	l
+global	src/asm/start.s	/^global irq12$/;"	l
+global	src/asm/start.s	/^global irq13$/;"	l
+global	src/asm/start.s	/^global irq14$/;"	l
+global	src/asm/start.s	/^global irq15$/;"	l
+global	src/asm/start.s	/^global irq2$/;"	l
+global	src/asm/start.s	/^global irq3$/;"	l
+global	src/asm/start.s	/^global irq4$/;"	l
+global	src/asm/start.s	/^global irq5$/;"	l
+global	src/asm/start.s	/^global irq6$/;"	l
+global	src/asm/start.s	/^global irq7$/;"	l
+global	src/asm/start.s	/^global irq8$/;"	l
+global	src/asm/start.s	/^global irq9$/;"	l
+global	src/asm/start.s	/^global isr0$/;"	l
+global	src/asm/start.s	/^global isr1$/;"	l
+global	src/asm/start.s	/^global isr10$/;"	l
+global	src/asm/start.s	/^global isr11$/;"	l
+global	src/asm/start.s	/^global isr12$/;"	l
+global	src/asm/start.s	/^global isr13$/;"	l
+global	src/asm/start.s	/^global isr14$/;"	l
+global	src/asm/start.s	/^global isr15$/;"	l
+global	src/asm/start.s	/^global isr16$/;"	l
+global	src/asm/start.s	/^global isr17$/;"	l
+global	src/asm/start.s	/^global isr18$/;"	l
+global	src/asm/start.s	/^global isr19$/;"	l
+global	src/asm/start.s	/^global isr2$/;"	l
+global	src/asm/start.s	/^global isr20$/;"	l
+global	src/asm/start.s	/^global isr21$/;"	l
+global	src/asm/start.s	/^global isr22$/;"	l
+global	src/asm/start.s	/^global isr23$/;"	l
+global	src/asm/start.s	/^global isr24$/;"	l
+global	src/asm/start.s	/^global isr25$/;"	l
+global	src/asm/start.s	/^global isr26$/;"	l
+global	src/asm/start.s	/^global isr27$/;"	l
+global	src/asm/start.s	/^global isr28$/;"	l
+global	src/asm/start.s	/^global isr29$/;"	l
+global	src/asm/start.s	/^global isr3$/;"	l
+global	src/asm/start.s	/^global isr30$/;"	l
+global	src/asm/start.s	/^global isr31$/;"	l
+global	src/asm/start.s	/^global isr4$/;"	l
+global	src/asm/start.s	/^global isr5$/;"	l
+global	src/asm/start.s	/^global isr6$/;"	l
+global	src/asm/start.s	/^global isr7$/;"	l
+global	src/asm/start.s	/^global isr8$/;"	l
+global	src/asm/start.s	/^global isr9$/;"	l
+global	src/asm/start.s	/^global start$/;"	l
+gp	src/gdt.c	/^struct gdt_ptr gp;$/;"	v	typeref:struct:gdt_ptr
+granularity	src/gdt.c	/^    unsigned char granularity;$/;"	m	struct:gdt_entry	file:
+granularity	src/vesa.c	/^  uint16_t granularity;$/;"	m	struct:__anon16	file:
+green_mask	src/vesa.c	/^  uint8_t green_mask, green_position;$/;"	m	struct:__anon16	file:
+green_position	src/vesa.c	/^  uint8_t green_mask, green_position;$/;"	m	struct:__anon16	file:
+gs	src/include/system.h	/^    unsigned int gs, fs, es, ds;      \/* pushed the segs last *\/$/;"	m	struct:__anon11
+hasBit	src/main.c	/^b32 hasBit(u32 data, u32 bit) {$/;"	f
+header_addr	src/include/multiboot.h	/^	u32 header_addr;$/;"	m	struct:__anon4
+heap_ptr	src/mm.c	/^u8 *heap_ptr;$/;"	v
+height_200	src/vga.c	/^static const u8 height_200[] = {0xbf, 0x1f, 0x41, 0x9c, 0x8e, 0x8f, 0x96, 0xb9};$/;"	v	file:
+height_224	src/vga.c	/^static const u8 height_224[] = {0x0b, 0x3e, 0x41, 0xda, 0x9c, 0xbf, 0xc7, 0x04};$/;"	v	file:
+height_240	src/vga.c	/^static const u8 height_240[] = {0x0d, 0x3e, 0x41, 0xea, 0xac, 0xdf, 0xe7, 0x06};$/;"	v	file:
+height_256	src/vga.c	/^static const u8 height_256[] = {0x23, 0xb2, 0x61, 0x0a, 0xac, 0xff, 0x07, 0x1a};$/;"	v	file:
+height_270	src/vga.c	/^static const u8 height_270[] = {0x30, 0xf0, 0x61, 0x20, 0xa9, 0x1b, 0x1f, 0x2f};$/;"	v	file:
+height_300	src/vga.c	/^static const u8 height_300[] = {0x70, 0xf0, 0x61, 0x5b, 0x8c, 0x57, 0x58, 0x70};$/;"	v	file:
+height_360	src/vga.c	/^static const u8 height_360[] = {0xbf, 0x1f, 0x40, 0x88, 0x85, 0x67, 0x6d, 0xba};$/;"	v	file:
+height_400	src/vga.c	/^static const u8 height_400[] = {0xbf, 0x1f, 0x40, 0x9c, 0x8e, 0x8f, 0x96, 0xb9};$/;"	v	file:
+height_480	src/vga.c	/^static const u8 height_480[] = {0x0d, 0x3e, 0x40, 0xea, 0xac, 0xdf, 0xe7, 0x06};$/;"	v	file:
+height_564	src/vga.c	/^static const u8 height_564[] = {0x62, 0xf0, 0x60, 0x37, 0x89, 0x33, 0x3c, 0x5c};$/;"	v	file:
+height_600	src/vga.c	/^static const u8 height_600[] = {0x70, 0xf0, 0x60, 0x5b, 0x8c, 0x57, 0x58, 0x70};$/;"	v	file:
+hor_regs	src/vga.c	/^static const u8 hor_regs[] = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x13};$/;"	v	file:
+hour	src/include/system.h	/^	u8 hour;$/;"	m	struct:__anon12
+i	src/asm/cpuid.s	/^i		resd	4$/;"	l
+i16	src/include/system.h	/^typedef short            i16;$/;"	t
+i32	src/include/system.h	/^typedef int              i32;$/;"	t
+i8	src/include/system.h	/^typedef char             i8;$/;"	t
+idt	src/idt.c	/^struct idt_entry idt[256];$/;"	v	typeref:struct:idt_entry
+idt_entry	src/idt.c	/^struct idt_entry$/;"	s	file:
+idt_install	src/idt.c	/^void idt_install()$/;"	f
+idt_load	src/asm/start.s	/^idt_load:$/;"	l
+idt_ptr	src/idt.c	/^struct idt_ptr$/;"	s	file:
+idt_set_gate	src/idt.c	/^void idt_set_gate(u8 num, u32 base, u16 sel, u8 flags)$/;"	f
+idtp	src/idt.c	/^struct idt_ptr idtp;$/;"	v	typeref:struct:idt_ptr
+image_pages	src/vesa.c	/^  uint8_t memory_model, bank_size, image_pages;$/;"	m	struct:__anon16	file:
+inb	src/io.c	/^u8 inb (u16 _port)$/;"	f
+ind	src/io.c	/^u32 ind(u16 _port)$/;"	f
+init_graph_vga	src/vga.c	/^u32 init_graph_vga(u32 width, u32 height, b8 chain4) {$/;"	f
+init_mm	src/mm.c	/^void init_mm() {$/;"	f
+init_serial	src/io.c	/^void init_serial() {$/;"	f
+init_video	src/scrn.c	/^void init_video()$/;"	f
+inp	src/vga.c	/^#define inp /;"	d	file:
+inpw	src/vga.c	/^#define inpw /;"	d	file:
+install	setup/cross_compilers/arm-elf-binutils.rb	/^  def install$/;"	f	class:ArmElfBinutils
+install	setup/cross_compilers/arm-elf-gcc.rb	/^  def install$/;"	f	class:ArmElfGcc
+install	setup/cross_compilers/arm-elf-gdb.rb	/^  def install$/;"	f	class:ArmElfGdb
+install	setup/cross_compilers/i386-elf-binutils.rb	/^  def install$/;"	f	class:I386ElfBinutils
+install	setup/cross_compilers/i386-elf-gcc.rb	/^  def install$/;"	f	class:I386ElfGcc
+install	setup/cross_compilers/i386-elf-gdb.rb	/^  def install$/;"	f	class:I386ElfGdb
+install	setup/cross_compilers/i386-jos-elf-binutils.rb	/^  def install$/;"	f	class:I386JosElfBinutils
+install	setup/cross_compilers/i386-jos-elf-gcc.rb	/^  def install$/;"	f	class:I386JosElfGcc
+install	setup/cross_compilers/i386-jos-elf-gdb.rb	/^  def install$/;"	f	class:I386JosElfGdb
+install	setup/cross_compilers/i586-elf-binutils.rb	/^  def install$/;"	f	class:I586ElfBinutils
+install	setup/cross_compilers/i586-elf-gcc.rb	/^  def install$/;"	f	class:I586ElfGcc
+install	setup/cross_compilers/i586-elf-gdb.rb	/^  def install$/;"	f	class:I586ElfGdb
+install	setup/cross_compilers/x64-elf-binutils.rb	/^  def install$/;"	f	class:X64ElfBinutils
+install	setup/cross_compilers/x64-elf-gcc.rb	/^  def install$/;"	f	class:X64ElfGcc
+install	setup/cross_compilers/x64-elf-gdb.rb	/^  def install$/;"	f	class:X64ElfGdb
+int_no	src/include/system.h	/^    unsigned int int_no, err_code;    \/* our 'push byte #' and ecodes do this *\/$/;"	m	struct:__anon11
+internal	src/main.c	/^#define internal /;"	d	file:
+inw	src/io.c	/^u16 inw(u16 _port)$/;"	f
+iret	src/include/system.h	/^#define iret(/;"	d
+irq0	src/asm/start.s	/^irq0:$/;"	l
+irq1	src/asm/start.s	/^irq1:$/;"	l
+irq10	src/asm/start.s	/^irq10:$/;"	l
+irq11	src/asm/start.s	/^irq11:$/;"	l
+irq12	src/asm/start.s	/^irq12:$/;"	l
+irq13	src/asm/start.s	/^irq13:$/;"	l
+irq14	src/asm/start.s	/^irq14:$/;"	l
+irq15	src/asm/start.s	/^irq15:$/;"	l
+irq2	src/asm/start.s	/^irq2:$/;"	l
+irq3	src/asm/start.s	/^irq3:$/;"	l
+irq4	src/asm/start.s	/^irq4:$/;"	l
+irq5	src/asm/start.s	/^irq5:$/;"	l
+irq6	src/asm/start.s	/^irq6:$/;"	l
+irq7	src/asm/start.s	/^irq7:$/;"	l
+irq8	src/asm/start.s	/^irq8:$/;"	l
+irq9	src/asm/start.s	/^irq9:$/;"	l
+irq_common_stub	src/asm/start.s	/^irq_common_stub:$/;"	l
+irq_handler	src/irq.c	/^void irq_handler(regs *r)$/;"	f
+irq_install	src/irq.c	/^void irq_install()$/;"	f
+irq_install_handler	src/irq.c	/^void irq_install_handler(u32 irq, void (*handler)(regs *r))$/;"	f
+irq_remap	src/irq.c	/^void irq_remap(void)$/;"	f
+irq_routines	src/irq.c	/^void *irq_routines[16] =$/;"	v
+irq_uninstall_handler	src/irq.c	/^void irq_uninstall_handler(u32 irq)$/;"	f
+is_bit_set	src/main.c	/^b32 is_bit_set(u32 value, u32 bitindex)$/;"	f
+is_transmit_empty	src/io.c	/^steveis_awesome_t is_transmit_empty() {$/;"	f
+isr0	src/asm/start.s	/^isr0:$/;"	l
+isr1	src/asm/start.s	/^isr1:$/;"	l
+isr10	src/asm/start.s	/^isr10:$/;"	l
+isr11	src/asm/start.s	/^isr11:$/;"	l
+isr12	src/asm/start.s	/^isr12:$/;"	l
+isr13	src/asm/start.s	/^isr13:$/;"	l
+isr14	src/asm/start.s	/^isr14:$/;"	l
+isr15	src/asm/start.s	/^isr15:$/;"	l
+isr16	src/asm/start.s	/^isr16:$/;"	l
+isr17	src/asm/start.s	/^isr17:$/;"	l
+isr18	src/asm/start.s	/^isr18:$/;"	l
+isr19	src/asm/start.s	/^isr19:$/;"	l
+isr2	src/asm/start.s	/^isr2:$/;"	l
+isr20	src/asm/start.s	/^isr20:$/;"	l
+isr21	src/asm/start.s	/^isr21:$/;"	l
+isr22	src/asm/start.s	/^isr22:$/;"	l
+isr23	src/asm/start.s	/^isr23:$/;"	l
+isr24	src/asm/start.s	/^isr24:$/;"	l
+isr25	src/asm/start.s	/^isr25:$/;"	l
+isr26	src/asm/start.s	/^isr26:$/;"	l
+isr27	src/asm/start.s	/^isr27:$/;"	l
+isr28	src/asm/start.s	/^isr28:$/;"	l
+isr29	src/asm/start.s	/^isr29:$/;"	l
+isr3	src/asm/start.s	/^isr3:$/;"	l
+isr30	src/asm/start.s	/^isr30:$/;"	l
+isr31	src/asm/start.s	/^isr31:$/;"	l
+isr4	src/asm/start.s	/^isr4:$/;"	l
+isr5	src/asm/start.s	/^isr5:$/;"	l
+isr6	src/asm/start.s	/^isr6:$/;"	l
+isr7	src/asm/start.s	/^isr7:$/;"	l
+isr8	src/asm/start.s	/^isr8:$/;"	l
+isr9	src/asm/start.s	/^isr9:$/;"	l
+isr_common_stub	src/asm/start.s	/^isr_common_stub:$/;"	l
+isrs_install	src/isrs.c	/^void isrs_install()$/;"	f
+jz	src/asm/cpuid.s	/^jz .loop ;check if zero flag is set - if it is it means that the feature didn't exist so we don't want to print anything out$/;"	l
+kCurrentYear	src/timer.c	/^const u16 kCurrentYear = 2014;$/;"	v
+kbdus	src/kb.c	/^u8 kbdus[128] =$/;"	v
+keyboard_handler	src/kb.c	/^void keyboard_handler(regs *r)$/;"	f
+keyboard_install	src/kb.c	/^void keyboard_install()$/;"	f
+keyready	src/kb.c	/^b8 keyready = 0;$/;"	v
+kmalloc	src/mm.c	/^u8 * kmalloc(u32 nblks) {$/;"	f
+len	src/mm.c	/^	u32 len;$/;"	m	struct:block	file:
+len	src/mm.c	/^	u32 len;$/;"	m	struct:freeblock	file:
+length_high	src/include/multiboot.h	/^	unsigned long length_high;$/;"	m	struct:__anon10
+length_low	src/include/multiboot.h	/^	unsigned long length_low;$/;"	m	struct:__anon10
+limit	src/gdt.c	/^    unsigned short limit;$/;"	m	struct:gdt_ptr	file:
+limit	src/idt.c	/^    unsigned short limit;$/;"	m	struct:idt_ptr	file:
+limit_low	src/gdt.c	/^    unsigned short limit_low;$/;"	m	struct:gdt_entry	file:
+line_fast	src/vga.c	/^void line_fast(u32 x1, u32 y1, u32 x2, u32 y2, u8 color) {$/;"	f
+load_addr	src/include/multiboot.h	/^	u32 load_addr;$/;"	m	struct:__anon4
+load_end_addr	src/include/multiboot.h	/^	u32 load_end_addr;$/;"	m	struct:__anon4
+magic	src/include/multiboot.h	/^	u32 magic;$/;"	m	struct:__anon4
+mboot	src/asm/start.s	/^mboot:$/;"	l
+mem_lower	src/include/multiboot.h	/^	u32 mem_lower;$/;"	m	struct:__anon7
+mem_upper	src/include/multiboot.h	/^	u32 mem_upper;$/;"	m	struct:__anon7
+memcpy	src/main.c	/^u8* memcpy(u8* dest, const u8* src, u32 count)$/;"	f
+memory_map_t	src/include/multiboot.h	/^} memory_map_t;$/;"	t	typeref:struct:__anon10
+memory_model	src/vesa.c	/^  uint8_t memory_model, bank_size, image_pages;$/;"	m	struct:__anon16	file:
+memset	src/main.c	/^u8* memset(u8* dest, u8 val, u32 count)$/;"	f
+memsetw	src/main.c	/^u16* memsetw(u16* dest, u16 val, u32 count)$/;"	f
+minute	src/include/system.h	/^	u8 minute;$/;"	m	struct:__anon12
+mmap_addr	src/include/multiboot.h	/^	u32 mmap_addr;$/;"	m	struct:__anon7
+mmap_length	src/include/multiboot.h	/^	u32 mmap_length;$/;"	m	struct:__anon7
+mod_end	src/include/multiboot.h	/^	unsigned long mod_end;$/;"	m	struct:__anon9
+mod_start	src/include/multiboot.h	/^	unsigned long mod_start;$/;"	m	struct:__anon9
+mods_addr	src/include/multiboot.h	/^	u32 mods_addr;$/;"	m	struct:__anon7
+mods_count	src/include/multiboot.h	/^	u32 mods_count;$/;"	m	struct:__anon7
+module_t	src/include/multiboot.h	/^} module_t;$/;"	t	typeref:struct:__anon9
+month	src/include/system.h	/^	u8 month;$/;"	m	struct:__anon12
+mov	src/asm/cpuid.s	/^mov	[curfeat],eax$/;"	l
+mov	src/asm/cpuid.s	/^mov	eax,00000001h$/;"	l
+mov	src/asm/cpuid.s	/^mov	eax,1	;system call number (sys_exit)$/;"	l
+mov	src/asm/cpuid.s	/^mov     [i],eax$/;"	l
+mov	src/asm/cpuid.s	/^mov     eax,-1$/;"	l
+mov	src/asm/cpuid.s	/^mov [features],edx$/;"	l
+mov	src/asm/cpuid.s	/^mov [vendor_id+4],edx$/;"	l
+mov	src/asm/cpuid.s	/^mov [vendor_id+8],ecx$/;"	l
+mov	src/asm/cpuid.s	/^mov [vendor_id],ebx$/;"	l
+mov	src/asm/cpuid.s	/^mov [version],eax$/;"	l
+mov	src/asm/cpuid.s	/^mov eax,0$/;"	l
+mov	src/asm/cpuid.s	/^mov eax,1$/;"	l
+move_csr	src/scrn.c	/^void move_csr(void)$/;"	f
+multiboot_header_t	src/include/multiboot.h	/^} multiboot_header_t;$/;"	t	typeref:struct:__anon4
+multiboot_info_t	src/include/multiboot.h	/^} multiboot_info_t;$/;"	t	typeref:struct:__anon7
+names	src/asm/cpuid.s	/^names	db	'FPU  VME  DE   PSE  TSC  MSR  PAE  MCE  CX8  APIC RESV SEP  MTRR PGE  MCA  CMOV PAT PSE3 PSN  CLFS RESV DS   ACPI MMX FXSR SSE  SSE2 SS   HTT  TM   RESV PBE '$/;"	d
+next	src/main.c	/^internal u32 next = 1;$/;"	v
+next	src/mm.c	/^	block_t *next;$/;"	m	struct:block	file:
+next	src/mm.c	/^	freeblock_t *next;$/;"	m	struct:freeblock	file:
+nop	src/include/system.h	/^#define nop(/;"	d
+num	src/include/multiboot.h	/^	u32 num;$/;"	m	struct:__anon6
+osx	setup/build-homebrew-cross-compiler.sh	/^osx()$/;"	f
+outb	src/io.c	/^void outb (u16 _port, u8 _data)$/;"	f
+outd	src/io.c	/^void outd (u16 _port, u32 _data)$/;"	f
+outp	src/vga.c	/^#define outp /;"	d	file:
+outpw	src/vga.c	/^#define outpw /;"	d	file:
+outw	src/io.c	/^void outw (u16 _port, u16 _data)$/;"	f
+patches	setup/cross_compilers/x64-elf-gdb.rb	/^  def patches$/;"	f	class:X64ElfGdb
+physbase	src/vesa.c	/^  uint32_t physbase;  \/\/ your LFB (Linear Framebuffer) address ;)$/;"	m	struct:__anon16	file:
+pitch	src/vesa.c	/^  uint16_t pitch; \/\/ bytes per scanline$/;"	m	struct:__anon16	file:
+planes	src/vesa.c	/^  uint8_t Wchar, Ychar, planes, bpp, banks;$/;"	m	struct:__anon16	file:
+plot_pixel	src/vga.c	/^void plot_pixel(u32 x, u32 y, u8 color) {$/;"	f
+polygon	src/vga.c	/^void polygon(u32 num_vertices, u32* vertices, u8 color) {$/;"	f
+pop	src/asm/start.s	/^    pop ds$/;"	d
+popa	src/include/system.h	/^#define popa(/;"	d
+printBinary	src/scrn.c	/^void printBinary(u32 num) {$/;"	f
+printBinary_b	src/scrn.c	/^void printBinary_b(u8 num) {$/;"	f
+printBinary_w	src/scrn.c	/^void printBinary_w(u16 num) {$/;"	f
+printHex	src/scrn.c	/^void printHex(u32 w) {$/;"	f
+printHexDigit	src/scrn.c	/^void printHexDigit(u8 digit) {$/;"	f
+printHex_b	src/scrn.c	/^void printHex_b(u8 b) {$/;"	f
+printHex_w	src/scrn.c	/^void printHex_w(u16 w) {$/;"	f
+printInt	src/scrn.c	/^void printInt(int number) {$/;"	f
+print_heap_magic	src/mm.c	/^void print_heap_magic() {$/;"	f
+print_port	src/io.c	/^void print_port(u16 port)$/;"	f
+push	src/asm/start.s	/^    push ds$/;"	d
+pusha	src/include/system.h	/^#define pusha(/;"	d
+putch	src/scrn.c	/^void putch(u8 c)$/;"	f
+puts	src/scrn.c	/^void puts(const char* text)$/;"	f
+rand	src/main.c	/^u32 rand(void) $/;"	f
+read_rtc	src/timer.c	/^rtc_time read_rtc() {$/;"	f
+read_serial	src/io.c	/^char read_serial() {$/;"	f
+real32	src/include/system.h	/^typedef float real32;$/;"	t
+real64	src/include/system.h	/^typedef double real64;$/;"	t
+red_mask	src/vesa.c	/^  uint8_t red_mask, red_position;$/;"	m	struct:__anon16	file:
+red_position	src/vesa.c	/^  uint8_t red_mask, red_position;$/;"	m	struct:__anon16	file:
+regs	src/include/system.h	/^} regs;$/;"	t	typeref:struct:__anon11
+reserved	src/include/multiboot.h	/^	u32 reserved;$/;"	m	struct:__anon5
+reserved	src/include/multiboot.h	/^	unsigned long reserved;$/;"	m	struct:__anon9
+reserved0	src/vesa.c	/^  uint8_t reserved0;$/;"	m	struct:__anon16	file:
+reserved1	src/vesa.c	/^  uint32_t reserved1;$/;"	m	struct:__anon16	file:
+reserved2	src/vesa.c	/^  uint16_t reserved2;$/;"	m	struct:__anon16	file:
+rsv_mask	src/vesa.c	/^  uint8_t rsv_mask, rsv_position;$/;"	m	struct:__anon16	file:
+rsv_position	src/vesa.c	/^  uint8_t rsv_mask, rsv_position;$/;"	m	struct:__anon16	file:
+rtc_time	src/include/system.h	/^} rtc_time;$/;"	t	typeref:struct:__anon12
+scroll	src/scrn.c	/^void scroll(void)$/;"	f
+second	src/include/system.h	/^	u8 second;$/;"	m	struct:__anon12
+section	src/asm/cpuid.s	/^section .bss ; $Revision: 1.6 \$$/;"	l
+section	src/asm/cpuid.s	/^section .text$/;"	l
+segmentA	src/vesa.c	/^  uint16_t segmentA, segmentB;$/;"	m	struct:__anon16	file:
+segmentB	src/vesa.c	/^  uint16_t segmentA, segmentB;$/;"	m	struct:__anon16	file:
+sel	src/idt.c	/^    unsigned short sel;        \/* Our kernel segment goes here! *\/$/;"	m	struct:idt_entry	file:
+serial_received	src/io.c	/^int serial_received() {$/;"	f
+set_palette	src/vga.c	/^void set_palette(int index, int red, int green, int blue) {$/;"	f
+settextcolor	src/scrn.c	/^void settextcolor(u8 forecolor, u8 backcolor)$/;"	f
+sgn	src/vga.c	/^u32 sgn(u32 val) { return val < 0 ? -1 : val > 0 ? 1 : 0; }$/;"	f
+shndx	src/include/multiboot.h	/^	u32 shndx;$/;"	m	struct:__anon6
+size	src/include/multiboot.h	/^	u32 size;$/;"	m	struct:__anon6
+size	src/include/multiboot.h	/^	unsigned long size;$/;"	m	struct:__anon10
+srand	src/main.c	/^void srand(u32 seed)$/;"	f
+ss	src/include/system.h	/^    unsigned int eip, cs, eflags, useresp, ss;   \/* pushed by the processor automatically *\/$/;"	m	struct:__anon11
+sse_enabled	src/asm/start.s	/^sse_enabled:$/;"	l
+start	src/asm/start.s	/^start:$/;"	l
+steveis_awesome_t	src/io.c	/^typedef int steveis_awesome_t;$/;"	t	file:
+sti	src/include/system.h	/^#define sti(/;"	d
+string	src/include/multiboot.h	/^	unsigned long string;$/;"	m	struct:__anon9
+strlen	src/main.c	/^u32 strlen(c_str str)$/;"	f
+strsize	src/include/multiboot.h	/^	u32 strsize;$/;"	m	struct:__anon5
+stublet	src/asm/start.s	/^stublet:      $/;"	l
+tabsize	src/include/multiboot.h	/^	u32 tabsize;$/;"	m	struct:__anon5
+textmemptr	src/scrn.c	/^u16* textmemptr;		\/\/ word pointer$/;"	v
+ticks_from_ms	src/timer.c	/^#define ticks_from_ms(/;"	d	file:
+ticks_from_s	src/timer.c	/^#define ticks_from_s(/;"	d	file:
+ticks_to_ms	src/timer.c	/^#define ticks_to_ms(/;"	d	file:
+ticks_to_s	src/timer.c	/^#define ticks_to_s(/;"	d	file:
+timer_handler	src/timer.c	/^void timer_handler(regs *r)$/;"	f
+timer_install	src/timer.c	/^void timer_install()$/;"	f
+timer_seconds	src/timer.c	/^u32 timer_seconds() { return ticks_to_s(_timer_ticks); } $/;"	f
+timer_ticks	src/timer.c	/^u32 timer_ticks() { return _timer_ticks; }$/;"	f
+times	src/asm/cpuid.s	/^times 5	add	ecx,eax$/;"	l
+trace	src/include/system.h	/^#define trace(/;"	d
+true	src/include/system.h	/^#define true /;"	d
+type	src/include/multiboot.h	/^	unsigned long type;$/;"	m	struct:__anon10
+u	src/include/multiboot.h	/^	} u;$/;"	m	struct:__anon7	typeref:union:__anon7::__anon8
+u16	src/include/system.h	/^typedef unsigned short   u16;$/;"	t
+u32	src/include/system.h	/^typedef unsigned int     u32;$/;"	t
+u8	src/include/system.h	/^typedef unsigned char    u8;$/;"	t
+useresp	src/include/system.h	/^    unsigned int eip, cs, eflags, useresp, ss;   \/* pushed by the processor automatically *\/$/;"	m	struct:__anon11
+vbe_control_info	src/include/multiboot.h	/^	u32 vbe_control_info;$/;"	m	struct:__anon7
+vbe_interface_len	src/include/multiboot.h	/^	u32 vbe_interface_len;$/;"	m	struct:__anon7
+vbe_interface_off	src/include/multiboot.h	/^	u32 vbe_interface_off;$/;"	m	struct:__anon7
+vbe_interface_seg	src/include/multiboot.h	/^	u32 vbe_interface_seg;$/;"	m	struct:__anon7
+vbe_mode	src/include/multiboot.h	/^	u32 vbe_mode;$/;"	m	struct:__anon7
+vbe_mode_info	src/include/multiboot.h	/^	u32 vbe_mode_info;$/;"	m	struct:__anon7
+vendor_id	src/asm/cpuid.s	/^vendor_id       resd	12	;reserve 12 bytes of memory$/;"	l
+ver_regs	src/vga.c	/^static const u8 ver_regs[] = {0x6, 0x7, 0x9, 0x10, 0x11, 0x12, 0x15, 0x16};$/;"	v	file:
+version	src/asm/cpuid.s	/^version		resd	4$/;"	l
+vga_clear	src/vga.c	/^void vga_clear(u8 color) {$/;"	f
+vga_is_chained	src/vga.c	/^b8 vga_is_chained = false;$/;"	v
+vga_memory	src/vga.c	/^u8* vga_memory = (u8*)0xA0000;$/;"	v
+vga_palette	src/vga.c	/^u8 vga_palette[MAX_PALETTE_COUNT];$/;"	v
+vga_screen_colors	src/vga.c	/^u8 vga_screen_colors = 255;$/;"	v
+vga_screen_height	src/vga.c	/^u16 vga_screen_height = 200;$/;"	v
+vga_screen_width	src/vga.c	/^u16 vga_screen_width = 320;$/;"	v
+vga_tests	src/vga.c	/^void vga_tests() {$/;"	f
+vib	src/vesa.c	/^VbeInfoBlock *vib = dos_alloc(512);$/;"	v
+vidmemptr	src/scrn.c	/^u16* vidmemptr;        \/\/ word pointer$/;"	v
+width_256	src/vga.c	/^static const u8 width_256[] = {0x5f, 0x3f, 0x40, 0x82, 0x4a, 0x9a, 0x20};$/;"	v	file:
+width_320	src/vga.c	/^static const u8 width_320[] = {0x5f, 0x4f, 0x50, 0x82, 0x54, 0x80, 0x28};$/;"	v	file:
+width_360	src/vga.c	/^static const u8 width_360[] = {0x6b, 0x59, 0x5a, 0x8e, 0x5e, 0x8a, 0x2d};$/;"	v	file:
+width_376	src/vga.c	/^static const u8 width_376[] = {0x6e, 0x5d, 0x5e, 0x91, 0x62, 0x8f, 0x2f};$/;"	v	file:
+width_400	src/vga.c	/^static const u8 width_400[] = {0x70, 0x63, 0x64, 0x92, 0x65, 0x82, 0x32};$/;"	v	file:
+winA	src/vesa.c	/^  uint8_t winA,winB;$/;"	m	struct:__anon16	file:
+winB	src/vesa.c	/^  uint8_t winA,winB;$/;"	m	struct:__anon16	file:
+winsize	src/vesa.c	/^  uint16_t winsize;$/;"	m	struct:__anon16	file:
+word	src/vga.c	/^typedef unsigned short word;$/;"	t	file:
+write_serial	src/io.c	/^void write_serial(char* str) {$/;"	f
+write_serial_b	src/io.c	/^void write_serial_b(u8 a) {$/;"	f
+write_to_serial	src/scrn.c	/^b8 write_to_serial;$/;"	v
+write_to_stdout	src/scrn.c	/^b8 write_to_stdout;$/;"	v
+year	src/include/system.h	/^	u32 year;$/;"	m	struct:__anon12

@@ -3,9 +3,9 @@
 ; Description: An operating system needs to perform some functions in assembly code to work. This file does that.
 ; Special Thanks to: 
 ;
-;
 
-; Using NASM
+
+; Using NASM, GCC (for now), ELF
 
 ; Utilize 32-bit x86
 [BITS 32]
@@ -58,11 +58,53 @@ mboot:
 
 ; call our main() function 
 stublet:      
-    ;call _main 	; non-elf gcc puts _ in front of function names    	
+    ;call _main 	; elf gcc puts _ in front of function names    	
 	push eax
 	push ebx
 	call _main
-    jmp $
+    jmp $           ; jump to self (halta)
+
+
+sse_enabled:
+    mov eax, 0x1
+    cpuid
+    test edx, 1<<25
+    jz .noSSE
+    ;SSE is available
+    ret;
+
+.noSSE:
+    ret;
+
+enable_sse:
+    ;now enable SSE and the like
+    mov eax, cr0
+    and ax, 0xFFFB      ;clear coprocessor emulation CR0.EM
+    or ax, 0x2          ;set coprocessor monitoring  CR0.MP
+    mov cr0, eax
+    mov eax, cr4
+    or ax, 3 << 9       ;set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
+    mov cr4, eax
+    ret
+
+_outp_8:
+    ;outb 
+    ret;
+_outp_16:
+    ;outw
+    ret;
+_outp_32:
+    ;outl
+    ret; 
+_inp_8:
+    ;inb
+    ret;
+_inp_16:
+    ;inw
+    ret;
+_inp_32:
+    ;inl
+    ret;
 
 
 ; Shortly we will add code for loading the GDT right here!
@@ -124,6 +166,7 @@ global isr29
 global isr30
 global isr31
 
+; TODO: write macro for these
 ;  0: Divide By Zero Exception
 isr0:
     cli

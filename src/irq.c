@@ -19,16 +19,16 @@ extern void irq13();
 extern void irq14();
 extern void irq15();
 
-/* This array is actually an array of function pointers. We use
-*  this to handle custom IRQ handlers for a given IRQ */
-void *irq_routines[16] =
+typedef void(*irq_handler_t)(isr_stack_state* r);
+/// IRQ function table (0-7, 8-15)
+irq_handler_t irq_routines[16] =
 {
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0
 };
 
-/* This installs a custom IRQ handler for the given IRQ */
-void irq_install_handler(u32 irq, void (*handler)(regs *r))
+/// This installs a custom IRQ handler for the given IRQ
+void irq_install_handler(u32 irq, irq_handler_t handler)
 {
     irq_routines[irq] = handler;
 }
@@ -39,14 +39,9 @@ void irq_uninstall_handler(u32 irq)
     irq_routines[irq] = 0;
 }
 
-/* Normally, IRQs 0 to 7 are mapped to entries 8 to 15. This
-*  is a problem in protected mode, because IDT entry 8 is a
-*  Double Fault! Without remapping, every time IRQ0 fires,
-*  you get a Double Fault Exception, which is NOT actually
-*  what's happening. We send commands to the Programmable
-*  Interrupt Controller (PICs - also called the 8259's) in
-*  order to make IRQ0 to 15 be remapped to IDT entries 32 to
-*  47 */
+/// Remap IRQs 0-7 since they are mapped to IDT entries 8-15 by default
+/// IRQ 0 is mapped to IDT entry 8 is Double Fault
+/// (only an issue in protected mode: )
 void irq_remap(void)
 {
     outb(0x20, 0x11);
@@ -59,32 +54,34 @@ void irq_remap(void)
     outb(0xA1, 0x01);
     outb(0x21, 0x0);
     outb(0xA1, 0x0);
+
+    // reset PIC's
+    outb(0x21, 0x20);
+    outb(0xA1, 0x20);
 }
 
-/* We first remap the interrupt controllers, and then we install
-*  the appropriate ISRs to the correct entries in the IDT. This
-*  is just like installing the exception handlers */
+/// Map IRQ to USER area of the IDT
 void irq_install()
 {
     irq_remap();
 
+    // mapping IRQ handlers to the USER ISRs
     idt_set_gate(32, (u32)irq0, 0x08, 0x8E);
     idt_set_gate(33, (u32)irq1, 0x08, 0x8E);
-    idt_set_gate(34, (unsigned)irq2, 0x08, 0x8E);
-    idt_set_gate(35, (unsigned)irq3, 0x08, 0x8E);
-    idt_set_gate(36, (unsigned)irq4, 0x08, 0x8E);
-    idt_set_gate(37, (unsigned)irq5, 0x08, 0x8E);
-    idt_set_gate(38, (unsigned)irq6, 0x08, 0x8E);
-    idt_set_gate(39, (unsigned)irq7, 0x08, 0x8E);
-
-    idt_set_gate(40, (unsigned)irq8, 0x08, 0x8E);
-    idt_set_gate(41, (unsigned)irq9, 0x08, 0x8E);
-    idt_set_gate(42, (unsigned)irq10, 0x08, 0x8E);
-    idt_set_gate(43, (unsigned)irq11, 0x08, 0x8E);
-    idt_set_gate(44, (unsigned)irq12, 0x08, 0x8E);
-    idt_set_gate(45, (unsigned)irq13, 0x08, 0x8E);
-    idt_set_gate(46, (unsigned)irq14, 0x08, 0x8E);
-    idt_set_gate(47, (unsigned)irq15, 0x08, 0x8E);
+    idt_set_gate(34, (u32)irq2, 0x08, 0x8E);
+    idt_set_gate(35, (u32)irq3, 0x08, 0x8E);
+    idt_set_gate(36, (u32)irq4, 0x08, 0x8E);
+    idt_set_gate(37, (u32)irq5, 0x08, 0x8E);
+    idt_set_gate(38, (u32)irq6, 0x08, 0x8E);
+    idt_set_gate(39, (u32)irq7, 0x08, 0x8E);
+    idt_set_gate(40, (u32)irq8, 0x08, 0x8E);
+    idt_set_gate(41, (u32)irq9, 0x08, 0x8E);
+    idt_set_gate(42, (u32)irq10, 0x08, 0x8E);
+    idt_set_gate(43, (u32)irq11, 0x08, 0x8E);
+    idt_set_gate(44, (u32)irq12, 0x08, 0x8E);
+    idt_set_gate(45, (u32)irq13, 0x08, 0x8E);
+    idt_set_gate(46, (u32)irq14, 0x08, 0x8E);
+    idt_set_gate(47, (u32)irq15, 0x08, 0x8E);
 }
 
 /* Each of the IRQ ISRs point to this function, rather than
@@ -97,10 +94,12 @@ void irq_install()
 *  interrupt at BOTH controllers, otherwise, you only send
 *  an EOI command to the first controller. If you don't send
 *  an EOI, you won't raise any more IRQs */
-void irq_handler(regs *r)
+
+/// IRQ handler - called from assembly
+void irq_handler(isr_stack_state* r)
 {
     /* This is a blank function pointer */
-    void (*handler)(regs *r);
+    void (*handler)(isr_stack_state* r);
 
 	/* Find out if we have a custom handler to run for this
 	*  IRQ, and then finally, run it */
