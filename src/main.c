@@ -80,17 +80,19 @@
 // - Build on Win10 Support
 // -
 
+// Regular Experession
+// find: ^/////+///$
+// repl: //////////////////////////////////////////////////////////////////
+//
+//
+//
+
 // # Completed
 
 #include "include/system.h"
 
 // Grub2
 #include "include/multiboot.h"
-
-// drivers
-#include "hd.h"
-#include "kb.h"
-#include "fs.h"
 
 // memcpy - copy n bytes from src to dest
 u8* memcpy(u8* dest, const u8* src, u32 count)
@@ -132,19 +134,17 @@ u32 strlen(c_str str)
     return retval;
 }
 
-#define internal static
-internal u32 next = 1;
-
 // RAND_MAX assumed to be 32767
+static u32 _next_rand = 1;
 u32 rand(void)
 {
-    next = next * 1103515245 + 12345;
-    return (next/65536) % 32768;
+    _next_rand = _next_rand * 1103515245 + 12345;
+    return (_next_rand/65536) % 32768;
 }
 
 void srand(u32 seed)
 {
-    next = seed;
+    _next_rand = seed;
 }
 
 b32 hasBit(u32 data, u32 bit) {
@@ -206,18 +206,11 @@ void display_banner()
 // NASM assembly boot loader calls this method
 u32 _main(multiboot_info_t* mbh, u32 magic)
 {
-    // //u32 z = 0;
-    // u32 i = 0;
-    // i++;
-    // i--;
-
     gdt_install();
     idt_install();
     isrs_install();
-    irq_install();
 
     init_serial();
-    // TODO: serial_write[ln]
     serial_write("Hi QEMU!\r\n");
 
     init_mm();
@@ -225,9 +218,13 @@ u32 _main(multiboot_info_t* mbh, u32 magic)
 
     timer_install();
     keyboard_install();
+    mouse_install();
 
     sti();
 
+// TODO
+//    u32 timestamp = rsptd();
+//    srand();
 
     display_banner();
 

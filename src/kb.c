@@ -1,5 +1,4 @@
 #include "include/system.h"
-#include "include/kb.h"
 
 // currently allow up to 255 characters to be buffered for use
 #define MAX_BUFFERED_INPUT_KEYS 255
@@ -7,7 +6,7 @@ u8 kb_buf[MAX_BUFFERED_INPUT_KEYS] = { 0, };
 i32 kb_buf_index = 0;
 b8 keyready = 0;
 
-///////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
 // Scan->Print
 
 // http://www.quadibloc.com/comp/scan.htm
@@ -51,7 +50,7 @@ u8 scan_to_ascii_us[128] =
     0, /* All other keys are undefined */
 };
 
-////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
 
 /// Reads next character of the input stream
 /// returns 0 if no key in buffer;

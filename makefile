@@ -46,9 +46,7 @@ compile: dirs
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/main.o $(SRC)/main.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/scrn.o $(SRC)/scrn.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/gdt.o $(SRC)/gdt.c
-	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/idt.o $(SRC)/idt.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/isrs.o $(SRC)/isrs.c
-	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/irq.o $(SRC)/irq.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/timer.o $(SRC)/timer.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/kb.o $(SRC)/kb.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/mm.o $(SRC)/mm.c
@@ -90,7 +88,6 @@ copykernel: build
 	#sudo cp $(BIN_DIR)/$(OSNAME).bin tmp-loop/boot/$(OSNAME).bin
 	#sudo cp grub.lst tmp-loop/boot/menu.cfg
 	#sudo umount -f tmp-loop || exit
-
 
 
 disks:

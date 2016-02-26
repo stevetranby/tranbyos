@@ -79,64 +79,48 @@ enable_sse:
     mov cr4, eax
     ret
 
-_outp_8:
-    ret;
-_outp_16:
-    ;outw
-    ret;
-_outp_32:
-    ;outl
-    ret; 
-_inp_8:
-    ;inb
-    ret;
-_inp_16:
-    ;inw
-    ret;
-_inp_32:
-    ;inl
-    ret;
+%macro prologue 1
+    push ebp
+	mov ebp, esp
+	sub	esp, %1
+%endmacro
+%macro epilogue 0
+    mov	esp, ebp
+	pop	ebp
+	ret
+%endmacro
+%macro epilogue 1
+    mov esp, ebp
+    pop ebp
+    ret
+%endmacro
 
-;    u8 inb (u16 _port)
-;{
-;    u8 rv;
-;__asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
-;    return rv;
-;}
-;
-;u16 inw(u16 _port)
-;{
-;    u16 rv;
-;__asm__ volatile ("inw %1, %0" : "=a" (rv) : "dN" (_port));
-;    return rv;
-;}
-;
-;u32 ind(u16 _port)
-;{
-;    u32 rv;
-;__asm__ volatile ("inl %1, %0" : "=a" (rv) : "dN" (_port));
-;    return rv;
-;}
-;
-;/* We will use this to write to I/O ports to send bytes to devices. This
-;*  will be used in the next tutorial for changing the textmode cursor
-;*  position. Again, we use some inline assembly for the stuff that simply
-;*  cannot be done in C */
-;void outb (u16 _port, u8 _data)
-;{
-;__asm__ __volatile__ ("outb %1, %0" : : "dN" (_port), "a" (_data));
-;}
-;
-;void outw (u16 _port, u16 _data)
-;{
-;__asm__ __volatile__ ("outw %1, %0" : : "dN" (_port), "a" (_data));
-;}
-;
-;void outd (u16 _port, u32 _data)
-;{
-;__asm__ __volatile__ ("outl %1, %0" : : "dN" (_port), "a" (_data));
-;}
-;
+
+_outpb:
+    prologue 2
+    out dx, al
+    epilogue
+_outpw:
+    prologue 2
+    out dx, ax
+    epilogue
+_outpl:
+    prologue 2
+    out dx, eax
+    epilogue
+_inpb:
+    prologue 1
+    in al, dx
+    epilogue 1
+_inpw:
+    prologue 1
+    in ax, dx
+    epilogue 1
+_inpl:
+    prologue 1
+    in eax, dx
+    epilogue 1
+
 
 
 ;--------------------------------------------------------------------

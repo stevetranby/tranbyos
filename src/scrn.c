@@ -1,5 +1,4 @@
 #include "include/system.h"
-#include "include/kb.h"
 
 /*
  * These define our textpointer, our background and foreground

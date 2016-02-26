@@ -1,32 +1,56 @@
 #include "include/system.h"
 
-/* This will keep track of how many ticks that the system
- *  has been running for */
-u32 _timer_hz = 100;
-u32 _timer_ticks = 0;
-u32 _secondsFromBoot = 0;
+/////////////////////////////////////////////////////////////////////
 
-#define ticks_from_s(x)  	(x*_timer_hz)
-#define ticks_from_ms(x) 	((x*_timer_hz)/1000)
-#define ticks_to_s(x)		(x/_timer_hz)
-#define ticks_to_ms(x)		((x*1000)/_timer_hz)
+//static u32 _mouse_x;
+//static u32 _mouse_y;
+//static u32 _mouse_x_delta;
+//static u32 _mouse_y_delta;
+//static u32 _mouse_b1;
+//static u32 _mouse_b2; // middle
+//static u32 _mouse_b3;
+//static u32 _mouse_scroll_x;
+//static u32 _mouse_scroll_y;
+//static u32 _mouse_scroll_z;
 
-/* Handles the timer. In this case, it's very simple: We
- *  increment the 'timer_ticks' variable every time the
- *  timer fires. By default, the timer fires 18.222 times
- *  per second. Why 18.222Hz? Some engineer at IBM must've
- *  been smoking something funky */
-void timer_handler(isr_stack_state *r)
+// IRQ handler
+void mouse_handler(isr_stack_state *r)
 {
-    /* Increment our 'tick count' */
-    _timer_ticks++;
 }
 
-/* Sets up the system clock by installing the timer handler
- *  into IRQ0 */
+// Install IRQ Handler
+void mouse_install()
+{
+    irq_install_handler(IRQ_MOUSE_PS2, mouse_handler);
+
+    
+//    outb(0x43, 0x36);             /* Set our command byte 0x36 */
+//    outb(0x40, divisor & 0xFF);   /* Set low byte of divisor */
+//    outb(0x40, divisor >> 8);     /* Set high byte of divisor */
+}
+
+///////////////////////////////////////////////////////////////////
+
+#define ticks_from_s(x)  	(x * _timer_hz)
+#define ticks_from_ms(x) 	((x * _timer_hz) / 1000)
+#define ticks_to_s(x)		(x / _timer_hz)
+#define ticks_to_ms(x)		((x * 1000) / _timer_hz)
+
+// Our desired timer properties
+// Default interrupt freq 18.222Hz
+static u32 _timer_hz = 100;
+static u32 _timer_ticks = 0;
+//static u32 _secondsFromBoot = 0;
+
+u32 timer_ticks() { return _timer_ticks; }
+u32 timer_seconds() { return ticks_to_s(_timer_ticks); }
+
+// IRQ handler
+void timer_handler(isr_stack_state *r) { _timer_ticks++; }
+
+// Install IRQ Handler
 void timer_install()
 {
-    /* Installs 'timer_handler' to IRQ0 */
     irq_install_handler(0, timer_handler);
 
     int divisor = 1193180 / _timer_hz; /* Calculate our divisor */
@@ -34,9 +58,6 @@ void timer_install()
     outb(0x40, divisor & 0xFF);   /* Set low byte of divisor */
     outb(0x40, divisor >> 8);     /* Set high byte of divisor */
 }
-
-u32 timer_ticks() { return _timer_ticks; }
-u32 timer_seconds() { return ticks_to_s(_timer_ticks); }
 
 /* This will continuously loop until the given time has
  *  been reached */
@@ -58,7 +79,7 @@ void delay_s(u32 s) {
 }
 
 
-////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
 
 // http://wiki.osdev.org/CMOS#Getting_Current_Date_and_Time_from_RTC
 // http://www.bioscentral.com/misc/cmosmap.htm

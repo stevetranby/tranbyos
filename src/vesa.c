@@ -13,30 +13,30 @@ VbeInfoBlock *vib = dos_alloc(512);
 v86_bios(0x10, {ax:0x4f00, es:SEG(vib), di:OFF(vib)}, &out);
 
 typedef struct {
-  uint16_t attributes;
-  uint8_t winA,winB;
-  uint16_t granularity;
-  uint16_t winsize;
-  uint16_t segmentA, segmentB;
+  u16 attributes;
+  u8 winA,winB;
+  u16 granularity;
+  u16 winsize;
+  u16 segmentA, segmentB;
   
   VBE_FAR(realFctPtr);
 
-  uint16_t pitch; // bytes per scanline
+  u16 pitch; // bytes per scanline
  
-  uint16_t Xres, Yres;
-  uint8_t Wchar, Ychar, planes, bpp, banks;
-  uint8_t memory_model, bank_size, image_pages;
-  uint8_t reserved0;
+  u16 Xres, Yres;
+  u8 Wchar, Ychar, planes, bpp, banks;
+  u8 memory_model, bank_size, image_pages;
+  u8 reserved0;
  
-  uint8_t red_mask, red_position;
-  uint8_t green_mask, green_position;
-  uint8_t blue_mask, blue_position;
-  uint8_t rsv_mask, rsv_position;
-  uint8_t directcolor_attributes;
+  u8 red_mask, red_position;
+  u8 green_mask, green_position;
+  u8 blue_mask, blue_position;
+  u8 rsv_mask, rsv_position;
+  u8 directcolor_attributes;
  
-  uint32_t physbase;  // your LFB (Linear Framebuffer) address ;)
-  uint32_t reserved1;
-  uint16_t reserved2;
+  u32 physbase;  // your LFB (Linear Framebuffer) address ;)
+  u32 reserved1;
+  u16 reserved2;
 } __attribute__((packed)) ModeInfoBlock;
 
 
