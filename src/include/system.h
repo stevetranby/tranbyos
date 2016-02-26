@@ -7,11 +7,13 @@
 // Defined Constants
 
 // TODO: use a bit of c++ to get things like nullptr[_t] ??
-#define NULL 0
-#define TRUE ((bool)1)
-#define true ((bool)1)
-#define FALSE ((bool)0)
-#define false ((bool)0)
+#define NULL ((nullptr_t)0)
+#define nullptr ((nullptr_t)0)
+typedef int nullptr_t;
+// C99 Standard Instead??
+#define true ((_Bool)1)
+#define false ((_Bool)0)
+#define bool _Bool
 
 #define UNUSED_PARAM(x) ((void)(x))
 #define UNUSED_VAR(x) ((void)(x))
@@ -63,7 +65,6 @@ typedef const char*     c_str;
 
 typedef unsigned long long  u64;
 typedef long long           i64;
-typedef b32                 bool;
 
 //////////////////////////////////////////////////////////////////
 // Utilities and Common

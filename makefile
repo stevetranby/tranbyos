@@ -1,6 +1,6 @@
 OSNAME=tranbyos
 
-CFLAGS=-g -m32 -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -std=c99 -I./src/include
+CFLAGS=-std=c11 -g -m32 -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -I./src/include
 CXXFLAGS=-g -m32 -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -ffreestanding -O2 -Wextra -fno-exceptions -fno-rtti -I./src/include
 
 #CC=gcc
@@ -38,7 +38,11 @@ build: link
 
 link: compile assemble
 	@echo "Linking..."
-	$(LD) -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/start.o $(OBJ_DIR)/main.o $(OBJ_DIR)/scrn.o $(OBJ_DIR)/gdt.o $(OBJ_DIR)/idt.o $(OBJ_DIR)/isrs.o $(OBJ_DIR)/irq.o $(OBJ_DIR)/timer.o $(OBJ_DIR)/kb.o $(OBJ_DIR)/mm.o $(OBJ_DIR)/hd.o $(OBJ_DIR)/io.o $(OBJ_DIR)/vga.o 
+	$(LD) -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/start.o \
+	$(OBJ_DIR)/main.o $(OBJ_DIR)/scrn.o $(OBJ_DIR)/gdt.o \
+	$(OBJ_DIR)/isrs.o $(OBJ_DIR)/timer.o $(OBJ_DIR)/kb.o \
+	$(OBJ_DIR)/mm.o $(OBJ_DIR)/hd.o $(OBJ_DIR)/io.o $(OBJ_DIR)/vga.o 
+
 	@#$(ld) -T link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/*.o
 
 compile: dirs

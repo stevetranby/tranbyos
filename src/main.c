@@ -203,6 +203,15 @@ void display_banner()
     puts("\n");
 }
 
+#define my_test(x) _Generic((x), long double: my_testl, \
+                                 default: my_testi, \
+                                 float: my_testf)(x)
+
+void my_testi() { puts("int\n"); }
+void my_testf() { puts("float\n"); }
+void my_testl() { puts("long double\n"); }
+
+
 // NASM assembly boot loader calls this method
 u32 _main(multiboot_info_t* mbh, u32 magic)
 {
@@ -273,6 +282,10 @@ u32 _main(multiboot_info_t* mbh, u32 magic)
     puts("Done. ");
     printInt(timer_ticks() - ticks);
     puts("Ticks\n");
+
+    my_test(1);
+    my_test((long double)2.0);
+    my_test(3.f);
 
     wait_any_key();
 
