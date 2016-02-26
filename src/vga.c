@@ -319,16 +319,29 @@ void polygon(u32 num_vertices, u32* vertices, u8 color) {
             vertices[(num_vertices << 1) - 1], color);
 }
 
+void fillrect(u16 xoff, u16 yoff)//, u8 color)
+{
+    static u8 color = 0;
+    color++;
+    u16 height = 10;
+    u16 width = 10;
+    for (u32 y = yoff; y < height; ++y) {
+        for (u32 x = xoff; x < width; ++x) {
+            plot_pixel(x, y, color);
+        }
+    }
+}
+
 void vga_tests() {
   // clear
   vga_clear(3);
 
-  delay_s(2);
+  delay_s(1);
 
   set_palette(58, 255, 20, 20);
   vga_clear(58);
 
-  delay_s(2);
+  delay_s(1);
 
   // plot pixels
   u8 color = 0;
@@ -339,20 +352,20 @@ void vga_tests() {
     color = (color + 1) % 255;  // vga_screen_colors;
   }
 
-  delay_s(2);
+  delay_s(1);
 
-  // randomly draw 5000 lines.
-  u32 x1, y1, x2, y2;
-  for (u32 i = 0; i < 1000; i++) {
-    x1 = rand() % vga_screen_width;
-    y1 = rand() % vga_screen_height;
-    x2 = rand() % vga_screen_width;
-    y2 = rand() % vga_screen_height;
-    color = rand() % vga_screen_colors;
-    line_fast(x1, y1, x2, y2, color);
-  }
-
-  delay_s(2);
+//  // randomly draw 5000 lines.
+//  u32 x1, y1, x2, y2;
+//  for (u32 i = 0; i < 1000; i++) {
+//    x1 = rand() % vga_screen_width;
+//    y1 = rand() % vga_screen_height;
+//    x2 = rand() % vga_screen_width;
+//    y2 = rand() % vga_screen_height;
+//    color = rand() % vga_screen_colors;
+//    line_fast(x1, y1, x2, y2, color);
+//  }
+//
+//  delay_s(1);
 
   // polygon
   u32 num_vertices = 3;

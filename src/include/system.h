@@ -1,14 +1,20 @@
-#pragma once
+//#pragma once
+
+#ifndef SYSTEM_H
+#define SYSTEM_H
 
 //////////////////////////////////////////////////////////////////
 // Defined Constants
 
 // TODO: use a bit of c++ to get things like nullptr[_t] ??
 #define NULL 0
-#define TRUE ((b32)1)
-#define true ((b32)1)
-#define FALSE ((b32)0)
-#define false ((b32)0)
+#define TRUE ((bool)1)
+#define true ((bool)1)
+#define FALSE ((bool)0)
+#define false ((bool)0)
+
+#define UNUSED_PARAM(x) ((void)(x))
+#define UNUSED_VAR(x) ((void)(x))
 
 // TODO: const u32
 #define KILO (1024)            // 2^10
@@ -81,7 +87,7 @@ typedef struct {
     u32 eflags, cr3;
 } task_registers;
 
-typedef struct {
+typedef struct task {
     task_registers regs;
     struct task *next;
 } task;
@@ -175,7 +181,7 @@ extern u32 init_graph_vga(u32 width, u32 height, b8 chain4);
 extern void plot_pixel(u32 x, u32 y, u8 color);
 extern void line_fast(u32 x1, u32 y1, u32 x2, u32 y2, u8 color);
 extern void polygon(u32 num_vertices,  u32 *vertices, u8 color);
-
+extern void fillrect(u16 xoff, u16 yoff);
 extern void vga_tests();
 
 
@@ -195,14 +201,6 @@ extern void print_port(u16 port);
 //extern inline void invlpg(void* m);
 //extern inline void wrmsr(u32 msr_id, u64 msr_value);
 //extern inline u64 rdmsr(u32 msr_id);
-
-extern void init_serial();
-extern int serial_received();
-extern char read_serial();
-extern int is_transmit_empty();
-extern void serial_write_b(u8 a);
-extern void serial_write(c_str str);
-
 
 //////////////////////////////////////////////////////////////////
 // Memory, Page Faults, Page Tables
@@ -231,8 +229,19 @@ extern void printBinary_b(u8 num);
 extern void printBinary_w(u16 num);
 extern void printBinary(u32 num);
 
+extern void init_serial();
+extern int serial_received();
+extern char read_serial();
+extern u32 is_transmit_empty();
+extern void serial_write_b(u8 a);
+extern void serial_write(c_str str);
+extern void serial_printInt(u32 number);
+
 ////////////////////////////////////////////////////////////////////////////
 // User Input Devices
+
+extern i32 mouse_getx();
+extern i32 mouse_gety();
 
 extern void keyboard_install();
 extern void mouse_install();
@@ -541,3 +550,4 @@ extern kbscan_t keyboard_read_next();
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 
+#endif // SYSTEM_H

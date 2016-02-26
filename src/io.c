@@ -12,9 +12,8 @@ static inline u8 inb_dummy(u16 port)
 // TODO: maybe just move these into .asm? why bother just because
 //       we want everything in C?
 
-/* We will use this later on for reading from the I/O ports to get data
-*  from devices such as the keyboard. We are using what is called
-*  'inline assembly' in these routines to actually do the work */
+
+/// Read from IO port (8,16,32-bit value)
 u8 inb (u16 _port)
 {
     u8 rv;
@@ -36,6 +35,7 @@ u32 inl(u16 _port)
     return rv;
 }
 
+/// Write to IO port (8,16,32-bit value)
 void outb(u16 _port, u8 _data)
 {
     asm_volatile ("outb %1, %0" : : "dN" (_port), "a" (_data));
@@ -162,60 +162,3 @@ inline u64 rdmsr(u32 msr_id)
     return msr_value;
 }
 
-//////////////////////////////////////////////////////////////////
-
-// Serial Port Communication - mostly used for debug w/QEMU
-
-#define PORT_COM1 0x3f8   /* COM1 */
-
-void init_serial()
-{
-   outb(PORT_COM1 + 1, 0x00);    // Disable all interrupts
-   outb(PORT_COM1 + 3, 0x80);    // Enable DLAB (set baud rate divisor)
-   outb(PORT_COM1 + 0, 0x03);    // Set divisor to 3 (lo byte) 38400 baud
-   outb(PORT_COM1 + 1, 0x00);    //                  (hi byte)
-   outb(PORT_COM1 + 3, 0x03);    // 8 bits, no parity, one stop bit
-   outb(PORT_COM1 + 2, 0xC7);    // Enable FIFO, clear them, with 14-byte threshold
-   outb(PORT_COM1 + 4, 0x0B);    // IRQs enabled, RTS/DSR set
-}
-
-int serial_received() {
-   return inb(PORT_COM1 + 5) & 1;
-}
- 
-char read_serial() {
-   while (serial_received() == 0);
- 
-   return inb(PORT_COM1);
-}
-
-typedef int steveis_awesome_t;
-steveis_awesome_t is_transmit_empty() {
-   return inb(PORT_COM1 + 5) & 0x20;
-}
- 
-void serial_write_b(u8 a) {
-   while (is_transmit_empty() == 0)
-   		; 
-   outb(PORT_COM1,a);
-}
-
-void serial_writeln(c_str str) {
-    while (*str != 0) {
-        serial_write_b(*str);
-        str++;
-    }
-    serial_write_b('\r');
-    serial_write_b('\n');
-}
-
-void serial_write(c_str str) {
-	while (*str != 0) {
-		if(*str == '\n') {
-			serial_write_b('\r');
-			serial_write_b('\n');
-		}
-		serial_write_b(*str);
-		str++;
-	}
-}

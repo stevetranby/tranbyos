@@ -535,17 +535,27 @@ u32 _main(multiboot_info_t* mbh, u32 magic)
     }
     
     
-    // test modeX (non-chain4 allows 400x600 possible)
-    success = init_graph_vga(320,240,0);
-    if(success) 
-    {
-        serial_write("["__DATE__" "__TIME__"] Video Mode Success!\r\n");
-        vga_tests();
+//    // test modeX (non-chain4 allows 400x600 possible)
+//    success = init_graph_vga(320,240,0);
+//    if(success) 
+//    {
+//        serial_write("["__DATE__" "__TIME__"] Video Mode Success!\r\n");
+//        vga_tests();
+//    }
+
+//    void draw_cursor(u16 x, u16 y)
+//    {
+//
+//    }
+
+    i32 x = 0;
+    i32 y = 0;
+    for (;;) {
+        x = mouse_getx();
+        y = mouse_gety();
+        fillrect(x,y);
+        delay_ms(100);
     }
-    
-    
-    for (;;)
-        ;
     
     return 0;
 }

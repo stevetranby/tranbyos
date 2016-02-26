@@ -1,34 +1,5 @@
 #include "include/system.h"
 
-/////////////////////////////////////////////////////////////////////
-
-//static u32 _mouse_x;
-//static u32 _mouse_y;
-//static u32 _mouse_x_delta;
-//static u32 _mouse_y_delta;
-//static u32 _mouse_b1;
-//static u32 _mouse_b2; // middle
-//static u32 _mouse_b3;
-//static u32 _mouse_scroll_x;
-//static u32 _mouse_scroll_y;
-//static u32 _mouse_scroll_z;
-
-// IRQ handler
-void mouse_handler(isr_stack_state *r)
-{
-}
-
-// Install IRQ Handler
-void mouse_install()
-{
-    irq_install_handler(IRQ_MOUSE_PS2, mouse_handler);
-
-    
-//    outb(0x43, 0x36);             /* Set our command byte 0x36 */
-//    outb(0x40, divisor & 0xFF);   /* Set low byte of divisor */
-//    outb(0x40, divisor >> 8);     /* Set high byte of divisor */
-}
-
 ///////////////////////////////////////////////////////////////////
 
 #define ticks_from_s(x)  	(x * _timer_hz)

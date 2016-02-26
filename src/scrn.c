@@ -17,6 +17,22 @@ u16* vidmemptr;        // word pointer
 b8 write_to_serial;
 b8 write_to_stdout;
 
+/* Sets the forecolor and backcolor that we will use */
+void set_text_color(u8 forecolor, u8 backcolor)
+{
+    /* Top 4 bytes are the background, bottom 4 bytes
+     *  are the foreground color */
+    attrib = (backcolor << 4) | (forecolor & 0x0F);
+}
+
+/* Sets our text-mode VGA pointer, then clears the screen for us */
+void init_video()
+{
+    textmemptr = (u16*)0xB8000;
+    vidmemptr = (u16*)0xA0000;
+    cls();
+}
+
 /* Scrolls the screen */
 void scroll(void)
 {
@@ -33,7 +49,7 @@ void scroll(void)
         /* Move the current text chunk that makes up the screen
          *  back in the buffer by a line */
         temp = csr_y - 25 + 1;
-        memcpy ((u8 *)textmemptr, (u8 *)(textmemptr + temp * 80), (u16) (25 - temp) * 80 * 2);
+        memcpy ((u8*)textmemptr, (u8*)(textmemptr + temp * 80), (25 - temp) * 80 * 2);
 
         /* Finally, we set the chunk of memory that occupies
          *  the last line of text to our 'blank' character */
@@ -172,7 +188,7 @@ void puts(const char* text)
 // TODO: should allow wrap on word
 // TODO: should allow padding (at least with (0) zeros)
 // Note: assume base 10 for right now
-void printInt(int number) {
+void _internal_printInt(int number, void(*writer)(u8 a)) {
     int num = number;
     int isNeg = 0;
     char buf[MAX_INT_DIGITS];
@@ -182,7 +198,7 @@ void printInt(int number) {
     cur = end;
 
     if(num == 0) {
-        putch('0');
+        writer('0');
         return;
     }
 
@@ -202,14 +218,19 @@ void printInt(int number) {
     }
 
     if(isNeg)
-        putch('-');
+        writer('-');
 
     // print the string
     char c = '0';
     for(; cur < end; ++cur) {
         c = buf[cur];
-        putch(c);
+        writer(c);
     }
+}
+
+void printInt(int number)
+{
+    _internal_printInt(number, putch);
 }
 
 void printUInt(u32 num)
@@ -285,21 +306,63 @@ void printBinary(u32 num) {
     }
 }
 
-/* Sets the forecolor and backcolor that we will use */
-void set_text_color(u8 forecolor, u8 backcolor)
+//////////////////////////////////////////////////////////////////
+// Serial Port Communication - mostly used for debug w/QEMU
+
+#define PORT_COM1 0x3f8   /* COM1 */
+
+void init_serial()
 {
-    /* Top 4 bytes are the background, bottom 4 bytes
-     *  are the foreground color */
-    attrib = (backcolor << 4) | (forecolor & 0x0F);
+    outb(PORT_COM1 + 1, 0x00);    // Disable all interrupts
+    outb(PORT_COM1 + 3, 0x80);    // Enable DLAB (set baud rate divisor)
+    outb(PORT_COM1 + 0, 0x03);    // Set divisor to 3 (lo byte) 38400 baud
+    outb(PORT_COM1 + 1, 0x00);    //                  (hi byte)
+    outb(PORT_COM1 + 3, 0x03);    // 8 bits, no parity, one stop bit
+    outb(PORT_COM1 + 2, 0xC7);    // Enable FIFO, clear them, with 14-byte threshold
+    outb(PORT_COM1 + 4, 0x0B);    // IRQs enabled, RTS/DSR set
 }
 
-/* Sets our text-mode VGA pointer, then clears the screen for us */
-void init_video()
-{
-    textmemptr = (u16*)0xB8000;
-    vidmemptr = (u16*)0xA0000;
-    cls();
+int serial_received() {
+    return inb(PORT_COM1 + 5) & 1;
 }
 
+char read_serial() {
+    while (serial_received() == 0);
 
+    return inb(PORT_COM1);
+}
 
+u32 is_transmit_empty() {
+    return inb(PORT_COM1 + 5) & 0x20;
+}
+
+void serial_write_b(u8 a) {
+    while (is_transmit_empty() == 0)
+        ;
+    outb(PORT_COM1,a);
+}
+
+void serial_writeln(c_str str) {
+    while (*str != 0) {
+        serial_write_b(*str);
+        str++;
+    }
+    serial_write_b('\r');
+    serial_write_b('\n');
+}
+
+void serial_write(c_str str) {
+    while (*str != 0) {
+        if(*str == '\n') {
+            serial_write_b('\r');
+            serial_write_b('\n');
+        }
+        serial_write_b(*str);
+        str++;
+    }
+}
+
+void serial_printInt(u32 number)
+{
+    _internal_printInt(number, serial_write_b);
+}

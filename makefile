@@ -75,6 +75,7 @@ copykernel: build
 	@echo "Creating Grub Config File"
 	@echo $(OSNAME)":\n\ttitle "$(OSNAME)"\n\troot (fd0)\n\tset gfxmode=auto\n\tkernel /boot/"$(OSNAME)".bin\n" > $(BUILD_DIR)/grub.lst
 
+	# TODO: make conditional on OS
 	# OSX Lion Disk Mount
 	hdiutil attach tools/grub_disk.img
 	cp $(BIN_DIR)/$(OSNAME).bin /Volumes/GRUB/boot/$(OSNAME).bin
@@ -88,7 +89,6 @@ copykernel: build
 	#sudo cp $(BIN_DIR)/$(OSNAME).bin tmp-loop/boot/$(OSNAME).bin
 	#sudo cp grub.lst tmp-loop/boot/menu.cfg
 	#sudo umount -f tmp-loop || exit
-
 
 disks:
 	@echo "\nCreating Blank QEMU Hard Drive Images For Testing"
