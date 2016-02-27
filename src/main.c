@@ -147,14 +147,7 @@ void srand(u32 seed)
     _next_rand = seed;
 }
 
-bool hasBit(u32 data, u32 bit) {
-    return (data & (1 << bit)) != 0;
-}
-
-bool is_bit_set(u32 value, u32 bitindex)
-{
-    return (value & (1 << bitindex)) != 0;
-}
+#define HAS_BIT(data,bit) (data & (1 << bit))
 
 void wait_any_key() {
     set_text_color(COLOR_LIGHT_MAGENTA, COLOR_BLACK);
@@ -213,7 +206,7 @@ void my_testl(long double l) { puts("long double\n"); }
 
 
 // NASM assembly boot loader calls this method
-u32 _main(multiboot_info_t* mbh, u32 magic)
+u32 _kmain(multiboot_info_t* mbh, u32 magic)
 {
     gdt_install();
     idt_install();
@@ -240,6 +233,9 @@ u32 _main(multiboot_info_t* mbh, u32 magic)
 
     set_text_color(COLOR_LIGHT_RED, COLOR_BLACK);
 
+    // TODO: assert(mboot_mag == MULTIBOOT_EAX_MAGIC && "Didn't boot with multiboot, not sure how we got here.");
+
+
     // Multiboot Info
     puts("MBInfo: ");
     printHex(magic);
@@ -252,25 +248,6 @@ u32 _main(multiboot_info_t* mbh, u32 magic)
     printHex(mbh->flags);
     puts(", ");
     puts("\n");
-
-    // TODO: do VBE in real mode
-    if(hasBit(mbh->flags, 11))
-    {
-        puts("VBE Info: ");
-        printHex(mbh->vbe_control_info);  puts(", ");
-        printHex(mbh->vbe_mode_info);     puts(", ");
-        printHex(mbh->vbe_mode);          puts(", ");
-        printHex(mbh->vbe_interface_seg); puts(", ");
-        printHex(mbh->vbe_interface_off); puts(", ");
-        printHex(mbh->vbe_interface_len);
-        puts("\n");
-    }
-
-    if(hasBit(mbh->flags, 9)) {
-        puts("Bootloader Name: ");
-        puts((i8*)mbh->boot_loader_name);
-        puts("\n");
-    }
 
 
     u32 ticks = timer_ticks();
@@ -289,6 +266,60 @@ u32 _main(multiboot_info_t* mbh, u32 magic)
 
     wait_any_key();
 
+
+    set_text_color(COLOR_LIGHT_GREEN, COLOR_BLACK);
+
+    // TODO: do VBE in real mode
+    //if(hasBit(mbh->flags, 11))
+    {
+        puts("VBE Info: ");
+        printHex(mbh->vbe_control_info);  puts(", ");
+        printHex(mbh->vbe_mode_info);     puts(", ");
+        printHex(mbh->vbe_mode);          puts(", ");
+        printHex(mbh->vbe_interface_seg); puts(", ");
+        printHex(mbh->vbe_interface_off); puts(", ");
+        printHex(mbh->vbe_interface_len);
+        puts("\n");
+    }
+
+    puts("MMap  : 0x"); printHex(mbh->mmap_length); puts("\n");
+    puts("Addr  : 0x"); printHex(mbh->mmap_addr); puts("\n");
+    puts("Drives: 0x"); printHex(mbh->drives_length); puts("\n");
+    puts("Addr  : 0x"); printHex(mbh->drives_addr); puts("\n");
+    puts("Config: 0x"); printHex(mbh->config_table); puts("\n");
+
+    //if (mbh->flags & (1 << 3))
+    {
+        puts("Found ");
+        printInt(mbh->mods_count);
+        puts("module(s).");
+
+        if (mbh->mods_count > 0)
+        {
+            for (u32 i = 0; i < mbh->mods_count; ++i )
+            {
+                u32 module_start = *(u32*)(mbh->mods_addr + 8 * i);
+                u32 module_end   = *(u32*)(mbh->mods_addr + 8 * i + 4);
+                puts("Module ");
+                printInt(i+1);
+                puts(" is at ");
+                printHex(module_start);
+                puts(":");
+                printHex(module_end);
+                puts("\n");
+            }
+        }
+    }
+
+    //if(hasBit(mbh->flags, 9))
+    {
+        puts("Bootloader Name: ");
+        puts((i8*)mbh->boot_loader_name);
+        puts("\n");
+    }
+
+
+    wait_any_key();
 
     set_text_color(COLOR_MAGENTA, COLOR_BLACK);
 

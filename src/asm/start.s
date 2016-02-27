@@ -13,7 +13,7 @@ global gdt_flush	; Allows the C code to link to this
 global idt_load		; Allows the C code to link to this
 global _sys_heap	; Allows the C code to link to this 
 
-extern _main		; have to specify '_main' instead of 'main' since we're using ELF format
+extern _kmain		; have to specify '_main' instead of 'main' since we're using ELF format
 extern gp           ; Says that 'gp' is in another file
 extern idtp         ;
 
@@ -25,13 +25,16 @@ start:
 align 4
 mboot:
     ; Multiboot macros to make a few lines later more readable
+    MULTIBOOT_HEADER_MAGIC	equ 0x1BADB002
+
     MULTIBOOT_PAGE_ALIGN	equ 1<<0
     MULTIBOOT_MEMORY_INFO	equ 1<<1
     MULTIBOOT_VIDEO_INFO    equ 1<<2
     MULTIBOOT_AOUT_KLUDGE	equ 1<<16
-    MULTIBOOT_HEADER_MAGIC	equ 0x1BADB002
     MULTIBOOT_HEADER_FLAGS	equ MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO | MULTIBOOT_VIDEO_INFO | MULTIBOOT_AOUT_KLUDGE
+;    MULTIBOOT_HEADER_FLAGS	equ MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO | MULTIBOOT_VIDEO_INFO
     MULTIBOOT_CHECKSUM		equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
+
     EXTERN code, bss, end
 
     ; This is the GRUB Multiboot header. A boot signature
@@ -41,20 +44,30 @@ mboot:
     
     ; AOUT kludge - must be physical addresses. Make a note of these:
     ; The linker script fills in the data for these ones!
-    dd mboot
-    dd code
-    dd bss
-    dd end
-    dd start
+    dd mboot    ; header
+    dd code     ; load addr
+    dd bss      ; load end, bss start
+    dd end      ; bss end
+    dd start    ; entry
 
+    ; Request linear graphics mode
+    dd 0        ; request mode type
+    dd 0        ; request width
+    dd 0        ; request height
+    dd 32
 
 ; call our main() function 
 stublet:      
     ;call _main 	; elf gcc puts _ in front of function names    	
 	push eax
 	push ebx
-	call _main
-    jmp $           ; jump to self (halta)
+    cli
+	call _kmain
+    cli
+
+halt:
+    hlt
+    jmp$
 
 sse_enabled:
     mov eax, 0x1
@@ -271,7 +284,7 @@ irq_common_stub:
 ; TODO: adjust once full kernel loaded
 ;
 SECTION .bss
-    resb 8192               ; This reserves 8KBytes of memory here for the stack
+    resb 16384               ; This reserves 8KBytes of memory here for the stack
 _sys_stack:
-	resb 1024               ; This is the heap
+	resb 16384              ; This is the heap
 _sys_heap:

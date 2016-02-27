@@ -51,6 +51,9 @@ void idt_install()
 void isrs_install()
 {
     // TODO: use an "unused" stub/handler for those not used??
+    for(int i=0; i<32; ++i) {
+        idt_set_gate(i, (u32)isr0, 0x08, 0x8E);
+    }
     idt_set_gate(0, (u32)isr0, 0x08, 0x8E);
     idt_set_gate(1, (u32)isr1, 0x08, 0x8E);
     idt_set_gate(2, (u32)isr2, 0x08, 0x8E);
@@ -218,9 +221,21 @@ void fault_handler(isr_stack_state* r)
     kernel_panic();
 }
 
+const u8 END_OF_INTERRUPT = 0x20;
+const u8 IRQ_BANK_MASTER = 0x20;
+const u8 IRQ_BANK_SLAVE = 0xA0;
+
 /// IRQs
 /// Two 8259 chips: First bank: 0x20, Second: 0xA0.
 /// IRQ handler - called from assembly
+void irq_ack(u32 irq_no)
+{
+    // Need to send IRQ 8-15 to SLAVE as well
+    if (irq_no >= 40) {
+        outb(IRQ_BANK_SLAVE, END_OF_INTERRUPT);
+    }
+    outb(IRQ_BANK_MASTER, END_OF_INTERRUPT);
+}
 void irq_handler(isr_stack_state* r)
 {
     // if we've installed a handler, call it
@@ -230,15 +245,7 @@ void irq_handler(isr_stack_state* r)
         handler(r);
     }
 
-    const u8 END_OF_INTERRUPT = 0x20;
-    const u8 IRQ_BANK_MASTER = 0x20;
-    const u8 IRQ_BANK_SLAVE = 0xA0;
-
-    // Need to send IRQ 8-15 to SLAVE as well
-    if (r->int_no >= 40) {
-        outb(IRQ_BANK_SLAVE, END_OF_INTERRUPT);
-    }
-    outb(IRQ_BANK_MASTER, END_OF_INTERRUPT);
+    irq_ack(r->int_no);
 
     irq_counts[irq]++;
 }

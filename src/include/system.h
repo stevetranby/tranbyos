@@ -55,6 +55,9 @@ typedef float           real32;
 typedef double          real64;
 typedef const char*     c_str;
 
+typedef void*           u32ptr;
+//typedef void*           u64ptr;
+
 typedef unsigned long long  u64;
 typedef long long           i64;
 
@@ -247,8 +250,11 @@ extern int serial_received();
 extern char read_serial();
 extern u32 is_transmit_empty();
 extern void serial_write(c_str str);
-extern void serial_writeInt(u32 number);
-extern void serial_writeHex(u32 number);
+extern void serial_writeInt(u32 num);
+extern void serial_writeHex(u32 num);
+extern void serial_writeHex_w(u16 num);
+extern void serial_writeHex_b(u8 num);
+extern void serial_writeBinary_b(u8 num);
 
 ////////////////////////////////////////////////////////////////////////////
 // User Input Devices

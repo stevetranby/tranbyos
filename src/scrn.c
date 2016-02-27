@@ -405,12 +405,9 @@ void serial_write(c_str str) {
     }
 }
 
-void serial_writeInt(u32 number)
-{
-    writeInt(number, serial_write_b);
-}
+void serial_writeInt(u32 num) { writeInt(num, serial_write_b); }
+void serial_writeHex(u32 num) { writeHex(num, serial_write_b); }
+void serial_writeHex_b(u8 num) { writeHex_b(num, serial_write_b); }
+void serial_writeHex_w(u16 num) { writeHex_w(num, serial_write_b); }
+void serial_writeBinary_b(u8 num) { writeBinary_b(num, serial_write_b); }
 
-void serial_writeHex(u32 number)
-{
-    writeHex(number, serial_write_b);
-}

@@ -7,6 +7,5 @@ tmp-loop/*
 *.iso
 *~
 #*#
-*.img
 *.xcuserstate
 _proj

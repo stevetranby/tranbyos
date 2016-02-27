@@ -4,6 +4,8 @@ REM - Author: Steve Tranby
 REM - Dependencies: Virtual Floppy Disk 
 REM - Used for when building on Win32
 
+REM - TODO: need to create installer for VFD (chocolaty/nuget??)
+
 set VFD=c:\_tools\vfd\vfd.exe
 set IMG=c:\_img\tranix_kernel_grub.img
 set KERNEL=c:\_projects\tranixos\kernel.bin

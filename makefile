@@ -76,23 +76,7 @@ iso:
 
 copykernel: build
 	@echo "\nInjecting Kernel Into Grub Image"
-	@echo "Creating Grub Config File"
-	@echo $(OSNAME)":\n\ttitle "$(OSNAME)"\n\troot (fd0)\n\tset gfxmode=auto\n\tkernel /boot/"$(OSNAME)".bin\n" > $(BUILD_DIR)/grub.lst
-
-	# TODO: make conditional on OS
-	# OSX Lion Disk Mount
-	hdiutil attach tools/grub_disk.img
-	cp $(BIN_DIR)/$(OSNAME).bin /Volumes/GRUB/boot/$(OSNAME).bin
-	cp $(BUILD_DIR)/grub.lst /Volumes/GRUB/boot/menu.cfg
-	#hdiutil detach /Volumes/GRUB
-
-	# Linux Disk Mount
-	#rm -rf tmp-loop
-	#mkdir tmp-loop
-	#sudo mount -o loop -t vfat grub_disk.img tmp-loop
-	#sudo cp $(BIN_DIR)/$(OSNAME).bin tmp-loop/boot/$(OSNAME).bin
-	#sudo cp grub.lst tmp-loop/boot/menu.cfg
-	#sudo umount -f tmp-loop || exit
+	$(BUILD_DIR)/build-copykernel-grub.sh
 
 disks:
 	@echo "\nCreating Blank QEMU Hard Drive Images For Testing"
