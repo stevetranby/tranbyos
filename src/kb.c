@@ -4,7 +4,7 @@
 #define MAX_BUFFERED_INPUT_KEYS 255
 u8 kb_buf[MAX_BUFFERED_INPUT_KEYS] = { 0, };
 i32 kb_buf_index = 0;
-b8 keyready = 0;
+bool keyready = 0;
 
 //////////////////////////////////////////////////////////////////
 // Scan->Print

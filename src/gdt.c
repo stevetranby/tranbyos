@@ -1,4 +1,4 @@
-#include <system.h>
+#include "include/system.h"
 
 /* Defines a GDT entry. We say packed, because it prevents the
 *  compiler from doing things that it thinks is best: Prevent
@@ -17,8 +17,8 @@ typedef struct
 *  taken up by the GDT, minus 1. Again, this NEEDS to be packed */
 typedef struct
 {
-    unsigned short limit;
-    unsigned int base;
+    u16 limit;
+    u32 base;
 } __attribute__((packed)) gdt_ptr;
 
 /// Global Descriptor Table (GDT) entries

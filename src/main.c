@@ -147,11 +147,11 @@ void srand(u32 seed)
     _next_rand = seed;
 }
 
-b32 hasBit(u32 data, u32 bit) {
+bool hasBit(u32 data, u32 bit) {
     return (data & (1 << bit)) != 0;
 }
 
-b32 is_bit_set(u32 value, u32 bitindex)
+bool is_bit_set(u32 value, u32 bitindex)
 {
     return (value & (1 << bitindex)) != 0;
 }
@@ -207,9 +207,9 @@ void display_banner()
                                  default: my_testi, \
                                  float: my_testf)(x)
 
-void my_testi() { puts("int\n"); }
-void my_testf() { puts("float\n"); }
-void my_testl() { puts("long double\n"); }
+void my_testi(int i) { puts("int\n"); }
+void my_testf(float f) { puts("float\n"); }
+void my_testl(long double l) { puts("long double\n"); }
 
 
 // NASM assembly boot loader calls this method

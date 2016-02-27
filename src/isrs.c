@@ -112,7 +112,7 @@ void isrs_install()
 /// http://wiki.osdev.org/Exceptions
 ///
 ///
-char *exception_messages[] =
+c_str exception_messages[] =
 {
     // 0x00 - 0x09
     "Division By Zero",

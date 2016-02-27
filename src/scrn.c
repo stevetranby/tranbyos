@@ -14,8 +14,8 @@ char palette256[768];
 
 u16* vidmemptr;        // word pointer
 
-b8 write_to_serial;
-b8 write_to_stdout;
+bool write_to_serial = false;
+bool write_to_stdout = false;
 
 /* Sets the forecolor and backcolor that we will use */
 void set_text_color(u8 forecolor, u8 backcolor)

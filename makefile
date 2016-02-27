@@ -1,7 +1,7 @@
 OSNAME=tranbyos
 
-CFLAGS=-std=c11 -g -m32 -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -I./src/include
-CXXFLAGS=-g -m32 -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -ffreestanding -O2 -Wextra -fno-exceptions -fno-rtti -I./src/include
+CFLAGS=-std=c11 -g -m32 -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs
+CXXFLAGS=-g -m32 -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -ffreestanding -O2 -Wextra -fno-exceptions -fno-rtti
 
 #CC=gcc
 CC=i386-elf-gcc
@@ -15,11 +15,11 @@ BIN_DIR=bin
 ASM_DIR=$(SRC)/asm
 INC_DIR=$(SRC)/include
 
-# these are not used, as some recommend not using wildcards 
+# these are not used, as some recommend not using wildcards
 # in case you add or copy a source file.
 # Note(steve): Could reconsider
-#SFILES := $(wildcard $(SRC)/*.c) 
-#OFILES := $(wildcard $(OBJ_DIR)/*.o) 
+#SFILES := $(wildcard $(SRC)/*.c)
+#OFILES := $(wildcard $(OBJ_DIR)/*.o)
 
 # QEMU version 0.14
 QIMG="qemu-img"
@@ -41,7 +41,7 @@ link: compile assemble
 	$(LD) -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/start.o \
 	$(OBJ_DIR)/main.o $(OBJ_DIR)/scrn.o $(OBJ_DIR)/gdt.o \
 	$(OBJ_DIR)/isrs.o $(OBJ_DIR)/timer.o $(OBJ_DIR)/kb.o \
-	$(OBJ_DIR)/mm.o $(OBJ_DIR)/hd.o $(OBJ_DIR)/io.o $(OBJ_DIR)/vga.o 
+	$(OBJ_DIR)/mm.o $(OBJ_DIR)/hd.o $(OBJ_DIR)/io.o $(OBJ_DIR)/vga.o
 
 	@#$(ld) -T link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/*.o
 
@@ -60,7 +60,7 @@ compile: dirs
 
 	@#$(CXX) $(CXXFLAGS) -c -o $(OBJ_DIR)/test.o $(SRC)/test.cpp
 
-# currently working on 
+# currently working on
 assemble: dirs
 	@echo "\nAssembling...\n"
 	nasm -f elf -o $(OBJ_DIR)/start.o $(ASM_DIR)/start.s

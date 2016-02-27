@@ -6,15 +6,6 @@
 //////////////////////////////////////////////////////////////////
 // Defined Constants
 
-// TODO: use a bit of c++ to get things like nullptr[_t] ??
-#define NULL ((nullptr_t)0)
-#define nullptr ((nullptr_t)0)
-typedef int nullptr_t;
-// C99 Standard Instead??
-#define true ((_Bool)1)
-#define false ((_Bool)0)
-#define bool _Bool
-
 #define UNUSED_PARAM(x) ((void)(x))
 #define UNUSED_VAR(x) ((void)(x))
 
@@ -58,13 +49,23 @@ typedef char            i8;
 typedef short           i16;
 typedef int             i32;
 typedef unsigned char   b8;
-typedef unsigned int    b32;
+typedef unsigned int    bool;
 typedef float           real32;
 typedef double          real64;
 typedef const char*     c_str;
 
 typedef unsigned long long  u64;
 typedef long long           i64;
+
+// TODO: use a bit of c++ to get things like nullptr[_t] ??
+#define NULL ((nullptr_t)0)
+#define nullptr ((nullptr_t)0)
+typedef int nullptr_t;
+
+// C99 Standard Instead??
+typedef bool bool;
+#define true ((bool)1)
+#define false ((bool)0)
 
 //////////////////////////////////////////////////////////////////
 // Utilities and Common
@@ -178,7 +179,7 @@ extern void set_text_color(u8 forecolor, u8 backcolor);
 extern void init_video();
 
 // vga
-extern u32 init_graph_vga(u32 width, u32 height, b8 chain4);
+extern u32 init_graph_vga(u32 width, u32 height, bool chain4);
 extern void plot_pixel(u32 x, u32 y, u8 color);
 extern void line_fast(u32 x1, u32 y1, u32 x2, u32 y2, u8 color);
 extern void polygon(u32 num_vertices,  u32 *vertices, u8 color);

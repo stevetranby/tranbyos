@@ -1,13 +1,13 @@
 #include "include/system.h"
 
-static inline u8 inb_dummy(u16 port)
-{
-    u8 ret;
-    asm_volatile ( "inb %[port], %[ret]"
-                  : [ret] "=a"(ret)
-                  : [port] "Nd"(port) );
-    return ret;
-}
+//static inline u8 inb_dummy(u16 port)
+//{
+//    u8 ret;
+//    asm_volatile ( "inb %[port], %[ret]"
+//                  : [ret] "=a"(ret)
+//                  : [port] "Nd"(port) );
+//    return ret;
+//}
 
 // TODO: maybe just move these into .asm? why bother just because
 //       we want everything in C?
@@ -56,90 +56,88 @@ void print_port(u16 port)
 	printBinary_b(inb(port));	
 }
 
-
-
-static inline u32 farpeekl(u16 sel, void* off)
-{
-    u32 ret;
-    asm_volatile ( "push %%fs\n\t"
-                     "mov  %1, %%fs\n\t"
-                     "mov  %%fs:(%2), %0\n\t"
-                     "pop  %%fs"
-                     : "=r"(ret) : "g"(sel), "r"(off) );
-    return ret;
-}
-
-static inline void farpokeb(u16 sel, void* off, u8 v)
-{
-    asm_volatile ( "push %%fs\n\t"
-                     "mov  %0, %%fs\n\t"
-                     "movb %2, %%fs:(%1)\n\t"
-                     "pop %%fs"
-                     : : "g"(sel), "r"(off), "r"(v) );
-    // TODO: Should "memory" be in the clobber list here?
-}
-
-// GCC has a <cpuid.h> header and intel has intrinsics header
-bool cpuid_exists_by_eflags(void)
-{
-    // TODO: check if exists on x86 (always present on x86_64)
-    // return 1;
-
-    i32 result;
-    asm_volatile (  "	pushfl\n"
-                    "	pop	%%eax\n"
-                    "	mov	%%eax,	%%ecx\n"
-                    "	xor	$0x200000,	%%eax\n"
-                    "	push	%%eax\n"
-                    "	popfl\n"
-                    "	pushfl\n"
-                    "	pop	%%eax\n"
-                    "	xor	%%ecx,	%%eax\n"
-                    "	mov	%%eax,	%0\n"
-                    "	push	%%ecx\n"
-                    "	popfl\n"
-                    : "=m"(result) : : "eax", "ecx", "memory");
-    return (result != 0);
-}
-static inline void cpuid(int code, u32* a, u32* d)
-{
-
-    asm_volatile ( "cpuid" : "=a"(*a), "=d"(*d) : "0"(code) : "ebx", "ecx" );
-}
-
-/// CPU's time-stamp counter and store into EDX:EAX.
-static inline u64 rdtsc()
-{
-    u64 ret;
-    asm_volatile ( "rdtsc" : "=A"(ret) );
-    return ret;
-}
-
-static inline bool are_interrupts_enabled()
-{
-    unsigned long flags;
-    asm_volatile ( "pushf\n\t"
-                  "pop %0"
-                  : "=g"(flags) );
-    return flags & (1 << 9);
-}
-
-static inline void lidt(void* base, u16 size)
-{   // This function works in 32 and 64bit mode
-    struct {
-        u16 length;
-        void*    base;
-    } __attribute__((packed)) IDTR = { size, base };
-
-    asm_volatile ( "lidt %0" : : "m"(IDTR) );  // let the compiler choose an addressing mode
-}
-
-static inline unsigned long read_cr0(void)
-{
-    unsigned long val;
-    asm_volatile ( "mov %%cr0, %0" : "=r"(val) );
-    return val;
-}
+//static inline u32 farpeekl(u16 sel, void* off)
+//{
+//    u32 ret;
+//    asm_volatile ( "push %%fs\n\t"
+//                     "mov  %1, %%fs\n\t"
+//                     "mov  %%fs:(%2), %0\n\t"
+//                     "pop  %%fs"
+//                     : "=r"(ret) : "g"(sel), "r"(off) );
+//    return ret;
+//}
+//
+//static inline void farpokeb(u16 sel, void* off, u8 v)
+//{
+//    asm_volatile ( "push %%fs\n\t"
+//                     "mov  %0, %%fs\n\t"
+//                     "movb %2, %%fs:(%1)\n\t"
+//                     "pop %%fs"
+//                     : : "g"(sel), "r"(off), "r"(v) );
+//    // TODO: Should "memory" be in the clobber list here?
+//}
+//
+//// GCC has a <cpuid.h> header and intel has intrinsics header
+//bool cpuid_exists_by_eflags(void)
+//{
+//    // TODO: check if exists on x86 (always present on x86_64)
+//    // return 1;
+//
+//    i32 result;
+//    asm_volatile (  "	pushfl\n"
+//                    "	pop	%%eax\n"
+//                    "	mov	%%eax,	%%ecx\n"
+//                    "	xor	$0x200000,	%%eax\n"
+//                    "	push	%%eax\n"
+//                    "	popfl\n"
+//                    "	pushfl\n"
+//                    "	pop	%%eax\n"
+//                    "	xor	%%ecx,	%%eax\n"
+//                    "	mov	%%eax,	%0\n"
+//                    "	push	%%ecx\n"
+//                    "	popfl\n"
+//                    : "=m"(result) : : "eax", "ecx", "memory");
+//    return (result != 0);
+//}
+//static inline void cpuid(int code, u32* a, u32* d)
+//{
+//
+//    asm_volatile ( "cpuid" : "=a"(*a), "=d"(*d) : "0"(code) : "ebx", "ecx" );
+//}
+//
+///// CPU's time-stamp counter and store into EDX:EAX.
+//static inline u64 rdtsc()
+//{
+//    u64 ret;
+//    asm_volatile ( "rdtsc" : "=A"(ret) );
+//    return ret;
+//}
+//
+//static inline bool are_interrupts_enabled()
+//{
+//    unsigned long flags;
+//    asm_volatile ( "pushf\n\t"
+//                  "pop %0"
+//                  : "=g"(flags) );
+//    return flags & (1 << 9);
+//}
+//
+//static inline void lidt(void* base, u16 size)
+//{   // This function works in 32 and 64bit mode
+//    struct {
+//        u16 length;
+//        void*    base;
+//    } __attribute__((packed)) IDTR = { size, base };
+//
+//    asm_volatile ( "lidt %0" : : "m"(IDTR) );  // let the compiler choose an addressing mode
+//}
+//
+//static inline unsigned long read_cr0(void)
+//{
+//    unsigned long val;
+//    asm_volatile ( "mov %%cr0, %0" : "=r"(val) );
+//    return val;
+//}
 
 // Invalidates the TLB (Translation Lookaside Buffer) for one specific virtual address. The next memory reference for the page will be forced to re-read PDE and PTE from main memory. Must be issued every time you update one of those tables. The m pointer points to a logical address, not a physical or virtual one: an offset for your ds segment.
 inline void invlpg(void* m)
