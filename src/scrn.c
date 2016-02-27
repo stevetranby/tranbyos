@@ -183,16 +183,23 @@ void puts(const char* text)
     }
 }
 
+void printInt(i32 l) { writeInt(l, putch); }
+void printHex(u32 l) { writeHex(l, putch); }
+void printHex_w(u16 w) { writeHex_w(w, putch); }
+void printHex_b(u8 b) { writeHex_b(b, putch); }
+void printAddr(void* addr) { writeAddr(addr, putch); }
+void printBinary_b(u8 num) { writeBinary_b(num, putch); }
+
 #define MAX_INT_DIGITS 20
 
 // TODO: should allow wrap on word
 // TODO: should allow padding (at least with (0) zeros)
 // Note: assume base 10 for right now
-void _internal_printInt(int number, void(*writer)(u8 a)) {
-    int num = number;
-    int isNeg = 0;
-    char buf[MAX_INT_DIGITS];
-    int cur, end, temp=0;
+void writeInt(i32 num, output_writer writer)
+{
+    bool isNeg = false;
+    u8 buf[MAX_INT_DIGITS];
+    i32 cur, end, temp=0;
 
     end = MAX_INT_DIGITS-1;
     cur = end;
@@ -228,81 +235,117 @@ void _internal_printInt(int number, void(*writer)(u8 a)) {
     }
 }
 
-void printInt(int number)
+void writeUInt(u32 num, output_writer writer)
 {
-    _internal_printInt(number, putch);
+    bool isNeg = false;
+    u8 buf[MAX_INT_DIGITS];
+    i32 cur, end, temp=0;
+
+    end = MAX_INT_DIGITS-1;
+    cur = end;
+
+    if(num == 0) {
+        writer('0');
+        return;
+    }
+
+    buf[cur] = '\0';
+
+    // check if negative and print neg character
+    if(num < 0) {
+        isNeg = 1;
+        num = -num;		// abs(num)
+    }
+
+    while(num) {
+        temp = num % 10; // get 'ones' or right most digit
+        --cur;
+        buf[cur] = temp + '0'; // add the digit (temp) to ASCII code '0'
+        num /= 10; // remove right most digit
+    }
+
+    if(isNeg)
+        writer('-');
+
+    // print the string
+    char c = '0';
+    for(; cur < end; ++cur) {
+        c = buf[cur];
+        writer(c);
+    }
 }
 
-void printUInt(u32 num)
+void writeAddr(void* ptr, output_writer writer)
 {
-    printInt((i32)num);
+    writeHex((u32)ptr, writer);
 }
 
-void printAddr(void* ptr)
+void writeHex_b(u8 b, output_writer writer)
 {
-    printHex((u32)ptr);
-}
-
-// print out the byte in hex
-void printHex_b(u8 b) {
     puts("0x");
-    printHexDigit((b >> 4) & 0x0f);
-    printHexDigit((b) & 0x0f);
+    writeHexDigit((b >> 4) & 0x0f, writer);
+    writeHexDigit((b) & 0x0f, writer);
 }
 
-void printHex_w(u16 w) {
+void writeHex_w(u16 w, output_writer writer)
+{
     puts("0x");
-    printHexDigit((w>>12) & 0x0f);
-    printHexDigit((w>>8) & 0x0f);
-    printHexDigit((w>>4) & 0x0f);
-    printHexDigit((w) & 0x0f);
+    writeHexDigit((w>>12) & 0x0f, writer);
+    writeHexDigit((w>>8) & 0x0f, writer);
+    writeHexDigit((w>>4) & 0x0f, writer);
+    writeHexDigit((w) & 0x0f, writer);
 }
 
-void printHex(u32 w) {
+void writeHex(u32 w, output_writer writer)
+{
     puts("0x");
-    printHexDigit((w>>28) & 0x0f);
-    printHexDigit((w>>24) & 0x0f);
-    printHexDigit((w>>20) & 0x0f);
-    printHexDigit((w>>16) & 0x0f);
-    printHexDigit((w>>12) & 0x0f);
-    printHexDigit((w>>8) & 0x0f);
-    printHexDigit((w>>4) & 0x0f);
-    printHexDigit((w) & 0x0f);
+    writeHexDigit((w>>28) & 0x0f, writer);
+    writeHexDigit((w>>24) & 0x0f, writer);
+    writeHexDigit((w>>20) & 0x0f, writer);
+    writeHexDigit((w>>16) & 0x0f, writer);
+    writeHexDigit((w>>12) & 0x0f, writer);
+    writeHexDigit((w>>8) & 0x0f, writer);
+    writeHexDigit((w>>4) & 0x0f, writer);
+    writeHexDigit((w) & 0x0f, writer);
 }
 
-void printHexDigit(u8 digit) {
+void writeHexDigit(u8 digit, output_writer writer)
+{
     if(digit < 10)
-        printInt(digit);
+        writeInt(digit, writer);
     else {
         switch(digit) {
-            case 10: putch('a'); break;
-            case 11: putch('b'); break;
-            case 12: putch('c'); break;
-            case 13: putch('d'); break;
-            case 14: putch('e'); break;
-            case 15: putch('f'); break;
+            case 10: writer('a'); break;
+            case 11: writer('b'); break;
+            case 12: writer('c'); break;
+            case 13: writer('d'); break;
+            case 14: writer('e'); break;
+            case 15: writer('f'); break;
         }
     }
 }
 
-void printBinary_b(u8 num) {
+void writeBinary_b(u8 num, output_writer writer)
+{
     int i = 8;
     while(i--) {
-        printInt((num & (1<<i)) >> i);
+        writeInt((num & (1<<i)) >> i, writer);
     }
 }
 
-void printBinary_w(u16 num) {
+void writeBinary_w(u16 num, output_writer writer)
+{
     int i = 16;
     while(i--) {
-        printInt((num & (1<<i)) >> i);
+        writeInt((num & (1<<i)) >> i, writer);
     }
 }
 
-void printBinary(u32 num) {
+void writeBinary(u32 num, output_writer writer)
+{
     int i = 32;
     while(i--) {
-        printInt((num & (1<<i)) >> i);
+        writeInt((num & (1<<i)) >> i, writer);
     }
 }
 
@@ -362,7 +405,12 @@ void serial_write(c_str str) {
     }
 }
 
-void serial_printInt(u32 number)
+void serial_writeInt(u32 number)
 {
-    _internal_printInt(number, serial_write_b);
+    writeInt(number, serial_write_b);
+}
+
+void serial_writeHex(u32 number)
+{
+    writeHex(number, serial_write_b);
 }

@@ -1,6 +1,55 @@
+//
+
 #include "include/system.h"
 
+
+#define KBD_PORT_DATA               0x60
+#define KBD_PORT_STATUS             0x64
+#define KBD_STAT_BUFF_FULL          0x01
+#define KBD_STAT_MOUSE_BUFF_FULL    0x02
+
+#define SCANCODE_MASK_RELEASED      0x80
+
+#define ENABLE_AUX_MOUSE_COMMAND    0xA8
+#define GET_Compaq_STATUS           0x20
+#define SET_COMPAQ_STATUS           0x60
+
+#define ACK_BYTE 0xFA
+
+//The mouse probably sends ACK (0xFA) plus several more bytes, then resets itself, and always sends 0xAA.
+#define MOUSE_CMD_RESET             0xFF
+
+// This command makes the mouse send its most recent packet to the host again.
+#define MOUSE_CMD_RESEND            0xFE
+
+// Disables streaming, sets the packet rate to 100 per second, and resolution to 4 pixels per mm.
+#define MOUSE_CMD_SET_DEFAULTS      0xF6
+
+// The mouse stops sending automatic packets.
+#define MOUSE_CMD_DISABLE_STREAMING 0xF5
+
+// The mouse starts sending automatic packets when the mouse moves or is clicked.
+#define MOUSE_CMD_ENABLE_STREAMING  0xF4
+
+// Requires an additional data byte: automatic packets per second (see below for legal values).
+#define MOUSE_CMD_SET_SAMPLE_RATE   0xF3
+
+// The mouse sends sends its current "ID", which may change with mouse initialization.
+#define MOUSE_CMD_GET_MOUSE_ID      0xF2
+
+// The mouse sends ACK, followed by a complete mouse packet with current data.
+#define MOUSE_CMD_PACKET_REQ        0xEB
+
+// The mouse sends ACK, then 3 status bytes. See below for the status byte format.
+#define MOUSE_CMD_STATUS_REQ        0xE9
+
+// Requires an additional data byte: pixels per millimeter resolution (value 0 to 3)
+#define MOUSE_CMD_RESOLUTION        0xE8
+
+
+////////////////////////////////////////////////////////////////
 // currently allow up to 255 characters to be buffered for use
+
 #define MAX_BUFFERED_INPUT_KEYS 255
 u8 kb_buf[MAX_BUFFERED_INPUT_KEYS] = { 0, };
 i32 kb_buf_index = 0;
@@ -68,25 +117,18 @@ kbscan_t keyboard_read_next()
 /* Handles the keyboard interrupt */
 void keyboard_handler(isr_stack_state *r)
 {
-    unsigned char scancode;
-
-    /* Read from the keyboard's data buffer */
-    static const u8 PORT_KEYBOARD_DATA = 0x60;
-    scancode = inb(PORT_KEYBOARD_DATA);
+    unsigned char scancode = inb(KBD_PORT_DATA);
 
     // TODO: real input event system
     // - events for down, up, pressed, repeated
     // - look at how GLFW, SMFL, SDL handles this
 
-    static const u8 SCANCODE_MASK_RELEASED = 0x80;
     if (scancode & SCANCODE_MASK_RELEASED)
     {
-        /* You can use this one to see if the user released the
-         *  shift, alt, or control keys... */
     }
     else
     {
-        kb_buf[kb_buf_index] = scancode;//scan_to_ascii_us[scancode];
+        kb_buf[kb_buf_index] = scancode;
         kb_buf_index++;
 
         enum {
@@ -95,7 +137,6 @@ void keyboard_handler(isr_stack_state *r)
         };
         //u8 _curPrintMode = PRINT_MODE_ASCII;
         u8 _curPrintMode = PRINT_MODE_SCAN;
-        //u8 KBDUS_SPACE = 0x39;
         if(scancode == KBDUS_SPACE) {
             puts("Elasped Time (in seconds): ");
             printInt( timer_seconds() );
@@ -120,6 +161,8 @@ void keyboard_install()
 
 /////////////////////////////////////////////////////////////////////
 // Mouse
+//
+// http://wiki.osdev.org/Mouse_Input
 
 //static u32 _mouse_x;
 //static u32 _mouse_y;
@@ -137,17 +180,15 @@ static u32 mouse_x = 0;
 static u32 mouse_y = 0;
 static i8 mouse_byte[3] = { 0, }; //TODO: i think 4 would be enough??
 
-#define KBD_STAT_OUT_BUFF_FULL 0x01
-#define KBD_STAT_MOUSE_OUT_BUFF_FULL 0x02
-
-#define KBD_PORT_DATA 0x60
-#define KBD_PORT_STATUS 0x64
-
 i32 mouse_getx() { return mouse_x; }
 i32 mouse_gety() { return mouse_y; }
 
 void mouse_handler(isr_stack_state *r)
 {
+    // Hot Swapping:
+    // When a mouse is plugged into a running system it may send a 0xAA, then a 0x00 byte
+    // and then go into default state (see below).
+
     switch(mouse_cycle)
     {
         case 0:
@@ -170,11 +211,17 @@ void mouse_handler(isr_stack_state *r)
             d = mouse_byte[2];
             i32 rel_y = d - ((state << 3) & 0x100);
 
-            serial_printInt(23);
+            serial_writeInt(23);
             serial_write(": mouse = ");
-            serial_printInt(rel_x);
+            serial_writeInt(rel_x);
             serial_write(",");
-            serial_printInt(rel_y);
+            serial_writeInt(rel_y);
+            serial_write(",");
+            serial_writeHex(mouse_byte[0]);
+            serial_write(",");
+            serial_writeHex(mouse_byte[0]);
+            serial_write(",");
+            serial_writeHex(mouse_byte[0]);
             serial_write("\n");
 
             mouse_x += rel_x;
@@ -185,31 +232,18 @@ void mouse_handler(isr_stack_state *r)
     }
 
     u8 status = inb(KBD_PORT_STATUS);
-    while (status & KBD_STAT_OUT_BUFF_FULL)
+    while (status & KBD_STAT_BUFF_FULL)
     {
         u8 scancode = inb(KBD_PORT_DATA);
-        if (status & KBD_STAT_MOUSE_OUT_BUFF_FULL) {
+        if (status & KBD_STAT_MOUSE_BUFF_FULL) {
             UNUSED_VAR(scancode);
         }
         status = inb(KBD_PORT_STATUS);
     }
-    //printHex(status);
-
-#ifdef DEBUG
-    //    puts("{");
-    //    printInt(mouse_x);
-    //    puts(",");
-    //    printInt(mouse_y);
-    //    puts(",");
-    //    printHex(mouse_byte[0]);
-    //    puts(",");
-    //    printHex(mouse_byte[1]);
-    //    puts(",");
-    //    printHex(mouse_byte[2]);
-    //    puts("} ");
-#endif
 }
 
+/// All output must be preceded by waiting for bit 1 (value=2) of port 0x64 to become clear.
+/// Similarly, bytes cannot be read from port 0x60 until bit 0 (value=1) of port 0x64 is set.
 static inline void mouse_wait(u8 a_type)
 {
     u32 _time_out = 10000;
@@ -217,24 +251,16 @@ static inline void mouse_wait(u8 a_type)
     {
         // data
         while(_time_out--)
-        {
-            if((inb(0x64) & 1)==1)
-            {
+            if((inb(KBD_PORT_STATUS) & 1)==1)
                 return;
-            }
-        }
         return;
     }
     else
     {
         // signal
         while(_time_out--)
-        {
-            if((inb(0x64) & 2)==0)
-            {
+            if((inb(KBD_PORT_STATUS) & 2)==0)
                 return;
-            }
-        }
         return;
     }
 }
@@ -244,48 +270,69 @@ static inline void mouse_write(u8 a_write)
     //Wait to be able to send a command
     mouse_wait(1);
     //Tell the mouse we are sending a command
-    outb(0x64, 0xD4);
+    outb(KBD_PORT_STATUS, 0xD4);
     //Wait for the final part
     mouse_wait(1);
     //Finally write
-    outb(0x60, a_write);
+    outb(KBD_PORT_DATA, a_write);
 }
 
-u8 mouse_read()
+/// Get's response from mouse
+internal inline u8 mouse_read()
 {
-    //Get's response from mouse
     mouse_wait(0);
-    return inb(0x60);
+    return inb(KBD_PORT_DATA);
 }
 
-// Install IRQ Handler
+/*
+ In some systems, the PS2 aux port is disabled at boot. 
+ Data coming from the aux port will not generate any interrupts. 
+ To know that data has arrived, you need to enable the aux port to generate IRQ12. 
+ There is only one way to do that, which involves getting/modifying the "compaq status" byte. 
+ You need to send the command byte 0x20 ("Get Compaq Status Byte") to the PS2 controller on port 0x64. 
+ If you look at RBIL, it says that this command is Compaq specific, but this is no longer true. 
+ This command does not generate a 0xFA ACK byte. The very next byte returned should be the Status byte. 
+
+ (Note: on some versions of Bochs, you will get a second byte, with a value of 0xD8, after sending this command, for some reason.)
+ 
+ After you get the Status byte, you need to set bit number 1 (value=2, Enable IRQ12),
+ and clear bit number 5 (value=0x20, Disable Mouse Clock). 
+ Then send command byte 0x60 ("Set Compaq Status") to port 0x64, 
+ followed by the modified Status byte to port 0x60. 
+ This might generate a 0xFA ACK byte from the keyboard.
+ */
+
+//Get MouseID command (0xF2)
+
+/// Install Mouse IRQ Handler
 void mouse_install()
 {
     u8 _status;
 
     //Enable the auxiliary mouse device
     mouse_wait(1);
-    outb(0x64, 0xA8);
+    outb(KBD_PORT_STATUS, ENABLE_AUX_MOUSE_COMMAND);
 
     //Enable the interrupts
     mouse_wait(1);
-    outb(0x64, 0x20);
+    outb(KBD_PORT_STATUS, GET_Compaq_STATUS);
     mouse_wait(0);
-    _status = (inb(0x60) | 2);
+
+    _status = (inb(KBD_PORT_DATA) | 2);
     mouse_wait(1);
-    outb(0x64, 0x60);
+    outb(KBD_PORT_STATUS, SET_COMPAQ_STATUS);
     mouse_wait(1);
-    outb(0x60, _status);
+    outb(KBD_PORT_DATA, _status);
 
     //Tell the mouse to use default settings
-    mouse_write(0xF6);
-    
+    mouse_write(MOUSE_CMD_SET_DEFAULTS);
+
     //Acknowledge
     mouse_read();
 
     //Enable the mouse
-    mouse_write(0xF4);
-    
+    mouse_write(MOUSE_CMD_ENABLE_STREAMING);
+
     //Acknowledge
     mouse_read();
     

@@ -6,10 +6,13 @@
 //////////////////////////////////////////////////////////////////
 // Defined Constants
 
+// make it more clear why we're using static
+#define global static
+#define internal static
+
 #define UNUSED_PARAM(x) ((void)(x))
 #define UNUSED_VAR(x) ((void)(x))
 
-// TODO: const u32
 #define KILO (1024)            // 2^10
 #define MEGA (1024*1024)       // 2^20
 #define GIGA (1024*1024*1024)  // 2^30
@@ -17,9 +20,7 @@
 //////////////////////////////////////////////////////////////////
 // Macros
 
-//#define global   static
-//#define internal static inline
-
+// Volatile - don't move instructions (no optimization)
 #define asm_volatile __asm__ __volatile__
 
 #define sti()   asm_volatile ("sti");
@@ -33,7 +34,7 @@
 #ifdef _DEBUG_
 #define trace(x) puts(x)
 #else
-#define trace(x)
+#define trace(x) serial_write(x)
 #endif
 
 //////////////////////////////////////////////////////////////////
@@ -220,24 +221,34 @@ extern u8 *kmalloc(u32 size);
 //////////////////////////////////////////////////////////////////
 // STDOUT and friends
 
+typedef void(*output_writer)(u8 a);
+
+extern void writeInt(i32 num, output_writer writer);
+extern void writeUInt(u32 num, output_writer writer);
+extern void writeAddr(void* ptr, output_writer writer);
+extern void writeHex_b(u8 num, output_writer writer);
+extern void writeHex_w(u16 num, output_writer writer);
+extern void writeHex(u32 num, output_writer writer);
+extern void writeHexDigit(u8 digit, output_writer writer);
+extern void writeBinary_b(u8 num, output_writer writer);
+extern void writeBinary_w(u16 num, output_writer writer);
+extern void writeBinary(u32 num, output_writer writer);
+extern void writeChar(u8 ch, output_writer writer);
+
 extern void printInt(i32 num);
-extern void printUInt(u32 num);
-extern void printAddr(void* num);
-extern void printHex_b(u8 b);
-extern void printHex_w(u16 w);
-extern void printHex(u32 w);
-extern void printHexDigit(u8 digit);
+extern void printHex(u32 num);
+extern void printHex_w(u16 num);
+extern void printHex_b(u8 num);
+extern void printAddr(void* ptr);
 extern void printBinary_b(u8 num);
-extern void printBinary_w(u16 num);
-extern void printBinary(u32 num);
 
 extern void init_serial();
 extern int serial_received();
 extern char read_serial();
 extern u32 is_transmit_empty();
-extern void serial_write_b(u8 a);
 extern void serial_write(c_str str);
-extern void serial_printInt(u32 number);
+extern void serial_writeInt(u32 number);
+extern void serial_writeHex(u32 number);
 
 ////////////////////////////////////////////////////////////////////////////
 // User Input Devices
