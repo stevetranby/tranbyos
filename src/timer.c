@@ -56,16 +56,16 @@ void delay_ticks(i32 ticks)
 
 // TODO: figure out why this fails on gcc optimization flag -O2
 void delay_ms(u32 ms) {
-    trace("[enter] delay_ms\n");
+    trace_info("[enter] delay_ms\n");
     u32 eticks = _timer_ticks + ticks_from_ms(ms);
-    trace("test: %d < %d\n", _timer_ticks, eticks);
+    trace_info("test: %d < %d\n", _timer_ticks, eticks);
     while(_timer_ticks < eticks) {
         //trace("test: %d < %d\n", _timer_ticks, eticks);
 
-        // Prevent O2 optimize away
+        // TODO: Try prevent O2 optimize away
         while(0) { asm(""); }
     }
-    trace("[exit] delay_ms, %d < %d\n", _timer_ticks, eticks);
+    trace_info("[exit] delay_ms, %d < %d\n", _timer_ticks, eticks);
 }
 
 void delay_s(u32 s) {
@@ -99,7 +99,7 @@ void write_to_CMOS(u8 data[])
 {
     for(u8 index = 0; index < 128; index++)
     {
-        // TODO: *data++??
+        // when dealing with CMOS we want to make sure nothing interrupts the write process
         cli();
         outb(cmos_address, index);
         outb(cmos_data, data[index]);

@@ -45,8 +45,8 @@ void init_mm()
 
 void print_heap_magic()
 {
-    trace("heap magic");
-    kprintf("Heap: %x | %x | %x", (u32)_sys_heap, (u32)heap_ptr, (u32)end);
+    trace("heap magic\n");
+    kprintf("Heap: %x | %x | %x\n", (u32)_sys_heap, (u32)heap_ptr, (u32)end);
 }
 
 // Byte Allocator for Heap

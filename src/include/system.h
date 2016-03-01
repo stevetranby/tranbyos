@@ -41,6 +41,14 @@ typedef __builtin_va_list va_list;
 
 #define UNUSED_PARAM(x) ((void)(x))
 #define UNUSED_VAR(x)   ((void)(x))
+#define ALIGN (sizeof(size_t))
+#define ONES ((size_t)-1/UCHAR_MAX)
+#define HIGHS (ONES * (UCHAR_MAX/2+1))
+#define HASZERO(X) (((X)-ONES) & ~(X) & HIGHS)
+
+#define BITOP(A, B, OP) \
+((A)[(size_t)(B)/(8*sizeof *(A))] OP (size_t)1<<((size_t)(B)%(8*sizeof *(A))))
+
 
 #define KILO (1024)            // 2^10
 #define MEGA (1024*1024)       // 2^20
@@ -62,6 +70,8 @@ typedef __builtin_va_list va_list;
 #define pusha() asm_volatile ("pusha");
 #define popa()  asm_volatile ("popa");
 
+//------------------
+
 // TODO: improve this imensly with real logging
 // TODO: move this into `make debug`
 #define _DEBUG_
@@ -71,6 +81,14 @@ typedef __builtin_va_list va_list;
 #else
 #define trace(fmt, ...) do {} while(0);
 #endif
+
+//#define _DEBUG_INFO_
+#ifdef _DEBUG_INFO_
+#define trace_info(fmt, ...) trace(fmt, ##__VA_ARGS__)
+#else
+#define trace_info(fmt, ...) do {} while(0);
+#endif
+
 
 // TODO: maybe move to exist with other print/write (possibly break out multi headers)
 #define kprintf(fmt, ...) kwritef(kputch, fmt, ##__VA_ARGS__)
@@ -95,9 +113,18 @@ typedef double             real64;
 typedef const char*         c_str;
 typedef char*           c_str_mut;
 
-typedef unsigned long long     u64;
-typedef long long              i64;
-typedef unsigned long       size_t;
+typedef unsigned long long    u64;
+typedef long long             i64;
+typedef unsigned long      size_t;
+
+//////////////////////
+// Assertions and Errors
+
+#define	CONCAT(x,y)   x ## y
+#define	STRINGIFY(x)  #x
+extern void kassert_fail(c_str assertion, c_str file, unsigned int line, c_str func, c_str msg);
+#define ASSERT(expr,msg) ((void) ((expr) || (kassert_fail(STRINGIFY(expr), __FILE__, __LINE__, __func__, msg), 0)))
+
 
 //////////////////////////////////////////////////////////////////
 // Utilities and Common
@@ -403,7 +430,7 @@ u32 chs2bytes(u16 c, u16 h, u16 s);
 #define IRQ_COUNT 16
 
 #define IRQ_SYSTEM_TIMER        0
-#define IRQ_KEYBOARD            1
+#define IRQ_KEYBOARD_PS2        1
 //IRQ 2 – cascaded signals from IRQs 8–15 (any devices configured to use IRQ 2 will actually be using IRQ 9)
 #define IRQ_SERIAL_PORT_2_4     3
 #define IRQ_SERIAL_PORT_1_3     4

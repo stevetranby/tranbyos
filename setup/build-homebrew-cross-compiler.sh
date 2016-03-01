@@ -68,8 +68,11 @@ echo "installing cross-compilers"
 # cross-compilers
 brew tap homebrew/versions
 brew install gcc49
-brew tap altkatz/homebrew-gcc_cross_compilers
-brew install i386-elf-binutils i386-elf-gcc i586-elf-binutils i586-elf-gcc nasm
+brew tap stevetranby/homebrew-gcc_cross_compilers
+brew install nasm
+brew install i386-elf-binutils i386-elf-gcc
+brew install x86_64-elf-binutils x86_64-elf-gcc
+brew install arm-elf-binutils arm-elf-gcc
 
 brew install qemu
 brew cask install virtualbox

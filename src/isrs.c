@@ -158,48 +158,23 @@ c_str exception_messages[] =
     "Reserved"
 };
 
-// TODO: allow set on install
-c_str irq_names[] =
-{
-    // 0-9
-    "Timer",
-    "Keyboard",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    // 10-16
-    "",
-    "",
-    "Mouse",
-    "",
-    "",
-    "",
-    ""
-};
-
 static isr_handler irq_routines[IRQ_COUNT] = { 0, };
 static u32 irq_counts[IRQ_COUNT] = { 0, };
-//static u8 irq_names[IRQ_COUNT][20] = { {0, }, };
+static u8 irq_names[IRQ_COUNT][20] = { {0, }, };
 
 /// (Un)Install IRQ handler
-#define __func__ "[FUNC MISSING]"
-#define __line__ "[LINE MISSING]"
-#define ASSERT(cond,msg) if(!(cond)) { kprintf("[ASSERT]: " __func__ " , " __line__ " : %s", msg); /*panic()*/; }
+
 void irq_install_handler(u32 irq, isr_handler handler, c_str name)
 {
-    ASSERT(kstrlen(name) < 20, "name length must be < 20!");
+    ASSERT(kstrlen(name) < 20, "name length must be < 20!\n");
     irq_routines[irq] = handler;
-//    kmemcpyb((u8*)&irq_names[irq], (u8*)name, 20);
+    kmemcpyb((u8*)irq_names[irq], (u8*)name, 20);
+    kwritef(serial_write_b, "installing irq: %d, %x, '%s'\n", irq, (u32)handler, name);
 }
 void irq_uninstall_handler(u32 irq)
 {
     irq_routines[irq] = 0;
-//    kmemsetb((u8*)&irq_names[irq], 0, 20);
+    kmemsetb((u8*)&irq_names[irq], 0, 20);
 }
 
 /// Remap IRQs 0-7 since they are mapped to IDT entries 8-15 by default
@@ -283,7 +258,7 @@ void irq_handler(isr_stack_state* r)
 void print_irq_counts()
 {
     for(int i=0; i < IRQ_COUNT; ++i) {
-        kprintf("%d:\t%d\t'%s'", i, irq_counts[i], irq_names[i]);
+        kprintf("%d:\t%d\t'%s'\n", i, irq_counts[i], irq_names[i]);
     }
 }
 

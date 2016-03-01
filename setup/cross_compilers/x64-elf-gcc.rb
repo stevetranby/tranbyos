@@ -23,7 +23,7 @@ class X64ElfGcc < Formula
     mkdir 'build' do
       system '../configure', '--disable-nls', '--target=x86_64-elf','--disable-werror',
                              "--prefix=#{prefix}",
-                             "--enable-languages=c",
+                             "--enable-languages=c,c++",
                              "--without-headers"
       system 'make all-gcc'
       system 'make install-gcc'

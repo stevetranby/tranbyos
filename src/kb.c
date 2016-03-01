@@ -30,9 +30,6 @@
 #define MOUSE_CMD_STATUS_REQ        0xE9 // The mouse sends ACK, then 3 status bytes. See below for the status byte format.
 #define MOUSE_CMD_RESOLUTION        0xE8 // Requires an additional data byte: pixels per millimeter resolution (value 0 to 3)
 
-
-
-
 ////////////////////////////////////////////////////////////////
 // currently allow up to 255 characters to be buffered for use
 
@@ -92,7 +89,6 @@ u8 scan_to_ascii_us[128] =
 /// returns 0 if no key in buffer;
 kbscan_t keyboard_read_next()
 {
-    //kbscan_t ret = 0;
     // TODO: support string formatting in serial_write
     if(--kb_buf_index < 0) {
         kb_buf_index = 0;
@@ -114,7 +110,7 @@ static inline void ps2_wait_write()
             return;
         }
     }
-    trace("Mouse Timed Out!");
+    trace("PS2 Timed Out!");
     return;
 }
 
@@ -128,7 +124,7 @@ static inline void ps2_wait_read()
         }
 
     }
-    trace("Mouse Timed Out!");
+    trace("PS2 Timed Out!");
     return;
 }
 
@@ -136,6 +132,7 @@ static inline void ps2_wait_read()
 void keyboard_handler(isr_stack_state *r)
 {
     UNUSED_PARAM(r);
+    serial_write("+");
 
     // TODO: why does this fail? maybe reading the port itself makes it work fine?
     ps2_wait_read();
@@ -181,7 +178,9 @@ void keyboard_handler(isr_stack_state *r)
 /* Installs the keyboard handler into IRQ1 */
 void keyboard_install()
 {
+    serial_write("Installing Mouse PS/2\n");
     irq_install_handler(1, keyboard_handler, "keyboard");
+    serial_write("Keyboard handler installed.\n");
 }
 
 
@@ -204,6 +203,7 @@ i32 mouse_gety() { return mouse_y; }
 void mouse_handler(isr_stack_state *r)
 {
     UNUSED_PARAM(r);
+    serial_write("^");
     
     u8 status = inb(PS2_STATUS);
     while (status & 0x02)

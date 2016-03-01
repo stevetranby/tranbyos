@@ -111,16 +111,15 @@
 // Grub2
 #include "include/multiboot.h"
 
-
 /////////////////////////////
 
-#define ALIGN (sizeof(size_t))
-#define ONES ((size_t)-1/UCHAR_MAX)
-#define HIGHS (ONES * (UCHAR_MAX/2+1))
-#define HASZERO(X) (((X)-ONES) & ~(X) & HIGHS)
-
-#define BITOP(A, B, OP) \
-((A)[(size_t)(B)/(8*sizeof *(A))] OP (size_t)1<<((size_t)(B)%(8*sizeof *(A))))
+void kassert_fail(c_str assertion, c_str file, unsigned int line, c_str func, c_str msg)
+{
+    for(int i=0; i<2; ++i) {
+        output_writer writer = i == 0 ? serial_write_b : kputch;
+        kwritef(writer, "[ASSERT]: %d: %s: %s: %s\n[%s]", line, file, func, msg, assertion);
+    }
+}
 
 void* kmemcpy(void* restrict dest, const void* restrict src, size_t n)
 {
@@ -289,7 +288,7 @@ void wait_any_key() {
     }
 
     serial_write("Waiting for Key\n");
-    kputs("Press Any Key (muahahaha!!!!)");
+    kputs("Press Any Key!");
     kgetch();
 
     set_text_color(COLOR_WHITE, COLOR_BLACK);
@@ -372,27 +371,22 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     gdt_install();
     idt_install();
     isrs_install();
-
-    init_serial();
-    serial_write("Hi QEMU!\r\n");
-
-    // kernel subsystems
-    init_mm();
-    //TODO: init_tasking();
-    //TODO: init_paging();
-    //TODO:
-
-    init_video();
-
     timer_install();
     keyboard_install();
     mouse_install();
 
+    init_serial();
+    init_mm();
+    //TODO: init_tasking();
+    //TODO: init_paging();
+
+    init_video();
+
     sti();
 
-    wait_any_key();
+    delay_s(1);
 
-
+    // TODO: create text mode first if no VBE
     if(BIT(mbh->flags, 11))
     {
         // https://codereview.stackexchange.com/questions/108168/vbe-bdf-font-rendering
@@ -576,7 +570,7 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     sti();
 
     // 00 - Useful if not Hard Disk
-    kprintf("Disk: %x, Cyl:%d, Head:%d, Sec:%d",
+    kprintf("Disk: %x, Cyl:%d, Head:%d, Sec:%d\n",
           ident_data[0],
           ident_data[1],
           ident_data[3],
@@ -587,81 +581,84 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     u32 megabytes = bytes/1048576;
     u32 gigabytes = bytes/1073741824;
 
-    kprintf("\nStorage Size is %dKB, %dMB, %dGB",
+    kprintf("Storage Size is %dKB, %dMB, %dGB\n",
             kilobytes, megabytes, gigabytes);
 
     // 10-19 - Serial Number
-    kputs("\nSerial: ");
+    kputs("Serial: ");
     for(int i=10; i<19; ++i) {
         kputch((ident_data[i] >> 8) & 0xff);
         kputch(ident_data[i] & 0xff);
     }
+    kputs("\n");
+
     // 23-26 Firmware Revision
-    kputs("\nFirmware: ");
+    kputs("Firmware: ");
     for(int i=23; i<26; ++i) {
         kputch((ident_data[i] >> 8) & 0xff);
         kputch(ident_data[i] & 0xff);
     }
+    kputs("\n");
+
     // 27-46 - Model Name
-    kputs("\nModel: ");
+    kputs("Model: ");
     for(int i=27; i<46; ++i) {
         kputch((ident_data[i] >> 8) & 0xff);
         kputch(ident_data[i] & 0xff);
     }
-    kputch('\n');
+    kputs("\n");
 
     wait_any_key();
 
     // TODO: ident_data should have a struct type instead
     // 49 - (bit 9) LBA Supported
     if(ident_data[49] & 0x0100)
-        kputs("\nLBA Supported!");
+        kputs("LBA Supported!\n");
     if(ident_data[59] & 0x0100)
-        kputs("\nMultiple sector setting is valid!");
+        kputs("Multiple sector setting is valid!\n");
 
     // 60/61 - taken as DWORD => total # LBA28 sectors (if > 0, supports LBA28)
     u32 lba_capacity = (ident_data[61] << 16) + ident_data[60];
     u32 lba_bytes = (lba_capacity/MEGA*SECTOR_BYTES);
 
-    // TODO: write("LBA Cap: %d Sectors, %d MB", lba_capacity, lba_bytes);
-    kprintf("\nLBA Capacity: %d sectors, %dMB", lba_capacity, lba_bytes);
+    kprintf("LBA Capacity: %d sectors, %dMB\n", lba_capacity, lba_bytes);
 
     if(ata_controller_present(0)){
-        trace("\nController 0 EXISTS");
+        trace_info("\nController 0 EXISTS");
     } else {
-        trace("\nController 0 NOT EXIST");
+        trace_info("\nController 0 NOT EXIST");
     }
 
     if(ata_controller_present(1)){
-        trace(" Controller 1 EXISTS");
+        trace_info(" Controller 1 EXISTS");
     } else {
-        trace(" Controller 1 NOT EXIST");
+        trace_info(" Controller 1 NOT EXIST");
     }
 
     //ata_soft_reset();
 
     if(ata_drive_present(0, 0)){
-        trace("\nPri Drive 0 EXISTS");
+        trace_info("\nPri Drive 0 EXISTS");
     } else {
-        trace("\nPri Drive 0 NOT EXIST");
+        trace_info("\nPri Drive 0 NOT EXIST");
     }
 
     if(ata_drive_present(0, 1)){
-        trace(" Pri Drive 1 EXISTS");
+        trace_info(" Pri Drive 1 EXISTS");
     } else {
-        trace(" Pri Drive 1 NOT EXIST");
+        trace_info(" Pri Drive 1 NOT EXIST");
     }
 
     if(ata_drive_present(1, 0)){
-        trace("\nSec Drive 0 EXISTS");
+        trace_info("\nSec Drive 0 EXISTS");
     } else {
-        trace("\nSec Drive 0 NOT EXIST");
+        trace_info("\nSec Drive 0 NOT EXIST");
     }
 
     if(ata_drive_present(1,1)){
-        trace(" Sec Drive 1 EXISTS");
+        trace_info(" Sec Drive 1 EXISTS");
     } else {
-        trace(" Sec Drive 1 NOT EXIST");
+        trace_info(" Sec Drive 1 NOT EXIST");
     }
 
     u16 data[512];
@@ -691,7 +688,7 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 
     set_text_color(COLOR_YELLOW, COLOR_BLACK);
 
-    trace("print address test");
+    trace("print address test\n");
     int test = 0;
     kprintf("\nThe address of test is: %x\n", &test);
 
@@ -712,7 +709,7 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
         s[i*2+1] = i*2+1;
     }
     for(int i=0; i<4; ++i) {
-        kprintf("%x : %d : %x : %d : %d", (u32)&t, t[i], (u32)&s, s[i*2], s[i*2+1]);
+        kprintf("%x : %d : %x : %d : %d\n", (u32)&t, t[i], (u32)&s, s[i*2], s[i*2+1]);
     }
 
 
@@ -723,69 +720,28 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     int array[10] = { 1,1,2,3,5,8,13,21,34 };
     int *p = array;
     for(int i=0; i<10; ++i, ++p) {
-        printInt((int)&p);
-        kputch(':');
-        printInt((int)*p);
-        kputs("  ");
-        if(i % 7 == 6) kputs("\n");
+        kprintf("%d:%d , ", &p, *p);
+        if(i % 4 == 3)
+            kputs("\n");
     }
+    kputs("\n");
 
-    trace("print out memory");
+    trace("print out memory\n");
     wait_any_key();
 
-    // Test Division By 0
-    // need to hide the zero
-    //z = 2-1; i = 10 / z; kputch(i);
-
-    //
     kputch('\n');
 
-    // TODO: k_println("{} and {}", a, b);
-
-
     wait_any_key();
-
-
-
 
     // TODO: allow switching "stdout" from direct to serial or both
     rtc_time time = read_rtc();
-    kputs("datetime = ");
-    //    if(time.century > 0) {
-    //        printInt(time.century);
-    if(time.year > 100) {
-        printInt(time.year);
-    } else {
-        printInt(time.year + 1970);
-        kputs("[1970]");
-    }
-    kputch('-');
-    if(time.month < 10)
-        kputch('0');
-    printInt(time.month);
-    kputch('-');
-    if(time.day < 10)
-        kputch('0');
-    printInt(time.day);
-    kputch(' ');
-    if(time.hour < 10)
-        kputch('0');
-    printInt(time.hour);
-    kputch(':');
-    if(time.minute < 10)
-        kputch('0');
-    printInt(time.minute);
-    kputch(':');
-    if(time.second < 10)
-        kputch('0');
-    printInt(time.second);
-    kputch('\n');
+    kprintf("datetime = %d-%d-%d %d:%d:%d\n",
+            time.year, time.month, time.day,
+            time.hour, time.minute, time.second);
 
     // TODO: fork off shell process
     serial_write("Starting Infinite Loop!\r\n");
     kputs("Starting Infinite Loop!\n");
-
-
 
     kputs("Press SPACE BAR:");
     u8 SCAN_SPACE = 0x39;
@@ -801,8 +757,7 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
         serial_write("["__DATE__" "__TIME__"] Video Mode Success!\r\n");
         vga_tests();
     }
-    
-    
+
 //    // test modeX (non-chain4 allows 400x600 possible)
 //    success = init_graph_vga(320,240,0);
 //    if(success) 
@@ -811,20 +766,19 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 //        vga_tests();
 //    }
 
-//    void draw_cursor(u16 x, u16 y)
-//    {
-//
-//    }
-
     i32 x = 0;
     i32 y = 0;
     for (;;) {
         x = mouse_getx();
         y = mouse_gety();
         fillrect(x,y);
-        //delay_ms(100);
+        delay_ms(100);
     }
-    
+
+    // Test Division By 0
+    // need to hide the zero
+    //z = 2-1; i = 10 / z; kputch(i);
+
     return 0;
 }
 

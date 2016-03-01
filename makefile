@@ -1,12 +1,13 @@
 OSNAME=tranbyos
-CFLAGS_BASE= -g -m32 -Wall -Werror -Wno-unused-function -fstrength-reduce -fomit-frame-pointer -finline-functions -nostdlib -nostartfiles -nodefaultlibs -ffreestanding -O0
-CFLAGS=-std=c11 $(CFLAGS_BASE) -I./src/include
-CXXFLAGS=-std=c++14 $(CFLAGS_BASE) -fno-exceptions -fno-rtti -I./src/include
+CFLAGS_BASE= -O0 -g -m32 -Wall -Werror -Wno-unused-function -fstrength-reduce -fomit-frame-pointer -finline-functions -nostdlib -nostartfiles -nodefaultlibs -ffreestanding
+CFLAGS=-std=c11 $(CFLAGS_BASE) -m32 -I./src/include
+CXXFLAGS=-std=c++14 $(CFLAGS_BASE) -fno-exceptions -fno-rtti -m32 -I./src/include
+CXX64FLAGS=-std=c++14 $(CFLAGS_BASE) -fno-exceptions -fno-rtti -m64 -I./src/include
 
 #CC=gcc
-CC=i386-elf-gcc
-CXX=i386-elf-g++
-LD=i386-elf-ld
+CC=x86_64-elf-gcc
+CXX=x86_64-elf-g++
+LD=x86_64-elf-ld
 
 BUILD_DIR=tools
 SRC=src
@@ -38,7 +39,7 @@ build: link
 
 link: compile assemble
 	@echo "Linking..."
-	$(LD) -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/start.o \
+	$(LD) -m elf_i386 -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/start.o \
 	$(OBJ_DIR)/main.o $(OBJ_DIR)/scrn.o $(OBJ_DIR)/gdt.o \
 	$(OBJ_DIR)/isrs.o $(OBJ_DIR)/timer.o $(OBJ_DIR)/kb.o \
 	$(OBJ_DIR)/mm.o $(OBJ_DIR)/hd.o $(OBJ_DIR)/io.o $(OBJ_DIR)/vga.o

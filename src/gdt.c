@@ -103,16 +103,14 @@ void gdt_install()
     gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);
     gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF);
 
-//    // User Code(3) & Data(4)
-//    gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF);
-//    gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF);
-
-    gdt_flush();
-    
-    //write_tss(5, 0x10, 0x0);
+    // User Code(3) & Data(4)
+    gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF);
+    gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF);
 
     // Do it
-    //gdt_flush();
+    gdt_flush();
+
+    //write_tss(5, 0x10, 0x0);
     //tss_flush();
 }
 

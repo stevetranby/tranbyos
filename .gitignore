@@ -9,3 +9,5 @@ tmp-loop/*
 #*#
 *.xcuserstate
 _proj
+tags
+grub_disk.img

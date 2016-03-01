@@ -107,10 +107,11 @@ void cls()
 // TODO: use STDIN or terminal input buffer, read next byte if exists, else wait
 u8 kgetch()
 {
-    u8 ch = 0; // = keyboard_read_next();
-    while(! (ch = keyboard_read_next()))
+    u8 ch = keyboard_read_next();
+    while(!ch)
     {
         // TODO: sleep to reduce spinwait
+        ch = keyboard_read_next();
     }
     return ch;
 }
