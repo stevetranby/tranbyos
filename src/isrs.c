@@ -9,13 +9,14 @@ void disable_irq(int irq);
 void disable_irq_nosync(int irq);
 void enable_irq(int irq);
 
-
 ////////////////////////////////////////////////////////////////////////////////////
 /// IDT
 
+#define MAX_INTERRUPTS 256
+
 // Store 256 interrupt entries, 32 ISR, 16 IRQ, rest "unhandled interrupt" exception
-idt_entry idt[256];
-idt_ptr idtp;
+idt_entry   idt[MAX_INTERRUPTS];
+idt_ptr     idtp;
 
 /// Add IDT entry
 void idt_set_gate(u8 num, u32 base, u16 sel, u8 flags)
@@ -32,11 +33,11 @@ void idt_set_gate(u8 num, u32 base, u16 sel, u8 flags)
 void idt_install()
 {
     // Sets the special IDT pointer up, just like in 'gdt.c'
-    idtp.limit = (sizeof (idt_entry) * 256) - 1;
-    idtp.base = (unsigned int)&idt;
+    idtp.limit = sizeof(idt_entry) * 256 - 1;
+    idtp.base = (u32)&idt;
 
     // Clear out the entire IDT, initializing it to zeros
-    memset((u8*)&idt, 0, sizeof(idt_entry) * 256);
+    kmemsetb((u8*)&idt, 0, sizeof(idt));
 
     // Add any new ISRs to the IDT here using idt_set_gate
 
@@ -51,9 +52,7 @@ void idt_install()
 void isrs_install()
 {
     // TODO: use an "unused" stub/handler for those not used??
-    for(int i=0; i<32; ++i) {
-        idt_set_gate(i, (u32)isr0, 0x08, 0x8E);
-    }
+    // TODO: code generator or move this into NASM where we have repeat macro
     idt_set_gate(0, (u32)isr0, 0x08, 0x8E);
     idt_set_gate(1, (u32)isr1, 0x08, 0x8E);
     idt_set_gate(2, (u32)isr2, 0x08, 0x8E);
@@ -159,17 +158,48 @@ c_str exception_messages[] =
     "Reserved"
 };
 
-static u32 irq_counts[IRQ_COUNT] = { 0, };
+// TODO: allow set on install
+c_str irq_names[] =
+{
+    // 0-9
+    "Timer",
+    "Keyboard",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    // 10-16
+    "",
+    "",
+    "Mouse",
+    "",
+    "",
+    "",
+    ""
+};
+
 static isr_handler irq_routines[IRQ_COUNT] = { 0, };
+static u32 irq_counts[IRQ_COUNT] = { 0, };
+//static u8 irq_names[IRQ_COUNT][20] = { {0, }, };
 
 /// (Un)Install IRQ handler
-void irq_install_handler(u32 irq, isr_handler handler)
+#define __func__ "[FUNC MISSING]"
+#define __line__ "[LINE MISSING]"
+#define ASSERT(cond,msg) if(!(cond)) { kprintf("[ASSERT]: " __func__ " , " __line__ " : %s", msg); /*panic()*/; }
+void irq_install_handler(u32 irq, isr_handler handler, c_str name)
 {
+    ASSERT(kstrlen(name) < 20, "name length must be < 20!");
     irq_routines[irq] = handler;
+//    kmemcpyb((u8*)&irq_names[irq], (u8*)name, 20);
 }
 void irq_uninstall_handler(u32 irq)
 {
     irq_routines[irq] = 0;
+//    kmemsetb((u8*)&irq_names[irq], 0, 20);
 }
 
 /// Remap IRQs 0-7 since they are mapped to IDT entries 8-15 by default
@@ -195,7 +225,7 @@ void irq_remap()
 
 void kernel_panic()
 {
-    puts("\n\n ****  PANIC. System Halted! ******* \n\n");
+    kputs("\n\n ****  PANIC. System Halted! ******* \n\n");
     for (;;);
 }
 
@@ -209,16 +239,16 @@ void kernel_panic()
 /// cli() and sli() are called from asm
 void fault_handler(isr_stack_state* r)
 {
-    puts("Unhandled Exception:\n");
+    kprintf("Unhandled Exception [ISR #%d]:", r->int_no);
 
     /// Should we handle this?
     if (r->int_no < 32)
     {
-        puts(exception_messages[r->int_no]);
+        kputs(exception_messages[r->int_no]);
     }
 
-    puts("\n");
-    kernel_panic();
+    kputs("\n");
+    //kernel_panic();
 }
 
 const u8 END_OF_INTERRUPT = 0x20;
@@ -252,8 +282,8 @@ void irq_handler(isr_stack_state* r)
 
 void print_irq_counts()
 {
-    printInt(irq_counts[IRQ_SYSTEM_TIMER]);
-    printInt(irq_counts[IRQ_KEYBOARD]);
-    printInt(irq_counts[IRQ_MOUSE_PS2]);
+    for(int i=0; i < IRQ_COUNT; ++i) {
+        kprintf("%d:\t%d\t'%s'", i, irq_counts[i], irq_names[i]);
+    }
 }
 

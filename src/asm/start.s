@@ -10,6 +10,7 @@
 
 global start
 global gdt_flush	; Allows the C code to link to this
+global tss_flush	; Allows the C code to link to this
 global idt_load		; Allows the C code to link to this
 global _sys_heap	; Allows the C code to link to this 
 
@@ -67,7 +68,7 @@ stublet:
 
 halt:
     hlt
-    jmp$
+    jmp $
 
 sse_enabled:
     mov eax, 0x1
@@ -108,7 +109,6 @@ enable_sse:
     ret
 %endmacro
 
-
 _outpb:
     prologue 2
     out dx, al
@@ -134,8 +134,6 @@ _inpl:
     in eax, dx
     epilogue 1
 
-
-
 ;--------------------------------------------------------------------
 
 ; Shortly we will add code for loading the GDT right here!
@@ -154,6 +152,18 @@ gdt_flush:
     jmp 0x08:flush2   ; 0x08 is the offset to our code segment: Far jump!
 flush2:
     ret               ; Returns back to the C code!
+
+;--------------------------------------------------------------------
+
+; Load the index of our TSS structure - The index is
+; 0x28, as it is the 5th selector and each is 8 bytes
+; long, but we set the bottom two bits (making 0x2B)
+; so that it has an RPL of 3, not zero.
+; Load 0x2B into the task state register.
+tss_flush:
+    mov ax, 0x2B
+    ltr ax
+    ret
 
 ;--------------------------------------------------------------------
 
