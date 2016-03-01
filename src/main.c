@@ -295,6 +295,7 @@ void wait_any_key() {
     set_text_color(COLOR_WHITE, COLOR_BLACK);
 
     kputs("\n");
+    serial_write("key pressed\n");
 }
 
 void display_banner()
@@ -335,6 +336,36 @@ void my_testi(int i) { UNUSED_PARAM(i); kputs("int\n"); }
 void my_testf(float f) { UNUSED_PARAM(f); kputs("float\n"); }
 void my_testl(long double l) { UNUSED_PARAM(l); kputs("long double\n"); }
 
+
+//#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
+
+internal vbe_mode_info *vbe;
+internal uint8_t *mem;
+
+// 24bpp
+void draw_pixel(u32 x, u32 y, u32 color)
+{
+    u32 pos = y * vbe->LinBytesPerScanLine + x * (vbe->bpp / 8);
+    // Assuming 24-bit color mode
+    mem[pos] = color & 0xFF;
+    mem[pos + 1] = (color >> 8) & 0xFF;
+    mem[pos + 2] = (color >> 16) & 0xFF;
+    //kwritef(serial_write_b, "draw pixel {%d, %d} [%d] w/color %x\n    ", x, y, pos, color);
+}
+
+void draw_rectangle(u32 x, u32 y, u32 width, u32 height, uint32_t color)
+{
+    kwritef(serial_write_b, "draw rect {%d, %d, %d, %d} w/color %x\n", x, y, width, height, color);
+    for (u32 i = x; i < x + width; ++i)
+    {
+        for (u32 j = y; j < y + height; ++j)
+        {
+            draw_pixel(i, j, color);
+        }
+    }
+}
+
+
 // NASM assembly boot loader calls this method
 u32 _kmain(multiboot_info* mbh, u32 magic)
 {
@@ -359,15 +390,14 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 
     sti();
 
-
-
+    wait_any_key();
 
 
     if(BIT(mbh->flags, 11))
     {
         // https://codereview.stackexchange.com/questions/108168/vbe-bdf-font-rendering
-        vbe_mode_info* vbe = (vbe_mode_info*)mbh->vbe_mode_info;
-        kwritef(serial_write_b, "attributes: %u\nwinA: %u\nwinB: %u\ngranularity: %u\nwinsize: %u\nsegmentA: %x\nsegmentB: %x\nwinFuncPtr: %x\npitch: %u\nXres: %u\nYres: %u\nWchar: %u\nYchar: %u\nplanes: %u\nbpp: %u\nbanks: %u\nmemory_model: %u\nbank_size: %u\nimage_pages: %u\nreserved0: %u\nred_mask_size: %u\nred_position: %u\ngreen_mask_size: %u\ngreen_position: %u\nblue_mask_size: %u\nblue_position: %u\nrsv_mask: %u\nrsv_position: %u\ndirectcolor_attributes: %u\nphysbase: %x\nreserved1: %u\nreserved2: %u\nLinBytesPerScanLine: %u\nBnkNumberofImagePages: %u\nLinNumberofImagePages: %u\nLinRedMaskSize: %u\nLinRedFieldPosition: %u\nLinGreenMaskSize: %u\nLinGreenFieldPosition: %u\nLinBlueMaskSize: %u\nLinBlueMaskPosition: %u\nLinRsvdMaskSize: %u\nLinRsvdFieldPosition: %u\nMaxPixelClock: %u\nReserved: %u",
+        vbe = (vbe_mode_info*)mbh->vbe_mode_info;
+        kwritef(serial_write_b, "attributes: %u\nwinA: %u\nwinB: %u\ngranularity: %u\nwinsize: %u\nsegmentA: %x\nsegmentB: %x\nwinFuncPtr: %x\npitch: %u\nXres: %u\nYres: %u\nWchar: %u\nYchar: %u\nplanes: %u\nbpp: %u\nbanks: %u\nmemory_model: %u\nbank_size: %u\nimage_pages: %u\nreserved0: %u\nred_mask_size: %u\nred_position: %u\ngreen_mask_size: %u\ngreen_position: %u\nblue_mask_size: %u\nblue_position: %u\nrsv_mask: %u\nrsv_position: %u\ndirectcolor_attributes: %u\nphysbase: %x\nreserved1: %u\nreserved2: %u\nLinBytesPerScanLine: %u\nBnkNumberofImagePages: %u\nLinNumberofImagePages: %u\nLinRedMaskSize: %u\nLinRedFieldPosition: %u\nLinGreenMaskSize: %u\nLinGreenFieldPosition: %u\nLinBlueMaskSize: %u\nLinBlueMaskPosition: %u\nLinRsvdMaskSize: %u\nLinRsvdFieldPosition: %u\nMaxPixelClock: %u\nReserved: %u\n",
                 vbe->attributes,
                 vbe->winA,
                 vbe->winB,
@@ -415,11 +445,12 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
                 vbe->Reserved);
 
 
+        mem = (u8*)vbe->physbase;
         //kmemset((u32*)vbe->physbase, 0xff2222, 2^16);
 
         uint16_t uses_lfb = BIT(mbh->vbe_mode, 14);
         if (uses_lfb)
-            serial_write("uses LFB");
+            serial_write("uses LFB\n");
         int32_t colors[] = {
             0xFFFFFF, 0xC0C0C0, 0x808080,
             0x000000, 0xFF0000, 0x800000,
@@ -429,65 +460,23 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
             0x800080
         };
 
-
-        //#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
-        //vbe_mode_info_t *vbe;
-        uint8_t *mem = (uint8_t *)vbe->physbase;
-
-        // 24bpp
-        void draw_pixel(int x, int y, uint32_t color)
-        {
-            u16 pos = y * vbe->LinBytesPerScanLine + x * (vbe->bpp / 8);
-            mem[pos] = color & 0xFF;
-            mem[pos + 1] = (color >> 8) & 0xFF;
-            mem[pos + 2] = (color >> 16) & 0xFF;
-        }
-
-        void draw_rectangle(int x, int y, int width, int height, uint32_t color)
-        {
-            for (int i = x; i < x + width; ++i)
-            {
-                for (int j = y; j < y + height; ++j)
-                {
-                    draw_pixel(i, j, color);
-                }
-            }
-        }
-        
         int idx = 0;
         int chunk_size = 8;
         int xchunk = (vbe->Xres / chunk_size);
         int ychunk = (vbe->Yres / chunk_size);
+
+
+        kwritef(serial_write_b, "chunk_size = %d, xchunk = %d, ychunk = %d\n", chunk_size, xchunk, ychunk);
+
         for (int i = 0; i < chunk_size; ++i)
         {
             for (int j = 0; j < chunk_size; ++j)
             {
-                draw_rectangle(j * xchunk, i * ychunk, xchunk, ychunk,
-                               colors[idx]);
+                draw_rectangle(j * xchunk, i * ychunk, xchunk, ychunk, colors[idx]);
                 if (++idx == 16)
                     idx = 0;
             }
         }
-    }
-    
-    // TODO: do VBE in real mode
-    {
-        // Multiboot Info
-        kwritef(serial_write_b, "MBInfo: %x, Mem: %d-%dB, Flags: %x\n",
-                magic, mbh->mem_lower, mbh->mem_upper, mbh->flags);
-        kwritef(serial_write_b, "VBE: %x,%x,%x,%x,%x\n",
-                mbh->vbe_control_info,
-                mbh->vbe_mode_info,
-                mbh->vbe_mode,
-                mbh->vbe_interface_seg,
-                mbh->vbe_interface_off,
-                mbh->vbe_interface_len);
-        kwritef(serial_write_b,"MMap:\t%x\nAddr:\t%x\nDrives:\t%xAddr:\t%x\nConfig:\t%x\n",
-                mbh->mmap_length,
-                mbh->mmap_addr,
-                mbh->drives_length,
-                mbh->drives_addr,
-                mbh->config_table);
     }
 
 // TODO
@@ -501,33 +490,20 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 
     // TODO: assert(mboot_mag == MULTIBOOT_EAX_MAGIC && "Didn't boot with multiboot, not sure how we got here.");
 
-
-    // Multiboot Info
-    kputs("MBInfo: ");
-    printHex(magic);
-    kputs(", Mem: ");
-    printInt(mbh->mem_lower);
-    kputs("-");
-    printInt(mbh->mem_upper);
-    kputs("B");
-    kputs(", Flags:");
-    printHex(mbh->flags);
-    kputs(", ");
-    kputs("\n");
-
+    serial_write_b('\n');
 
     u32 ticks = timer_ticks();
-    kputs("Start Timer");
-    //for(int i=0;i<10;i++)
+    serial_write("Start Timer");
+    for(int i=0;i<10;i++)
     {
-        //kputch('.');
+        serial_write_b('.');
         delay_ms(100);
     }
-    kputs("Done.\n");
+    serial_write("Done.\n");
 
-    kputs("Test took: ");
+    serial_write("Test took: ");
     printInt(timer_ticks() - ticks);
-    kputs("Ticks\n");
+    serial_write("Ticks\n");
 
     // Generics Test
     my_test(1);
@@ -536,73 +512,44 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 
     wait_any_key();
 
-
     set_text_color(COLOR_LIGHT_GREEN, COLOR_BLACK);
 
+
     // TODO: do VBE in real mode
-    //if(hasBit(mbh->flags, 11))
+    for(int i=0; i<2; ++i)
     {
-        kprintf("VBE: %x,%x,%x,%x,%x\n",
+        output_writer writer = (i == 0) ? serial_write_b : kputch;
+
+        // Multiboot Info
+        kwritef(writer, "MBInfo: %x, Mem: %d-%dB, Flags: %x\n",
+                magic, mbh->mem_lower, mbh->mem_upper, mbh->flags);
+        kwritef(writer, "VBE: %x,%x,%x,%x,%x\n",
                 mbh->vbe_control_info,
                 mbh->vbe_mode_info,
                 mbh->vbe_mode,
                 mbh->vbe_interface_seg,
                 mbh->vbe_interface_off,
                 mbh->vbe_interface_len);
-
-        kwritef(serial_write_b, "VBE: %x,%x,%x,%x,%x\n",
-                mbh->vbe_control_info,
-                mbh->vbe_mode_info,
-                mbh->vbe_mode,
-                mbh->vbe_interface_seg,
-                mbh->vbe_interface_off,
-                mbh->vbe_interface_len);
-    }
-
-    {
-        kprintf("MMap:\t%x\nAddr:\t%x\nDrives:\t%xAddr:\t%x\nConfig:\t%x\n",
+        kwritef(writer,"MMap:\t%x\nAddr:\t%x\nDrives:\t%xAddr:\t%x\nConfig:\t%x\n",
                 mbh->mmap_length,
                 mbh->mmap_addr,
                 mbh->drives_length,
                 mbh->drives_addr,
                 mbh->config_table);
 
-        kwritef(serial_write_b,"MMap:\t%x\nAddr:\t%x\nDrives:\t%xAddr:\t%x\nConfig:\t%x\n",
-                mbh->mmap_length,
-                mbh->mmap_addr,
-                mbh->drives_length,
-                mbh->drives_addr,
-                mbh->config_table);
-    }
-
-    //if (mbh->flags & (1 << 3))
-    {
-        kputs("Found ");
-        printInt(mbh->mods_count);
-        kputs("module(s).");
-
+        kwritef(writer, "Found %d modules.\n", mbh->mods_count);
         if (mbh->mods_count > 0)
         {
             for (u32 i = 0; i < mbh->mods_count; ++i )
             {
                 u32 module_start = *(u32*)(mbh->mods_addr + 8 * i);
                 u32 module_end   = *(u32*)(mbh->mods_addr + 8 * i + 4);
-                kputs("Module ");
-                printInt(i+1);
-                kputs(" is at ");
-                printHex(module_start);
-                kputs(":");
-                printHex(module_end);
-                kputs("\n");
+                kwritef(writer, "Module %d is at %x : %x\n",
+                      i+1, module_start, module_end);
             }
         }
-    }
 
-    //if(hasBit(mbh->flags, 9))
-    {
-        kputs("Bootloader Name: ");
-        kputs((i8*)mbh->boot_loader_name);
-        kputs("\n");
+        kwritef(writer, "Bootloader Name: %s\n", (i8*)mbh->boot_loader_name);
     }
 
 
@@ -629,23 +576,19 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     sti();
 
     // 00 - Useful if not Hard Disk
-    kputs("Disk: ");
-    printHex_w(ident_data[0]);
-
-    // 01,03,06 - CHS
-    kputs(", Cyl:"); printInt(ident_data[1]);
-    kputs(", Heads:");  printInt(ident_data[3]);
-    kputs(", Sectors:");  printInt(ident_data[6]);
+    kprintf("Disk: %x, Cyl:%d, Head:%d, Sec:%d",
+          ident_data[0],
+          ident_data[1],
+          ident_data[3],
+          ident_data[6]);
 
     u32 bytes = chs2bytes(ident_data[1], ident_data[3], ident_data[6]);
     u32 kilobytes = bytes/1024;
     u32 megabytes = bytes/1048576;
     u32 gigabytes = bytes/1073741824;
 
-    kputs("\nStorage Size is ");
-    printInt(kilobytes); kputs("KB, ");
-    printInt(megabytes); kputs("MB, ");
-    printInt(gigabytes); kputs("GB");
+    kprintf("\nStorage Size is %dKB, %dMB, %dGB",
+            kilobytes, megabytes, gigabytes);
 
     // 10-19 - Serial Number
     kputs("\nSerial: ");
@@ -681,13 +624,7 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     u32 lba_bytes = (lba_capacity/MEGA*SECTOR_BYTES);
 
     // TODO: write("LBA Cap: %d Sectors, %d MB", lba_capacity, lba_bytes);
-    kputs("\nLBA Capacity: ");
-    printInt(lba_capacity);
-    kputs(" Sectors");
-
-    kputs(", ");
-    printInt(lba_bytes);
-    kputs(" MB");
+    kprintf("\nLBA Capacity: %d sectors, %dMB", lba_capacity, lba_bytes);
 
     if(ata_controller_present(0)){
         trace("\nController 0 EXISTS");
@@ -749,7 +686,6 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     kputch('\n');
 
     // -- END HARD DISK ACCESS TESTING ---
-
 
     wait_any_key();
 
