@@ -1,7 +1,7 @@
 OSNAME=tranbyos
-
-CFLAGS=-std=c11 -g -m32 -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs
-CXXFLAGS=-g -m32 -Wall -Werror -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostdinc -nostdlib -nostartfiles -nodefaultlibs -ffreestanding -O2 -Wextra -fno-exceptions -fno-rtti
+CFLAGS_BASE= -g -m32 -Wall -Werror -Wno-unused-function -fstrength-reduce -fomit-frame-pointer -finline-functions -nostdlib -nostartfiles -nodefaultlibs -ffreestanding -O0
+CFLAGS=-std=c11 $(CFLAGS_BASE) -I./src/include
+CXXFLAGS=-std=c++14 $(CFLAGS_BASE) -fno-exceptions -fno-rtti -I./src/include
 
 #CC=gcc
 CC=i386-elf-gcc
@@ -73,6 +73,7 @@ dirs:
 
 iso:
 	mkisofs -o $(BIN_DIR)/$(OSNAME).iso -b $(BIN_DIR)/$(OSNAME).flp
+	#grub-mkrescue --output=$(BUILD_DIR)tranbyos.iso $(BUILD_DIR)/boot/grub
 
 copykernel: build
 	@echo "\nInjecting Kernel Into Grub Image"
@@ -89,13 +90,27 @@ test: build
 	@echo "\nTesting...\n"
 
 
+# others
+# - https://github.com/zhiayang/mx/blob/develop/tools/createdisk.sh
+# - 
+#
 # -vga [std|cirrus|vmware|qxl|xenfb|tcx|cg3|virtio|none]
 # => VESA VBE virtual graphic card (std 1024x768, cirrus 4096x4096??, vmware fastest if can setup)
 # -rtc [base=utc|localtime|date][,clock=host|vm][,driftfix=none|slew]
 run: copykernel disks
 	@echo "\nRun in QEMU"
-	$(QEMU) -m 32 -rtc base=localtime,clock=host,driftfix=slew -hda $(BUILD_DIR)/$(OSNAME)-hd-32mb.img -hdb $(BUILD_DIR)/$(OSNAME)-hd-64mb.img -fda $(BUILD_DIR)/grub_disk.img -vga vmware -serial stdio
+	# Use GRUB for multiboot
+	#$(QEMU) -m 32 -rtc base=localtime,clock=host,driftfix=slew -hda $(BUILD_DIR)/$(OSNAME)-hd-32mb.img -hdb $(BUILD_DIR)/$(OSNAME)-hd-64mb.img -fda $(BUILD_DIR)/grub_disk.img -vga vmware -serial stdio
+	# Use QEMU directly as multiboot loader
+	$(QEMU) -m 32 -rtc base=localtime,clock=host,driftfix=slew -hda $(BUILD_DIR)/$(OSNAME)-hd-32mb.img -hdb $(BUILD_DIR)/$(OSNAME)-hd-64mb.img -vga std -serial stdio -fda $(BUILD_DIR)/grub_disk.img
+	# -usb, -usbdevice mouse
 
+riso:
+	mkdir -p $(BUILD_DIR)/tmp/boot/grub
+	cp $(BIN_DIR)/$(OSNAME).bin $(BUILD_DIR)/tmp/boot/grub
+	mkisofs -J -o $(BUILD_DIR)/tranbyos.iso $(BUILD_DIR)/tmp
+	grub-mkrescue --modules="iso9660 biosdisk multiboot" --output=$(BUILD_DIR)/tranbyos.iso $(BUILD_DIR)/tmp
+	$(QEMU) -m 32 -rtc base=localtime,clock=host,driftfix=slew -hda $(BUILD_DIR)/$(OSNAME)-hd-32mb.img -hdb $(BUILD_DIR)/$(OSNAME)-hd-64mb.img -vga std -serial stdio -cdrom $(BUILD_DIR)/tranbyos.iso
 
 #TODO: Should the directories bin/ and obj/ be removed, or just all the files inside?
 #TODO: Should all the bin/* and obj/* files be removed, or should they just be overwritten each time?
@@ -108,3 +123,5 @@ clean:
 	rm -f $(OBJ_DIR)/*.o
 
 
+deps:
+	$(CC) -MMD -MF $out.d $(CFLAGS)

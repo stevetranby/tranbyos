@@ -1,4 +1,4 @@
-#include "include/system.h"
+#include <system.h>
 
 ///////////////////////////////////////////////////////////////////
 
@@ -7,40 +7,65 @@
 #define ticks_to_s(x)		(x / _timer_hz)
 #define ticks_to_ms(x)		((x * 1000) / _timer_hz)
 
+#define PIT_PORT    0x40
+#define PIT_CTRL    0x43
+#define PIT_CMD_SET 0x36
+#define PIT_MASK    0xFF
+
 // Our desired timer properties
 // Default interrupt freq 18.222Hz
 static u32 _timer_hz = 100;
 static u32 _timer_ticks = 0;
-//static u32 _secondsFromBoot = 0;
+// static u32 _secondsFromBoot = 0;
+// static u32 _timer_subticks = 0;
+// static i32 _timer_drift = 0;
 
-u32 timer_ticks() { return _timer_ticks; }
-u32 timer_seconds() { return ticks_to_s(_timer_ticks); }
+u32 timer_ticks() {
+    return _timer_ticks;
+}
+
+u32 timer_seconds() {
+    return ticks_to_s(_timer_ticks);
+}
 
 // IRQ handler
-void timer_handler(isr_stack_state *r) { _timer_ticks++; }
+void timer_handler(isr_stack_state *r) {
+    ++_timer_ticks;
+    //trace("timer ticks: %d\n", _timer_ticks);
+    UNUSED_PARAM(r);
+}
 
 // Install IRQ Handler
 void timer_install()
 {
-    irq_install_handler(0, timer_handler);
+    irq_install_handler(0, timer_handler, "timer");
 
     int divisor = 1193180 / _timer_hz; /* Calculate our divisor */
-    outb(0x43, 0x36);             /* Set our command byte 0x36 */
-    outb(0x40, divisor & 0xFF);   /* Set low byte of divisor */
-    outb(0x40, divisor >> 8);     /* Set high byte of divisor */
+    outb(PIT_CTRL, PIT_CMD_SET);             /* Set our command byte 0x36 */
+    outb(PIT_PORT, divisor & PIT_MASK);   /* Set low byte of divisor */
+    outb(PIT_PORT, (divisor >> 8) & PIT_MASK);     /* Set high byte of divisor */
 }
 
 /* This will continuously loop until the given time has
  *  been reached */
-void delay_ticks(int ticks)
+void delay_ticks(i32 ticks)
 {
     u32 eticks = _timer_ticks + ticks;
     while(_timer_ticks < eticks) {}
 }
 
+// TODO: figure out why this fails on gcc optimization flag -O2
 void delay_ms(u32 ms) {
+    trace("[enter] delay_ms\n");
     u32 eticks = _timer_ticks + ticks_from_ms(ms);
-    while(_timer_ticks < eticks) {}
+    trace("test: %d < %d\n", _timer_ticks, eticks);
+    while(_timer_ticks < eticks) {
+        //trace("test: %d < %d\n", _timer_ticks, eticks);
+
+        // Prevent O2 optimize away
+        while(0) { asm(""); }
+    }
+    trace("[exit] delay_ms, %d < %d\n", _timer_ticks, eticks);
 }
 
 void delay_s(u32 s) {
@@ -156,18 +181,18 @@ rtc_time read_rtc() {
     registerB = get_RTC_register(0x0B);
 
     // Convert BCD to binary values if necessary
-    puts("year = ");
+    kputs("year = ");
     printHex(year);
-    puts("\n");
-    puts("century = ");
+    kputs("\n");
+    kputs("century = ");
     printHex(century);
-    puts("\n");
-    puts("century_register = ");
+    kputs("\n");
+    kputs("century_register = ");
     printHex(century_register);
-    puts("\n");
-    puts("registerB = ");
+    kputs("\n");
+    kputs("registerB = ");
     printHex(registerB);
-    puts("\n");
+    kputs("\n");
 
     if (!(registerB & 0x04)) {
         second = (second & 0x0F) + ((second / 16) * 10);
@@ -186,9 +211,9 @@ rtc_time read_rtc() {
 
     // Convert 12 hour clock to 24 hour clock if necessary
 
-    puts("hour(before 24hr check) = ");
+    kputs("hour(before 24hr check) = ");
     printInt(hour);
-    puts("\n");
+    kputs("\n");
     if (!(registerB & 0x02) && (hour & 0x80)) {
         hour = ((hour & 0x7F) + 12) % 24;
     }
@@ -196,7 +221,7 @@ rtc_time read_rtc() {
     // Calculate the full (4-digit) year
     if(century_register != 0) {
         year += century * 100;
-        puts("century_register != ZERO!");
+        kputs("century_register != ZERO!");
     } else {
         year += (kCurrentYear / 100) * 100;
         if(year < kCurrentYear) year += 100;

@@ -2,8 +2,8 @@
 
 OSNAME="tranbyos"
 
-PROJ_DIR=".."
-BUILD_DIR="." #this, or SCRIPT_NAME?
+BUILD_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJ_DIR="${BUILD_DIR}/.."
 SRC="${PROJ_DIR}/src"
 OBJ_DIR="${PROJ_DIR}/obj"
 BIN_DIR="${PROJ_DIR}/bin"
@@ -23,6 +23,7 @@ echo "grub.cfg auto-create disabled."
 has_command() { 
 	cmd = $1 || ""
 	if command -v $1 >/dev/null 2>&1; then
+		echo "has command."
 	else
 		echo >&2 "I require $1 but it's not installed. Aborting."; exit 1; 
 	fi

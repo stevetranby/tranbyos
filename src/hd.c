@@ -1,11 +1,8 @@
-#include "include/system.h"
+#include <system.h>
 
-void inline ata_delay400ns()
+inline void ata_delay400ns()
 {
-    inb(HD_ST);
-    inb(HD_ST);
-    inb(HD_ST);
-    inb(HD_ST);
+    inb(HD_ST); inb(HD_ST); inb(HD_ST); inb(HD_ST);
 }
 
 void ata_wait_busy() {
@@ -17,7 +14,7 @@ void ata_wait_busy() {
 			break;
 		}
 		if ( (status & HD_ST_ERR) ) {
-			puts(" Error in ata_wait_drq! ");
+			kputs(" Error in ata_wait_drq! ");
 		}
 		if (--timer < 0) {
 			trace(" Timeout in ata_wait_busy! ");
@@ -35,7 +32,7 @@ void ata_wait_drq() {
 			break;
 		}
 		if ( (status & HD_ST_ERR) ) {
-			puts(" Error in ata_wait_drq! ");
+			kputs(" Error in ata_wait_drq! ");
 		}
 		if (--timer < 0) {
 			trace(" Timeout in ata_wait_drq! ");
@@ -53,7 +50,7 @@ void ata_wait_ready() {
 			break;
 		}
 		if ( (status & HD_ST_ERR) ) {
-			puts(" Error in ata_wait_drq! ");
+			kputs(" Error in ata_wait_drq! ");
 		}
 		if (--timer < 0) {
 			trace(" Timeout in ata_wait_ready! ");
@@ -80,6 +77,8 @@ int ata_soft_reset(void)
 
 int ata_controller_present(int controller)
 {
+    UNUSED_PARAM(controller);
+
 	int ret = 0;
 	cli();
 	outb(HD_SN, 0xa5);
@@ -119,6 +118,9 @@ int ata_drive_present(int controller, int slave) {
 // slave - 0 or 1 depending on if slave drive
 int ata_pio_write_w(int controller, int slave, int sn, int sc, u16 *data)
 {
+    UNUSED_PARAM(controller);
+    UNUSED_PARAM(sn);
+
     int i;
 
     outb(HD_DH, 0xE0 | slave << 4);
@@ -147,6 +149,9 @@ int ata_pio_write_w(int controller, int slave, int sn, int sc, u16 *data)
 // slave - 0 or 1 depending on if slave drive
 int ata_pio_read_w(int controller, int slave, int sn, int sc, u16 *data)
 {
+    UNUSED_PARAM(controller);
+    UNUSED_PARAM(sn);
+
     int i=0;
     // get the sector count from data size
 

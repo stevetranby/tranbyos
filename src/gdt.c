@@ -1,4 +1,4 @@
-#include "include/system.h"
+#include <system.h>
 
 /* Defines a GDT entry. We say packed, because it prevents the
 *  compiler from doing things that it thinks is best: Prevent

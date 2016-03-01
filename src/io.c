@@ -1,4 +1,4 @@
-#include "include/system.h"
+#include <system.h>
 
 //static inline u8 inb_dummy(u16 port)
 //{
@@ -171,10 +171,10 @@ void print_port(u16 port)
 //
 //static inline void lidt(void* base, u16 size)
 //{   // This function works in 32 and 64bit mode
-//    struct {
+//    struct pack_struct {
 //        u16 length;
 //        void*    base;
-//    } __attribute__((packed)) IDTR = { size, base };
+//    } IDTR = { size, base };
 //
 //    asm_volatile ( "lidt %0" : : "m"(IDTR) );  // let the compiler choose an addressing mode
 //}

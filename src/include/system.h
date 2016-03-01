@@ -1,17 +1,46 @@
 //#pragma once
-
 #ifndef SYSTEM_H
 #define SYSTEM_H
+
+#if !defined(__cplusplus)
+#include <stdbool.h> /* C doesn't have booleans by default. */
+#endif
+// #include <stddef.h>
+// #include <float.h>
+ #include <limits.h>
+// #include <stdtypes.h>
+// #include <stdarg.h>
+#include <stdint.h>
+
+#ifndef va_start
+typedef __builtin_va_list va_list;
+#define va_start(ap,last) __builtin_va_start(ap, last)
+#define va_end(ap) __builtin_va_end(ap)
+#define va_arg(ap,type) __builtin_va_arg(ap,type)
+#define va_copy(dest, src) __builtin_va_copy(dest,src)
+#endif
+
+#ifndef NULL
+#define NULL ((void *)0UL)
+#endif
+
+//////////////////////////////////////////////////////////////////
+// Macro Playground
+
+/* The token pasting abuse that makes this possible */
+#define JOIN_INTERNAL( a, b ) a##b
+#define JOIN( a, b ) JOIN_INTERNAL( a, b )
+#define REPEAT_10(a) a(0);a(1);a(2);a(3);a(4); a(5);a(6);a(7);a(8);a(9);
 
 //////////////////////////////////////////////////////////////////
 // Defined Constants
 
 // make it more clear why we're using static
-#define global static
+#define global   static
 #define internal static
 
 #define UNUSED_PARAM(x) ((void)(x))
-#define UNUSED_VAR(x) ((void)(x))
+#define UNUSED_VAR(x)   ((void)(x))
 
 #define KILO (1024)            // 2^10
 #define MEGA (1024*1024)       // 2^20
@@ -21,7 +50,10 @@
 // Macros
 
 // Volatile - don't move instructions (no optimization)
+#define asm          __asm__
+#define volatile     __volatile__
 #define asm_volatile __asm__ __volatile__
+#define pack_struct  __attribute__((packed))
 
 #define sti()   asm_volatile ("sti");
 #define cli()   asm_volatile ("cli");
@@ -30,12 +62,18 @@
 #define pusha() asm_volatile ("pusha");
 #define popa()  asm_volatile ("popa");
 
-// TODO: improve this imensly
+// TODO: improve this imensly with real logging
+// TODO: move this into `make debug`
+#define _DEBUG_
 #ifdef _DEBUG_
-#define trace(x) puts(x)
+#define trace(fmt, ...) kwritef(serial_write_b, fmt, ##__VA_ARGS__)
+//#define trace(fmt, ...) kwritef(kputch, fmt, ##__VA_ARGS__)
 #else
-#define trace(x) serial_write(x)
+#define trace(fmt, ...) do {} while(0);
 #endif
+
+// TODO: maybe move to exist with other print/write (possibly break out multi headers)
+#define kprintf(fmt, ...) kwritef(kputch, fmt, ##__VA_ARGS__)
 
 //////////////////////////////////////////////////////////////////
 // Types
@@ -43,43 +81,40 @@
 // Data Types
 // TODO: make sure to #ifdef or include in platform-specific header
 // TODO: 's' instead of 'i' prefix?
-typedef unsigned char   u8;
-typedef unsigned short  u16;
-typedef unsigned int    u32;
-typedef char            i8;
-typedef short           i16;
-typedef int             i32;
-typedef unsigned char   b8;
-typedef unsigned int    bool;
-typedef float           real32;
-typedef double          real64;
-typedef const char*     c_str;
+typedef uint8_t    u8;
+typedef uint16_t  u16;
+typedef uint32_t  u32;
+typedef char       i8;
+typedef int16_t   i16;
+typedef int32_t   i32;
+typedef uint8_t    b8;
+typedef uint32_t  b32;
 
-typedef void*           u32ptr;
-//typedef void*           u64ptr;
+typedef float              real32;
+typedef double             real64;
+typedef const char*         c_str;
+typedef char*           c_str_mut;
 
-typedef unsigned long long  u64;
-typedef long long           i64;
-
-// TODO: use a bit of c++ to get things like nullptr[_t] ??
-#define NULL ((nullptr_t)0)
-#define nullptr ((nullptr_t)0)
-typedef int nullptr_t;
-
-// C99 Standard Instead??
-typedef bool bool;
-#define true ((bool)1)
-#define false ((bool)0)
+typedef unsigned long long     u64;
+typedef long long              i64;
+typedef unsigned long       size_t;
 
 //////////////////////////////////////////////////////////////////
 // Utilities and Common
 
-extern u8*  memcpy(u8* dest, const u8* src, u32 count);
-extern u8*  memset(u8* dest, u8 val, u32 count);
-extern u16* memsetw(u16* dest, u16 val, u32 count);
-extern u32  strlen(c_str str);
-extern u32  rand(void);
-extern void srand(u32 seed);
+extern void* kmemcpy(void* restrict dest, const void* restrict src, size_t n);
+extern void* kmemset(void* dest, int c, size_t n);
+extern size_t   kmemcmp(const void* vl, const void* vr, size_t n);
+extern void* kmemchr(const void* src, int c, size_t n);
+extern void* kmemrchr(const void * m, int c, size_t n);
+extern void* kmemmove(void * dest, const void * src, size_t n);
+
+extern u8*  kmemcpyb(u8* dest, const u8* src, u32 count);
+extern u8*  kmemsetb(u8* dest, u8 val, u32 count);
+extern u16* kmemsetw(u16* dest, u16 val, u32 count);
+extern u32  kstrlen(c_str str);
+extern u32  krand(void);
+extern void ksrand(u32 seed);
 
 //////////////////////////////////////////////////////////////////
 // Multitasking (Tasks, TSS, etc)
@@ -104,7 +139,7 @@ typedef void(*task_handler)();
 extern void task_init();
 /// Kernel interface to switching task
 extern void task_preempt();
-extern void task_create(task*, task_handler, u32, u32*);
+extern void ktask_create(task*, task_handler, u32, u32*);
 /// Kernel impl for switching task
 extern void task_switch(task_registers *prev, task_registers *next);
 
@@ -176,14 +211,14 @@ enum {
 };
 
 extern void cls();
-extern u8 getch();
-extern void putch(u8 c);
-extern void puts(c_str str);
+extern u8 kgetch();
+extern void kputch(u8 c);
+extern void kputs(c_str str);
 extern void set_text_color(u8 forecolor, u8 backcolor);
 extern void init_video();
 
 // vga
-extern u32 init_graph_vga(u32 width, u32 height, bool chain4);
+extern u32 init_graph_vga(u32 width, u32 height, b32 chain4);
 extern void plot_pixel(u32 x, u32 y, u8 color);
 extern void line_fast(u32 x1, u32 y1, u32 x2, u32 y2, u8 color);
 extern void polygon(u32 num_vertices,  u32 *vertices, u8 color);
@@ -226,17 +261,17 @@ extern u8 *kmalloc(u32 size);
 
 typedef void(*output_writer)(u8 a);
 
-extern void writeInt(i32 num, output_writer writer);
-extern void writeUInt(u32 num, output_writer writer);
+extern void writeInt(output_writer writer, i32 num);
+extern void writeUInt(output_writer writer, u32 num);
 extern void writeAddr(void* ptr, output_writer writer);
-extern void writeHex_b(u8 num, output_writer writer);
-extern void writeHex_w(u16 num, output_writer writer);
-extern void writeHex(u32 num, output_writer writer);
-extern void writeHexDigit(u8 digit, output_writer writer);
-extern void writeBinary_b(u8 num, output_writer writer);
-extern void writeBinary_w(u16 num, output_writer writer);
-extern void writeBinary(u32 num, output_writer writer);
-extern void writeChar(u8 ch, output_writer writer);
+extern void writeHex_b(output_writer writer, u8 num);
+extern void writeHex_w(output_writer writer, u16 num);
+extern void writeHex(output_writer writer, u32 num);
+extern void writeHexDigit(output_writer writer, u8 digit);
+extern void writeBinary_b(output_writer writer, u8 num);
+extern void writeBinary_w(output_writer writer, u16 num);
+extern void writeBinary(output_writer writer, u32 num);
+extern void writeChar(output_writer writer, u8 ch);
 
 extern void printInt(i32 num);
 extern void printHex(u32 num);
@@ -249,12 +284,18 @@ extern void init_serial();
 extern int serial_received();
 extern char read_serial();
 extern u32 is_transmit_empty();
+extern void serial_write_b(u8 a);
 extern void serial_write(c_str str);
 extern void serial_writeInt(u32 num);
 extern void serial_writeHex(u32 num);
 extern void serial_writeHex_w(u16 num);
 extern void serial_writeHex_b(u8 num);
 extern void serial_writeBinary_b(u8 num);
+
+extern void kwrites(output_writer writer, c_str text);
+extern void kputs(const char* text);
+//extern void kprintf(c_str format, ...);
+extern void kwritef(output_writer writer, c_str format, ...);
 
 ////////////////////////////////////////////////////////////////////////////
 // User Input Devices
@@ -380,20 +421,20 @@ u32 chs2bytes(u16 c, u16 h, u16 s);
 #define IRQ_ATA_SLAVE           15
 
 /* Defines an IDT entry */
-typedef struct
+typedef struct pack_struct
 {
     u16 base_lo;
-    unsigned short sel;        /* Our kernel segment goes here! */
-    unsigned char always0;     /* This will ALWAYS be set to 0! */
-    unsigned char flags;       /* Set using the above table! */
-    unsigned short base_hi;
-} __attribute__((packed)) idt_entry;
+    u16 sel;        /* Our kernel segment goes here! */
+    u8 always0;     /* This will ALWAYS be set to 0! */
+    u8 flags;       /* Set using the above table! */
+    u16 base_hi;
+} idt_entry;
 
-typedef struct
+typedef struct pack_struct
 {
     unsigned short limit;
     unsigned int base;
-} __attribute__((packed)) idt_ptr;
+} idt_ptr;
 
 
 // TODO: we could change the ordering, need to make clear this is ISR specific from ASM code
@@ -422,12 +463,14 @@ extern void idt_install();
 // Interrupt Service Routines (ISR)
 extern void fault_handler(isr_stack_state *r);
 extern void isrs_install();
-extern void irq_install_handler(u32 irq, void (*handler)(isr_stack_state *r));
+extern void irq_install_handler(u32 irq, isr_handler handler, c_str name);
 extern void irq_uninstall_handler(u32 irq);
 extern void irq_remap();
+extern void print_irq_counts();
 
 /// Handlers (defined in asm)
 // TODO: can we reduce this to single wrapper?
+extern isr_handler isr_stubs[128];
 extern void isr0();
 extern void isr1();
 extern void isr2();
@@ -554,7 +597,8 @@ extern void irq15();
 #define KBDUS_LEFTARROW		164
 #define KBDUS_END			165
 
-#define KBDUS_SPACE			057
+#define SCAN_US_SPACE 0x39
+#define SCAN_US_F2 0x3c
 
 /* KBDUS means US Keyboard Layout. This is a scancode table
  *  used to layout a standard US keyboard. I have left some

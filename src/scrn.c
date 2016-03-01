@@ -1,4 +1,4 @@
-#include "include/system.h"
+#include <system.h>
 
 /*
  * These define our textpointer, our background and foreground
@@ -14,8 +14,8 @@ char palette256[768];
 
 u16* vidmemptr;        // word pointer
 
-bool write_to_serial = false;
-bool write_to_stdout = false;
+b32 write_to_serial = false;
+b32 write_to_stdout = false;
 
 /* Sets the forecolor and backcolor that we will use */
 void set_text_color(u8 forecolor, u8 backcolor)
@@ -34,7 +34,7 @@ void init_video()
 }
 
 /* Scrolls the screen */
-void scroll(void)
+void kscroll(void)
 {
     u16 blank;
     u32 temp;
@@ -49,11 +49,11 @@ void scroll(void)
         /* Move the current text chunk that makes up the screen
          *  back in the buffer by a line */
         temp = csr_y - 25 + 1;
-        memcpy ((u8*)textmemptr, (u8*)(textmemptr + temp * 80), (25 - temp) * 80 * 2);
+        kmemcpyb((u8*)textmemptr, (u8*)(textmemptr + temp * 80), (25 - temp) * 80 * 2);
 
         /* Finally, we set the chunk of memory that occupies
          *  the last line of text to our 'blank' character */
-        memsetw ((u16*)(textmemptr + (25 - temp) * 80), blank, 80);
+        kmemsetw((u16*)(textmemptr + (25 - temp) * 80), blank, 80);
         csr_y = 25 - 1;
     }
 }
@@ -95,7 +95,7 @@ void cls()
     /* Sets the entire screen to spaces in our current
      *  color */
     for(i = 0; i < 25; i++)
-        memsetw (textmemptr + i * 80, blank, 80);
+        kmemsetw(textmemptr + i * 80, blank, 80);
 
     /* Update our virtual cursor, and then move the
      *  hardware cursor */
@@ -105,23 +105,19 @@ void cls()
 }
 
 // TODO: use STDIN or terminal input buffer, read next byte if exists, else wait
-u8 getch()
+u8 kgetch()
 {
-    u8 ch = keyboard_read_next();
-    while(0 == ch)
+    u8 ch = 0; // = keyboard_read_next();
+    while(! (ch = keyboard_read_next()))
     {
-        delay_ms(10);
-//        puts("getch: next = ");
-//        putch(ch);
-//        putch('\n');
-        ch = keyboard_read_next();
+        // TODO: sleep to reduce spinwait
     }
     return ch;
 }
 
 // TODO: should store into a buffer instead
 /* Puts a single character on the screen */
-void putch(u8 c)
+void kputch(u8 c)
 {
     u16 *where;
     u16 att = attrib << 8;
@@ -171,33 +167,26 @@ void putch(u8 c)
     }
 
     /* Scroll the screen if needed, and finally move the cursor */
-    scroll();
+    kscroll();
     move_csr();
 }
 
-/* Uses the above routine to output a string... */
-void puts(const char* text)
-{
-    while(*text != 0) {
-        putch(*text++);
-    }
-}
+void printInt(i32 l) { writeInt(kputch, l); }
+void printHex(u32 l) { writeHex(kputch, l); }
+void printHex_w(u16 w) { writeHex_w(kputch, w); }
+void printHex_b(u8 b) { writeHex_b(kputch, b); }
+void printAddr(void* addr) { writeAddr(kputch, addr); }
+void printBinary_b(u8 num) { writeBinary_b(kputch, num); }
 
-void printInt(i32 l) { writeInt(l, putch); }
-void printHex(u32 l) { writeHex(l, putch); }
-void printHex_w(u16 w) { writeHex_w(w, putch); }
-void printHex_b(u8 b) { writeHex_b(b, putch); }
-void printAddr(void* addr) { writeAddr(addr, putch); }
-void printBinary_b(u8 num) { writeBinary_b(num, putch); }
-
+// u32 - 10, u64 - 20
 #define MAX_INT_DIGITS 20
 
 // TODO: should allow wrap on word
 // TODO: should allow padding (at least with (0) zeros)
 // Note: assume base 10 for right now
-void writeInt(i32 num, output_writer writer)
+void writeInt(output_writer writer, i32 num)
 {
-    bool isNeg = false;
+    b32 isNeg = false;
     u8 buf[MAX_INT_DIGITS];
     i32 cur, end, temp=0;
 
@@ -235,9 +224,8 @@ void writeInt(i32 num, output_writer writer)
     }
 }
 
-void writeUInt(u32 num, output_writer writer)
+void writeUInt(output_writer writer, u32 num)
 {
-    bool isNeg = false;
     u8 buf[MAX_INT_DIGITS];
     i32 cur, end, temp=0;
 
@@ -251,23 +239,21 @@ void writeUInt(u32 num, output_writer writer)
 
     buf[cur] = '\0';
 
-    // check if negative and print neg character
-    if(num < 0) {
-        isNeg = 1;
-        num = -num;		// abs(num)
-    }
-
-    while(num) {
-        temp = num % 10; // get 'ones' or right most digit
+    // fill buf with each digit
+    while(num)
+    {
+        // get 'ones' or right most digit
+        temp = num % 10;
         --cur;
-        buf[cur] = temp + '0'; // add the digit (temp) to ASCII code '0'
-        num /= 10; // remove right most digit
+
+        // add the digit (temp) to ASCII code '0'
+        buf[cur] = temp + '0';
+
+        // remove right most digit
+        num /= 10;
     }
 
-    if(isNeg)
-        writer('-');
-
-    // print the string
+    // write out buf
     char c = '0';
     for(; cur < end; ++cur) {
         c = buf[cur];
@@ -277,42 +263,42 @@ void writeUInt(u32 num, output_writer writer)
 
 void writeAddr(void* ptr, output_writer writer)
 {
-    writeHex((u32)ptr, writer);
+    writeHex(writer, (u32)ptr);
 }
 
-void writeHex_b(u8 b, output_writer writer)
+void writeHex_b(output_writer writer, u8 b)
 {
-    puts("0x");
-    writeHexDigit((b >> 4) & 0x0f, writer);
-    writeHexDigit((b) & 0x0f, writer);
+    kputs("0x");
+    writeHexDigit(writer, (b >> 4) & 0x0f);
+    writeHexDigit(writer, (b) & 0x0f);
 }
 
-void writeHex_w(u16 w, output_writer writer)
+void writeHex_w(output_writer writer, u16 w)
 {
-    puts("0x");
-    writeHexDigit((w>>12) & 0x0f, writer);
-    writeHexDigit((w>>8) & 0x0f, writer);
-    writeHexDigit((w>>4) & 0x0f, writer);
-    writeHexDigit((w) & 0x0f, writer);
+    kputs("0x");
+    writeHexDigit(writer, (w>>12) & 0x0f);
+    writeHexDigit(writer, (w>>8) & 0x0f);
+    writeHexDigit(writer, (w>>4) & 0x0f);
+    writeHexDigit(writer, (w) & 0x0f);
 }
 
-void writeHex(u32 w, output_writer writer)
+void writeHex(output_writer writer, u32 w)
 {
-    puts("0x");
-    writeHexDigit((w>>28) & 0x0f, writer);
-    writeHexDigit((w>>24) & 0x0f, writer);
-    writeHexDigit((w>>20) & 0x0f, writer);
-    writeHexDigit((w>>16) & 0x0f, writer);
-    writeHexDigit((w>>12) & 0x0f, writer);
-    writeHexDigit((w>>8) & 0x0f, writer);
-    writeHexDigit((w>>4) & 0x0f, writer);
-    writeHexDigit((w) & 0x0f, writer);
+    writer('0'); writer('x');
+    writeHexDigit(writer, (w>>28) & 0x0f);
+    writeHexDigit(writer, (w>>24) & 0x0f);
+    writeHexDigit(writer, (w>>20) & 0x0f);
+    writeHexDigit(writer, (w>>16) & 0x0f);
+    writeHexDigit(writer, (w>>12) & 0x0f);
+    writeHexDigit(writer, (w>>8) & 0x0f);
+    writeHexDigit(writer, (w>>4) & 0x0f);
+    writeHexDigit(writer, (w) & 0x0f);
 }
 
-void writeHexDigit(u8 digit, output_writer writer)
+void writeHexDigit(output_writer writer, u8 digit)
 {
     if(digit < 10)
-        writeInt(digit, writer);
+        writeInt(writer, digit);
     else {
         switch(digit) {
             case 10: writer('a'); break;
@@ -325,27 +311,27 @@ void writeHexDigit(u8 digit, output_writer writer)
     }
 }
 
-void writeBinary_b(u8 num, output_writer writer)
+void writeBinary_b(output_writer writer, u8 num)
 {
     int i = 8;
     while(i--) {
-        writeInt((num & (1<<i)) >> i, writer);
+        writeInt(writer, (num & (1<<i)) >> i);
     }
 }
 
-void writeBinary_w(u16 num, output_writer writer)
+void writeBinary_w(output_writer writer, u16 num)
 {
     int i = 16;
     while(i--) {
-        writeInt((num & (1<<i)) >> i, writer);
+        writeInt(writer, (num & (1<<i)) >> i);
     }
 }
 
-void writeBinary(u32 num, output_writer writer)
+void writeBinary(output_writer writer, u32 num)
 {
     int i = 32;
     while(i--) {
-        writeInt((num & (1<<i)) >> i, writer);
+        writeInt(writer, (num & (1<<i)) >> i);
     }
 }
 
@@ -405,9 +391,76 @@ void serial_write(c_str str) {
     }
 }
 
-void serial_writeInt(u32 num) { writeInt(num, serial_write_b); }
-void serial_writeHex(u32 num) { writeHex(num, serial_write_b); }
-void serial_writeHex_b(u8 num) { writeHex_b(num, serial_write_b); }
-void serial_writeHex_w(u16 num) { writeHex_w(num, serial_write_b); }
-void serial_writeBinary_b(u8 num) { writeBinary_b(num, serial_write_b); }
+void serial_writeInt(u32 num) { writeInt(serial_write_b, num); }
+void serial_writeHex(u32 num) { writeHex(serial_write_b, num); }
+void serial_writeHex_b(u8 num) { writeHex_b(serial_write_b, num); }
+void serial_writeHex_w(u16 num) { writeHex_w(serial_write_b, num); }
+void serial_writeBinary_b(u8 num) { writeBinary_b(serial_write_b, num); }
+
+////////////////////////////////////////////////////
+// better print
+
+void kputs(c_str text)
+{
+    kwrites(kputch, text);
+}
+
+void kwrites(output_writer writer, c_str text)
+{
+    while(*text != 0) {
+        writer(*text++);
+    }
+}
+
+// TODO: use some SafeString struct
+// TODO: void ksprintf(u8* buf, c_str format, ...)
+void kwritef(output_writer writer, c_str format, ...)
+{
+    u8 ch;
+    va_list ap;
+    va_start(ap, format);
+
+    // read in, check next format char
+    while ((ch = *format++))
+    {
+        // if not escape write out to buffer
+        if(ch != '%') {
+            //*buf++ = ch;
+            writer(ch);
+            continue;
+        }
+
+        // read next
+        ch = *format++;
+
+        switch (ch) {
+            case '%': {
+                writer(ch);
+                break;
+            }
+            case 'd':
+            case 'u':
+            case 'f': {
+                int val = va_arg(ap, int);
+                writeInt(writer, val);
+                break;
+            }
+            case 'x': {
+                int val = va_arg(ap, int);
+                writeHex(writer, val);
+                break;
+            }
+            case 's': {
+                c_str s = va_arg(ap, c_str);
+                kwrites(writer, s);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    va_end(ap);
+}
+
 

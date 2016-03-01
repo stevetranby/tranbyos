@@ -1,4 +1,4 @@
-#include "include/system.h"
+#include <system.h>
 
 typedef struct {
     const char* bytes;

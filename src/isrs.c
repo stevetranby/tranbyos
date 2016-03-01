@@ -1,4 +1,4 @@
-#include "include/system.h"
+#include <system.h>
 
 // Interrupts & CPU Exception Handling
 // - http://wiki.osdev.org/Interrupts
@@ -15,8 +15,8 @@ void enable_irq(int irq);
 #define MAX_INTERRUPTS 256
 
 // Store 256 interrupt entries, 32 ISR, 16 IRQ, rest "unhandled interrupt" exception
-idt_entry   idt[MAX_INTERRUPTS];
-idt_ptr     idtp;
+idt_entry idt[MAX_INTERRUPTS];
+idt_ptr   idtp;
 
 /// Add IDT entry
 void idt_set_gate(u8 num, u32 base, u16 sel, u8 flags)

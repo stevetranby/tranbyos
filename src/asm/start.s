@@ -58,10 +58,9 @@ mboot:
     dd 32
 
 ; call our main() function 
-stublet:      
-    ;call _main 	; elf gcc puts _ in front of function names    	
-	push eax
-	push ebx
+stublet:
+	push eax    ; contains 0x2BADB002
+	push ebx    ; header physical address
     cli
 	call _kmain
     cli

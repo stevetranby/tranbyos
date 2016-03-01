@@ -83,7 +83,8 @@ typedef struct
 	
 	u32 apm_table;
 
-	// TODO: create vbe struct 
+	// TODO: create vbe struct
+    //0x00010130,0x00010330,0xffff4142,0x004f6000,0xfd000000
 	u32 vbe_control_info;
 	u32 vbe_mode_info;
 	u32 vbe_mode;
@@ -91,7 +92,48 @@ typedef struct
 	u32 vbe_interface_off;
 	u32 vbe_interface_len;
 
-} multiboot_info_t;
+} multiboot_info;
+
+typedef struct
+{
+    uint16_t attributes;
+    uint8_t  winA,winB;
+    uint16_t granularity;
+    uint16_t winsize;
+    uint16_t segmentA, segmentB;
+    uint32_t winFuncPtr; // ptr to INT 0x10 Function 0x4F05
+    uint16_t pitch; // bytes per scanline
+
+    uint16_t Xres, Yres;
+    uint8_t  Wchar, Ychar, planes, bpp, banks;
+    uint8_t  memory_model, bank_size, image_pages;
+    uint8_t  reserved0;
+
+    uint8_t  red_mask_size, red_position;
+    uint8_t  green_mask_size, green_position;
+    uint8_t  blue_mask_size, blue_position;
+    uint8_t  rsv_mask, rsv_position;
+    uint8_t  directcolor_attributes;
+
+    uint32_t physbase;  // your LFB (Linear Framebuffer) address ;)
+    uint32_t reserved1;
+    uint16_t reserved2;
+
+    // VBE 3.0, use these if LFB is present
+    uint16_t LinBytesPerScanLine;
+    uint8_t  BnkNumberofImagePages;
+    uint8_t  LinNumberofImagePages;
+    uint8_t  LinRedMaskSize;
+    uint8_t  LinRedFieldPosition;
+    uint8_t  LinGreenMaskSize;
+    uint8_t  LinGreenFieldPosition;
+    uint8_t  LinBlueMaskSize;
+    uint8_t  LinBlueMaskPosition;
+    uint8_t  LinRsvdMaskSize;
+    uint8_t  LinRsvdFieldPosition;
+    uint32_t MaxPixelClock;
+    uint8_t  Reserved;
+} vbe_mode_info;
 
 /* The module structure. */
 typedef struct
