@@ -384,7 +384,15 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 
     sti();
 
-    delay_s(1);
+    delay_ms(500);
+
+
+    // TODO: kdebugf (prints to both stdout and serial port)
+    u32 a = addi(1,2);
+    u32 b = addl(1,2);
+    u32 c = addll(1,2);
+    kwritef(serial_write_b, "Test: calling %d, %d, %d\n", a, b, c);
+
 
     // TODO: create text mode first if no VBE
     if(BIT(mbh->flags, 11))

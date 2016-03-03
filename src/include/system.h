@@ -12,6 +12,8 @@
 // #include <stdarg.h>
 #include <stdint.h>
 
+#include <systemcpp.h>
+
 #ifndef va_start
 typedef __builtin_va_list va_list;
 #define va_start(ap,last) __builtin_va_start(ap, last)

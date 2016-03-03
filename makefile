@@ -1,10 +1,14 @@
 OSNAME=tranbyos
 CFLAGS_BASE= -O0 -g -m32 -Wall -Werror -Wno-unused-function -fstrength-reduce -fomit-frame-pointer -finline-functions -nostdlib -nostartfiles -nodefaultlibs -ffreestanding
+# CFLAGS=-std=c11 $(CFLAGS_BASE) -I./src/include # for i386 gcc tools
 CFLAGS=-std=c11 $(CFLAGS_BASE) -m32 -I./src/include
 CXXFLAGS=-std=c++14 $(CFLAGS_BASE) -fno-exceptions -fno-rtti -m32 -I./src/include
 CXX64FLAGS=-std=c++14 $(CFLAGS_BASE) -fno-exceptions -fno-rtti -m64 -I./src/include
 
-#CC=gcc
+# CC=i386-elf-gcc
+# CXX=i386-elf-g++ # doesn't exist w/brew cross tools
+# LD=i386-elf-ld
+
 CC=x86_64-elf-gcc
 CXX=x86_64-elf-g++
 LD=x86_64-elf-ld
@@ -39,25 +43,39 @@ build: link
 
 link: compile assemble
 	@echo "Linking..."
+
+	# i386 toolchain
+	# $(LD) -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/start.o
+
+	# x86_64 toolchain
 	$(LD) -m elf_i386 -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/start.o \
-	$(OBJ_DIR)/main.o $(OBJ_DIR)/scrn.o $(OBJ_DIR)/gdt.o \
-	$(OBJ_DIR)/isrs.o $(OBJ_DIR)/timer.o $(OBJ_DIR)/kb.o \
-	$(OBJ_DIR)/mm.o $(OBJ_DIR)/hd.o $(OBJ_DIR)/io.o $(OBJ_DIR)/vga.o
+							$(OBJ_DIR)/main.o  \
+							$(OBJ_DIR)/scrn.o  \
+							$(OBJ_DIR)/gdt.o   \
+							$(OBJ_DIR)/isrs.o  \
+							$(OBJ_DIR)/timer.o \
+							$(OBJ_DIR)/kb.o    \
+							$(OBJ_DIR)/mm.o    \
+							$(OBJ_DIR)/hd.o    \
+							$(OBJ_DIR)/io.o    \
+							$(OBJ_DIR)/vga.o   \
+							$(OBJ_DIR)/test.o
 
 	@#$(ld) -T link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/*.o
 
 compile: dirs
 	@echo "Compiling..."
-	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/main.o $(SRC)/main.c
-	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/scrn.o $(SRC)/scrn.c
-	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/gdt.o $(SRC)/gdt.c
-	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/isrs.o $(SRC)/isrs.c
+	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/main.o  $(SRC)/main.c
+	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/scrn.o  $(SRC)/scrn.c
+	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/gdt.o   $(SRC)/gdt.c
+	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/isrs.o  $(SRC)/isrs.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/timer.o $(SRC)/timer.c
-	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/kb.o $(SRC)/kb.c
-	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/mm.o $(SRC)/mm.c
-	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/hd.o $(SRC)/hd.c
-	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/io.o $(SRC)/io.c
-	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/vga.o $(SRC)/vga.c
+	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/kb.o    $(SRC)/kb.c
+	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/mm.o    $(SRC)/mm.c
+	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/hd.o    $(SRC)/hd.c
+	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/io.o    $(SRC)/io.c
+	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/vga.o   $(SRC)/vga.c
+	$(CXX) $(CXXFLAGS) -c -o $(OBJ_DIR)/test.o $(SRC)/_test.cpp
 
 	@#$(CXX) $(CXXFLAGS) -c -o $(OBJ_DIR)/test.o $(SRC)/test.cpp
 
@@ -93,8 +111,8 @@ test: build
 
 # others
 # - https://github.com/zhiayang/mx/blob/develop/tools/createdisk.sh
-# - 
-#
+# -
+
 # -vga [std|cirrus|vmware|qxl|xenfb|tcx|cg3|virtio|none]
 # => VESA VBE virtual graphic card (std 1024x768, cirrus 4096x4096??, vmware fastest if can setup)
 # -rtc [base=utc|localtime|date][,clock=host|vm][,driftfix=none|slew]
@@ -106,7 +124,7 @@ run: copykernel disks
 	$(QEMU) -m 32 -rtc base=localtime,clock=host,driftfix=slew -hda $(BUILD_DIR)/$(OSNAME)-hd-32mb.img -hdb $(BUILD_DIR)/$(OSNAME)-hd-64mb.img -vga std -serial stdio -fda $(BUILD_DIR)/grub_disk.img
 	# -usb, -usbdevice mouse
 
-riso:
+riso: build
 	mkdir -p $(BUILD_DIR)/tmp/boot/grub
 	cp $(BIN_DIR)/$(OSNAME).bin $(BUILD_DIR)/tmp/boot/grub
 	mkisofs -J -o $(BUILD_DIR)/tranbyos.iso $(BUILD_DIR)/tmp
