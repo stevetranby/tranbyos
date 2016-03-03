@@ -24,8 +24,10 @@
 #define PS2_1_TEST    0xAB
 #define PS2_2_TEST    0xA9
 
-#define PS2_CMD_DISABLE_STREAMING   0xF5 // The mouse stops sending automatic packets.
-#define PS2_CMD_RESET               0xFF // The mouse probably sends ACK (0xFA) plus several more bytes, then resets itself, and always sends 0xAA.
+#define PS2_DEVICE_IDENTIFY             0xF2 // The mouse stops sending automatic packets.
+#define PS2_DEVICE_ENABLE_STREAMING     0xF4 // The mouse starts sending automatic packets when the mouse moves or is clicked.
+#define PS2_DEVICE_DISABLE_STREAMING    0xF5 // The mouse stops sending automatic packets.
+#define PS2_DEVICE_RESET                0xFF // The mouse probably sends ACK (0xFA) plus several more bytes, then resets itself, and always sends 0xAA.
 
 // Mouse 3-byte Set
 
@@ -131,7 +133,7 @@ static inline RETURN_CODE ps2_wait_write()
 {
     u32 timeout = 100000;
     while(--timeout) {                 //
-        if(inb(PS2_STATUS) & 0x01) {
+        if(! (inb(PS2_STATUS) & 0x02)) {
             return SUCCESS;
         }
     }
@@ -144,7 +146,7 @@ static inline RETURN_CODE ps2_wait_read()
 {
     u32 timeout = 100000;
     while(--timeout) {
-        if(! (inb(PS2_STATUS) & 0x02)) {
+        if((inb(PS2_STATUS) & 0x01)) {
             return SUCCESS;
         }
 
@@ -208,114 +210,130 @@ void keyboard_handler(isr_stack_state *r)
 //
 // http://wiki.osdev.org/Mouse_Input
 
+typedef struct {
+    u32 magic;
+    i16 x_difference;
+    i16 y_difference;
+    u16 buttons;
+} mouse_device_packet;
+
+#define MOUSE_MAGIC 0x57343
+#define LEFT_CLICK 0x01
+#define RIGHT_CLICK 0x02
+#define MIDDLE_CLICK 0x04
+#define MOUSE_SCROLL_DOWN 0x08
+#define MOUSE_SCROLL_UP 0x10
+
+internal mouse_device_packet mouse_packets[256];
+internal u8 mouse_packets_first = 0;
+internal u8 mouse_packets_last = 0;
 
 internal u8 mouse_mode = 0;
 internal u8 mouse_cycle = 0;
-internal u32 mouse_x = 0;
-internal u32 mouse_y = 0;
-internal i8 mouse_byte[5] = { 0, }; //TODO: i think 4 would be enough??
-//internal bool mouse_button[5];
+internal i32 mouse_x = 0;
+internal i32 mouse_y = 0;
+internal u32 mouse_buttons = 0;
 
-i32 mouse_getx() { return mouse_x; }
-i32 mouse_gety() { return mouse_y; }
+//TODO: i think 4 would be enough??
+internal u8 mouse_byte[5] = { 0, };
+
+// TODO: Need to think about coordinate system
+i32 mouse_get_x() { return mouse_x; }
+i32 mouse_get_y() { return mouse_y; }
+i32 mouse_get_buttons() { return mouse_buttons; }
+
+void add_packet(mouse_device_packet packet) {
+    mouse_packets[mouse_packets_last++] = packet;
+}
+
+// TODO: need real event system (pipes, socket, slot/signal, messages)
+mouse_device_packet read_next_packet() {
+    mouse_device_packet p;
+    if(mouse_packets_first < mouse_packets_last)
+        p = mouse_packets[mouse_packets_first++];
+    return p;
+}
 
 void mouse_handler(isr_stack_state *r)
 {
     UNUSED_PARAM(r);
     serial_write("^");
 
-    //    u8 status = inb(PS2_STATUS);
-    //    while (status & 0x02)
-    {
+    u8 mouse_in = inb(PS2_DATA);
 
-
-        u8 mouse_in = inb(PS2_DATA);
-        //        if(status & 0x20)
-        {
-            switch (mouse_cycle) {
-                case 0:
-                    mouse_byte[0] = mouse_in;
-                    if (!(mouse_in & 0x08)) {
-                        goto read_next;
-                    }
-                    ++mouse_cycle;
-                    break;
-                case 1:
-                    mouse_byte[1] = mouse_in;
-                    ++mouse_cycle;
-                    break;
-                case 2:
-                    mouse_byte[2] = mouse_in;
-                    if (mouse_mode == MOUSE_SCROLLWHEEL || mouse_mode == MOUSE_BUTTONS) {
-                        ++mouse_cycle;
-                        break;
-                    }
-                    goto finish_packet;
-                case 3:
-                    mouse_byte[3] = mouse_in;
-                    goto finish_packet;
-            }
-
-            goto read_next;
-
-
-        finish_packet:
-
-            mouse_cycle = 0;
-            if (mouse_byte[0] & 0x80 || mouse_byte[0] & 0x40) {
-                /* x/y overflow? bad packet! */
-
+    switch (mouse_cycle) {
+        case 0:
+            mouse_byte[0] = mouse_in;
+            if (!(mouse_in & 0x08)) {
                 goto read_next;
             }
-            /* We now have a full mouse packet ready to use */
-            //            mouse_device_packet_t packet;
-            //            packet.magic = MOUSE_MAGIC;
-            //            packet.x_difference = mouse_byte[1];
-            //            packet.y_difference = mouse_byte[2];
-            //            packet.buttons = 0;
-
-            if (mouse_byte[0] & 0x01) {
-                //                packet.buttons |= LEFT_CLICK;
+            ++mouse_cycle;
+            break;
+        case 1:
+            mouse_byte[1] = mouse_in;
+            ++mouse_cycle;
+            break;
+        case 2:
+            mouse_byte[2] = mouse_in;
+            if (mouse_mode == MOUSE_SCROLLWHEEL || mouse_mode == MOUSE_BUTTONS) {
+                ++mouse_cycle;
+                break;
             }
-
-            if (mouse_byte[0] & 0x02) {
-                //                packet.buttons |= RIGHT_CLICK;
-            }
-
-            if (mouse_byte[0] & 0x04) {
-                //                packet.buttons |= MIDDLE_CLICK;
-            }
-
-            if (mouse_mode == MOUSE_SCROLLWHEEL && mouse_byte[3]) {
-                if (mouse_byte[3] > 0) {
-                    //                    packet.buttons |= MOUSE_SCROLL_DOWN;
-                } else if (mouse_byte[3] < 0) {
-                    //                    packet.buttons |= MOUSE_SCROLL_UP;
-                }
-            }
-
-            serial_writeInt(23);
-            serial_write(": mouse = ");
-            serial_writeBinary_b(mouse_byte[0]);
-            serial_write(", ");
-            serial_writeHex_b(mouse_byte[1]);
-            serial_write(", ");
-            serial_writeHex_b(mouse_byte[2]);
-            serial_write("\n");
-
-
-            //            mouse_device_packet_t bitbucket;
-            //            while (pipe_size(mouse_pipe) > (int)(DISCARD_POINT * sizeof(packet))) {
-            //                read_fs(mouse_pipe, 0, sizeof(packet), (uint8_t *)&bitbucket);
-            //            }
-            //            write_fs(mouse_pipe, 0, sizeof(packet), (uint8_t *)&packet);
-        }
-
-
-    read_next:
-        nop();
-        //        status = inb(PS2_STATUS);
+            goto finish_packet;
+        case 3:
+            mouse_byte[3] = mouse_in;
+            goto finish_packet;
     }
+
+    goto read_next;
+
+finish_packet:
+
+    mouse_cycle = 0;
+    u8 state = mouse_byte[0];
+    if (state & 0x80 || state & 0x40) {
+        /* x/y overflow? bad packet! */
+        goto read_next;
+    }
+
+    mouse_device_packet packet;
+    packet.magic = MOUSE_MAGIC;
+    packet.x_difference = mouse_byte[1] - ((state << 4) & 0x100);
+    packet.y_difference = -(mouse_byte[2] - ((state << 3) & 0x100));
+    packet.buttons = 0;
+
+    if (mouse_byte[0] & 0x01) {
+        packet.buttons |= LEFT_CLICK;
+    }
+
+    if (mouse_byte[0] & 0x02) {
+        packet.buttons |= RIGHT_CLICK;
+    }
+
+    if (mouse_byte[0] & 0x04) {
+        packet.buttons |= MIDDLE_CLICK;
+    }
+
+    if (mouse_mode == MOUSE_SCROLLWHEEL && mouse_byte[3]) {
+        if (mouse_byte[3] > 0) {
+            packet.buttons |= MOUSE_SCROLL_DOWN;
+        } else if (mouse_byte[3] < 0) {
+            packet.buttons |= MOUSE_SCROLL_UP;
+        }
+    }
+
+    mouse_x = CLAMP(mouse_x + packet.x_difference, 0, 600);
+    mouse_y = CLAMP(mouse_y + packet.y_difference, 0, 400);
+    //mouse_y += packet.y_difference;
+    mouse_buttons = packet.buttons;
+
+    kwritef(serial_write_b, "mouse: %b, %d, %d [%d,%d]\n", mouse_byte[0], packet.x_difference, packet.y_difference, mouse_x, mouse_y);
+
+
+    add_packet(packet);
+
+read_next:
+    inb(PS2_STATUS);
 
     return;
 
@@ -447,7 +465,7 @@ void ps2_install()
     ps2_wait_read();
     status = inb(PS2_DATA);
 
-    kwritef(serial_write_b, "initial status =  %b, %b\n", status, (status & 0b110111100));
+    kwritef(serial_write_b, "initial config =  %b, %b\n", status, (status & 0b110111100));
 
     // write
     outb(PS2_CMD, PS2_CONFIG_WRITE);
@@ -459,7 +477,7 @@ void ps2_install()
     ps2_wait_read();
     status = inb(PS2_DATA);
 
-    kwritef(serial_write_b, "official status = %b\n", status);
+    kwritef(serial_write_b, "official config = %b\n", status);
 
     // if clock bit for 2nd port (bit 5) is still enabled
     // assume older "single device" controller mark it unusable
@@ -505,7 +523,47 @@ void ps2_install()
 
     int n = is_dual_device ? 2 : 1;
 
-    // test device
+    ////////////////////////////////////////
+
+    // TODO: At this stage, check to see how many PS/2 ports are left. If there aren't any that work you can just give up (display some errors and terminate the PS/2 Controller driver). Note: If one of the PS/2 ports on a dual PS/2 controller fails, then you can still keep going and use/support the other PS/2 port.
+    // TODO: should keep track of
+    // bool avail_ports[2];
+
+    // re-enable interrupts
+    outb(PS2_CMD, PS2_CONFIG_READ);
+    ps2_wait_read();
+    status = inb(PS2_DATA);
+    status |= 0b01000001;
+    if(is_dual_device)
+        status |= 0b000000010;
+    kwritef(serial_write_b, "final config = %b\n", status);
+    outb(PS2_CMD, PS2_CONFIG_WRITE);
+    ps2_wait_write();
+    outb(PS2_DATA, status);
+
+
+    // enable ports that exist
+    outb(PS2_CMD, PS2_1_ENABLE);
+    if(is_dual_device)
+        outb(PS2_CMD, PS2_2_ENABLE);
+
+
+    // disable streaming data
+    for(int i=0; i < n; ++i)
+    {
+        if(i==1) {
+            outb(PS2_CMD, MOUSE_WRITE);
+        }
+        ps2_wait_write();
+        outb(PS2_DATA, PS2_DEVICE_DISABLE_STREAMING);
+        do {
+            ps2_wait_read();
+            status = inb(PS2_DATA);
+        } while(status != PS2_ACK_BYTE);
+    }
+
+    ////////////////////////////////////////
+    // test devices
     for(int i=0; i < n; ++i)
     {
         if(i==1) {
@@ -525,29 +583,8 @@ void ps2_install()
         }
     }
 
-    // TODO: At this stage, check to see how many PS/2 ports are left. If there aren't any that work you can just give up (display some errors and terminate the PS/2 Controller driver). Note: If one of the PS/2 ports on a dual PS/2 controller fails, then you can still keep going and use/support the other PS/2 port.
-    // TODO: should keep track of
-    // bool avail_ports[2];
-
-
-    // enable ports that exist
-    outb(PS2_CMD, PS2_1_ENABLE);
-    if(is_dual_device)
-        outb(PS2_CMD, PS2_2_ENABLE);
-
-    // re-enable interrupts
-    outb(PS2_CMD, PS2_CONFIG_READ);
-    ps2_wait_read();
-    status = inb(PS2_DATA);
-    status |= 0b000000001;
-    if(is_dual_device)
-        status |= 0b000000010;
-    outb(PS2_CMD, PS2_CONFIG_WRITE);
-    ps2_wait_write();
-    outb(PS2_DATA, status);
-
-
-
+    ////////////////////////////////////////
+    // reset
     for(int i=0; i < n; ++i)
     {
         // reset
@@ -555,7 +592,7 @@ void ps2_install()
             outb(PS2_CMD, MOUSE_WRITE);
         }
         ps2_wait_write();
-        outb(PS2_DATA, PS2_CMD_RESET);
+        outb(PS2_DATA, PS2_DEVICE_RESET);
 
         ps2_wait_read();
         status = inb(PS2_DATA);
@@ -565,11 +602,6 @@ void ps2_install()
             status = inb(PS2_DATA);
             if(status == 0xAA)
             {
-                if(i==1) {
-                    outb(PS2_CMD, MOUSE_WRITE);
-                }
-                ps2_wait_write();
-                outb(PS2_DATA, PS2_CMD_DISABLE_STREAMING);
                 kwritef(serial_write_b, "Reset PS2 Port #%d Successfully\n", i);
             }
         } else if(status == 0xFC) {
@@ -578,8 +610,6 @@ void ps2_install()
             kwritef(serial_write_b, "[ERR] Unknown error code %x Resetting PS2 Port #2\n", status, i);
         }
     }
-
-#define PS2_CMD_IDENTIFY 0xF2
 
 
     /*
@@ -593,19 +623,22 @@ void ps2_install()
      0xFA, 0x04         5 button mouse with a scroll wheel
      */
 
+    ////////////////////////////////////////
     // identify
     static u8 ps2_identify[2][2];
     for(int i=0; i < n; ++i)
     {
+        // identify
         if(i==1) {
             outb(PS2_CMD, MOUSE_WRITE);
         }
         ps2_wait_write();
-        outb(PS2_DATA, PS2_CMD_IDENTIFY);
+        outb(PS2_DATA, PS2_DEVICE_IDENTIFY);
         do {
             ps2_wait_read();
             status = inb(PS2_DATA);
-        } while(status != 0xFA);
+        } while(status != PS2_ACK_BYTE);
+
         ps2_wait_read();
         ps2_identify[i][0] = inb(PS2_DATA);
         ps2_wait_read();
@@ -645,14 +678,29 @@ void ps2_install()
     }
 
     //Setup the IRQ handlers
-    
+
     irq_install_handler(1, keyboard_handler, "keyboard");
     serial_write("Keyboard handler installed.\n");
-    
+
     // TODO: if has 2nd controller
     if(is_dual_device)
     {
         irq_install_handler(IRQ_MOUSE_PS2, mouse_handler, "mouse");
         serial_write("Installed Mouse.\n");
+    }
+
+
+    // re-enable streaming data
+    for(int i=0; i < n; ++i)
+    {
+        if(i==1) {
+            outb(PS2_CMD, MOUSE_WRITE);
+        }
+        ps2_wait_write();
+        outb(PS2_DATA, PS2_DEVICE_ENABLE_STREAMING);
+        do {
+            ps2_wait_read();
+            status = inb(PS2_DATA);
+        } while(status != PS2_ACK_BYTE);
     }
 }

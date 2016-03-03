@@ -827,14 +827,17 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     // int i,z;
     // z = 2-2; i = 10 / z; kputch(i);
 
+    static u16 x = 0;
+    static u16 y = 0;
+    static u16 screen_width = 320;
+    static u16 screen_height = 200;
 
-    i32 x = 0;
-    i32 y = 0;
     for (;;) {
-        x = mouse_getx();
-        y = mouse_gety();
-        fillrect(x,y);
-        delay_ms(100);
+        x = CLAMP(mouse_get_x(), 0, screen_width);
+        y = CLAMP(mouse_get_y(), 0, screen_height);
+
+        fillrect(x, y);
+        //delay_ms(100);
     }
 
     return 0;

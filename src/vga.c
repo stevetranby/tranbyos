@@ -325,15 +325,15 @@ void polygon(u32 num_vertices, u32* vertices, u8 color)
               vertices[(num_vertices << 1) - 1], color);
 }
 
-void fillrect(u16 xoff, u16 yoff)//, u8 color)
+void fillrect(u32 xoff, u32 yoff)//, u8 color)
 {
     static u8 color = 0;
     color++;
-    u16 height = 10;
-    u16 width = 10;
-    for (u32 y = yoff; y < height; ++y) {
-        for (u32 x = xoff; x < width; ++x) {
-            plot_pixel(x, y, color);
+    u32 height = 10;
+    u32 width = 10;
+    for (u32 y = 0; y < height; ++y) {
+        for (u32 x = 0; x < width; ++x) {
+            plot_pixel(xoff + x, yoff + y, color);
         }
     }
 }

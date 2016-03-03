@@ -137,7 +137,7 @@ static void putpixel(unsigned char* screen, int x,int y, int color) {
     screen[where + 2] = (color >> 16) & 255;  // RED
 }
 
-static void fillrect(unsigned char *vram, unsigned char r, unsigned char g, unsigned   char b, unsigned char w, unsigned char h) {
+static void _fillrect(unsigned char *vram, unsigned char r, unsigned char g, unsigned   char b, unsigned char w, unsigned char h) {
     unsigned char *where = vram;
     int i, j;
  

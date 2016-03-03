@@ -56,6 +56,13 @@ typedef __builtin_va_list va_list;
 #define MEGA (1024*1024)       // 2^20
 #define GIGA (1024*1024*1024)  // 2^30
 
+
+#define MAX(a,b) (a < b ? b : a)
+#define MIN(a,b) (a < b ? a : b)
+#define CLAMP(x, low, high) MIN(MAX(x,low), high)
+
+
+
 //////////////////////////////////////////////////////////////////
 // Macros
 
@@ -251,7 +258,7 @@ extern u32 init_graph_vga(u32 width, u32 height, b32 chain4);
 extern void plot_pixel(u32 x, u32 y, u8 color);
 extern void line_fast(u32 x1, u32 y1, u32 x2, u32 y2, u8 color);
 extern void polygon(u32 num_vertices,  u32 *vertices, u8 color);
-extern void fillrect(u16 xoff, u16 yoff);
+extern void fillrect(u32 xoff, u32 yoff);
 extern void vga_tests();
 
 
@@ -636,8 +643,12 @@ extern void irq15();
  *  whatever you want using a macro, if you wish! */
 
 typedef u8 kbscan_t;
+
 extern kbscan_t kbdus[128];
 extern kbscan_t keyboard_read_next();
+
+extern i32 mouse_get_x();
+extern i32 mouse_get_y();
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
