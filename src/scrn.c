@@ -298,18 +298,20 @@ void writeHex(output_writer writer, u32 w)
 
 void writeHexDigit(output_writer writer, u8 digit)
 {
-    if(digit < 10)
-        writeInt(writer, digit);
-    else {
-        switch(digit) {
-            case 10: writer('a'); break;
-            case 11: writer('b'); break;
-            case 12: writer('c'); break;
-            case 13: writer('d'); break;
-            case 14: writer('e'); break;
-            case 15: writer('f'); break;
-        }
-    }
+    const char* digits = "0123456789abcdef";
+    writer(digits[digit]);
+//    if(digit < 10)
+//        writeInt(writer, digit);
+//    else {
+//        switch(digit) {
+//            case 10: writer('a'); break;
+//            case 11: writer('b'); break;
+//            case 12: writer('c'); break;
+//            case 13: writer('d'); break;
+//            case 14: writer('e'); break;
+//            case 15: writer('f'); break;
+//        }
+//    }
 }
 
 void writeBinary_b(output_writer writer, u8 num)
@@ -328,11 +330,20 @@ void writeBinary_w(output_writer writer, u16 num)
     }
 }
 
+// TODO: combine above into one
 void writeBinary(output_writer writer, u32 num)
 {
+    writer('0'); writer('b');
     int i = 32;
+//    bool foundOne = false;
     while(i--) {
-        writeInt(writer, (num & (1<<i)) >> i);
+        u8 bit = (num & (1<<i)) >> i;
+        writer(bit ? '1' : '0');
+//        if(bit || foundOne) {
+//            foundOne = true;
+//            // TODO: writeDigit instead
+//            writer(bit ? '1' : '0');
+//        }
     }
 }
 
@@ -439,11 +450,20 @@ void kwritef(output_writer writer, c_str format, ...)
                 writer(ch);
                 break;
             }
+            case 'b': {
+                u32 val = va_arg(ap, u32);
+                writeBinary(writer, val);
+                break;
+            }
             case 'd':
-            case 'u':
             case 'f': {
                 int val = va_arg(ap, int);
                 writeInt(writer, val);
+                break;
+            }
+            case 'u': {
+                u32 val = va_arg(ap, u32);
+                writeUInt(writer, val);
                 break;
             }
             case 'x': {

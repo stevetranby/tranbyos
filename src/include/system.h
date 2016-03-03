@@ -48,9 +48,9 @@ typedef __builtin_va_list va_list;
 #define HIGHS (ONES * (UCHAR_MAX/2+1))
 #define HASZERO(X) (((X)-ONES) & ~(X) & HIGHS)
 
-#define BITOP(A, B, OP) \
-((A)[(size_t)(B)/(8*sizeof *(A))] OP (size_t)1<<((size_t)(B)%(8*sizeof *(A))))
+//#define BITOP(A, B, OP) ((A)[(size_t)(B)/(8*sizeof *(A))] OP (size_t)1<<((size_t)(B)%(8*sizeof *(A))))
 
+#define BIT(data,bit) (data & (1 << bit))
 
 #define KILO (1024)            // 2^10
 #define MEGA (1024*1024)       // 2^20
@@ -332,8 +332,7 @@ extern void kwritef(output_writer writer, c_str format, ...);
 extern i32 mouse_getx();
 extern i32 mouse_gety();
 
-extern void keyboard_install();
-extern void mouse_install();
+extern void ps2_install();
 
 ////////////////////////////////////////////////////////////////////////////
 // Disks (Hard Drive, Floppy, CDRom)
@@ -628,6 +627,7 @@ extern void irq15();
 
 #define SCAN_US_SPACE 0x39
 #define SCAN_US_F2 0x3c
+#define SCAN_US_F3 0x3d
 
 /* KBDUS means US Keyboard Layout. This is a scancode table
  *  used to layout a standard US keyboard. I have left some

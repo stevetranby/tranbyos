@@ -275,8 +275,6 @@ void srand(u32 seed)
     _next_rand = seed;
 }
 
-#define BIT(data,bit) (data & (1 << bit))
-
 void wait_any_key() {
     set_text_color(COLOR_LIGHT_MAGENTA, COLOR_BLACK);
 
@@ -372,8 +370,7 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     idt_install();
     isrs_install();
     timer_install();
-    keyboard_install();
-    mouse_install();
+    ps2_install();
 
     init_serial();
     init_mm();
