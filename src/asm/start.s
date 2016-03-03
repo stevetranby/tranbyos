@@ -9,14 +9,18 @@
 [BITS 32]
 
 global start
-global gdt_flush	; Allows the C code to link to this
-global tss_flush	; Allows the C code to link to this
-global idt_load		; Allows the C code to link to this
-global _sys_heap	; Allows the C code to link to this 
+global gdt_flush	       ; Allows the C code to link to this
+global tss_flush	       ; Allows the C code to link to this
+global idt_load		       ; Allows the C code to link to this
+global _sys_heap	       ; Allows the C code to link to this 
+global _jump_usermode      ; 
 
-extern _kmain		; have to specify '_main' instead of 'main' since we're using ELF format
-extern gp           ; Says that 'gp' is in another file
-extern idtp         ;
+extern _kmain		       ; have to specify '_main' instead of 'main' since we're using ELF format
+extern gp                  ; Says that 'gp' is in another file
+extern idtp                ;
+extern fault_handler       ;
+extern irq_handler         ;
+extern _test_user_function ;
 
 start:
     mov esp, _sys_stack		; This points the stack to our new stack area
@@ -164,6 +168,22 @@ tss_flush:
     ltr ax
     ret
 
+; Will switch over to Ring 3 
+_jump_usermode:
+     mov ax,0x23
+     mov ds,ax
+     mov es,ax 
+     mov fs,ax 
+     mov gs,ax      ;we don't need to worry about SS. it's handled by iret
+ 
+     mov eax,esp
+     push 0x23      ;user data segment with bottom 2 bits set for ring 3
+     push eax       ;push our current stack just for the heck of it
+     pushf
+     push 0x1B      ;user code segment with bottom 2 bits set for ring 3
+     push _test_user_function ;may need to remove the _ for this to work right 
+     iret
+
 ;--------------------------------------------------------------------
 
 ; Loads the IDT defined in '_idtp' into the processor.
@@ -186,11 +206,6 @@ isr %+ i:
     jmp     isr_common_stub
 %assign i i+1
 %endrep
-
-	
-; We call a C function in here. We need to let the assembler know
-; that '_fault_handler' exists in another file
-extern fault_handler
 
 ; This is our common ISR stub. It saves the processor state, sets
 ; up for kernel mode segments, calls the C-level fault handler,
@@ -246,8 +261,6 @@ irq %+ i:
 %assign i i+1
 %assign j j+1
 %endrep
-
-extern irq_handler
 
 irq_common_stub:
     pusha

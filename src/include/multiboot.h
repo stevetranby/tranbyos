@@ -22,75 +22,75 @@
 // The Multiboot header.
 typedef struct
 {
-	u32 magic;
-	u32 flags;
-	u32 checksum;
-	u32 header_addr;
-	u32 load_addr;
-	u32 load_end_addr;
-	u32 bss_end_addr;
-	u32 entry_addr;
+    u32 magic;
+    u32 flags;
+    u32 checksum;
+    u32 header_addr;
+    u32 load_addr;
+    u32 load_end_addr;
+    u32 bss_end_addr;
+    u32 entry_addr;
 } multiboot_header_t;
 
 // The symbol table for a.out.
 typedef struct
 {
-	u32 tabsize;
-	u32 strsize;
-	u32 addr;
-	u32 reserved;
+    u32 tabsize;
+    u32 strsize;
+    u32 addr;
+    u32 reserved;
 } aout_symbol_table_t;
 
 // The section header table for ELF.
 typedef struct
 {
-	u32 num;
-	u32 size;
-	u32 addr;
-	u32 shndx;
+    u32 num;
+    u32 size;
+    u32 addr;
+    u32 shndx;
 } elf_section_header_table_t;
 
 // The Multiboot information.
 // See: https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Boot_002dtime-configuration
 typedef struct
 {
-	u32 flags;
-	
-	u32 mem_lower;
-	u32 mem_upper;
-	
-	u32 boot_device;
-	u32 cmdline;
-	
-	u32 mods_count;
-	u32 mods_addr;
-	
-	union
-	{
-		aout_symbol_table_t aout_sym;
-		elf_section_header_table_t elf_sec;
-	} u;
-	
-	u32 mmap_length;
-	u32 mmap_addr;
+    u32 flags;
 
-	u32 drives_length;
-	u32 drives_addr;
-	
-	u32 config_table;
-	
-	u32 boot_loader_name;
-	
-	u32 apm_table;
+    u32 mem_lower;
+    u32 mem_upper;
 
-	// TODO: create vbe struct
+    u32 boot_device;
+    u32 cmdline;
+
+    u32 mods_count;
+    u32 mods_addr;
+
+    union
+    {
+        aout_symbol_table_t aout_sym;
+        elf_section_header_table_t elf_sec;
+    } u;
+
+    u32 mmap_length;
+    u32 mmap_addr;
+
+    u32 drives_length;
+    u32 drives_addr;
+
+    u32 config_table;
+
+    u32 boot_loader_name;
+
+    u32 apm_table;
+
+    // TODO: create vbe struct
     //0x00010130,0x00010330,0xffff4142,0x004f6000,0xfd000000
-	u32 vbe_control_info;
-	u32 vbe_mode_info;
-	u32 vbe_mode;
-	u32 vbe_interface_seg;
-	u32 vbe_interface_off;
-	u32 vbe_interface_len;
+    u32 vbe_controller_info;
+    u32 vbe_mode_info;
+    u16 vbe_mode;
+    u16 vbe_interface_seg;
+    u16 vbe_interface_off;
+    u16 vbe_interface_len;
 
 } multiboot_info;
 
@@ -135,23 +135,54 @@ typedef struct
     uint8_t  Reserved;
 } vbe_mode_info;
 
+
+
+// order important 0x[seg][off]
+typedef struct pack_struct
+{
+    union {
+        struct {
+            u16 off;
+            u16 seg;
+        };
+        u32 segoff;
+    };
+} segoff;
+
+// 512 Bytes struct
+typedef struct pack_struct
+{
+    u8          signature[4];          /* VESA for <= 2.0, VBE2 for >= 3.0 */
+    u16         version;            /* BCD, ie 0x0104 is version 1.4 */
+    segoff      oem;                /* OEM String */
+    u8          caps[4];            /* Capabilities */
+    segoff      mode_list;          /* List of modes, terminated by 0xFFFF */
+    u16         total_memory;		/* Memory in 64kb blocks */
+    u16         oem_software_revision;		/* BCD, Revision of BIOS */
+    segoff      oem_vendor_name;	/* Name of vendor */
+    segoff      oem_product_name;	/* Name of product */
+    segoff      oem_product_revision;	/* Product revision */
+    u16         reserved[111];
+    u8          buff[256];        /*  OEM String Area */
+} vbe_controller_info;
+
 /* The module structure. */
 typedef struct
 {
-	unsigned long mod_start;
-	unsigned long mod_end;
-	unsigned long string;
-	unsigned long reserved;
+    unsigned long mod_start;
+    unsigned long mod_end;
+    unsigned long string;
+    unsigned long reserved;
 } module_t;
 
 /* The memory map. Be careful that the offset 0 is base_addr_low
-but no size. */
+ but no size. */
 typedef struct
 {
-	unsigned long size;
-	unsigned long base_addr_low;
-	unsigned long base_addr_high;
-	unsigned long length_low;
-	unsigned long length_high;
-	unsigned long type;
+    unsigned long size;
+    unsigned long base_addr_low;
+    unsigned long base_addr_high;
+    unsigned long length_low;
+    unsigned long length_high;
+    unsigned long type;
 } memory_map_t;

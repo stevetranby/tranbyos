@@ -279,6 +279,7 @@ extern void print_port(u16 port);
 /// - Defines the memory paging table map
 extern void gdt_set_gate(u32 num, u32 base, u32 limit, u8 access, u8 gran);
 extern void gdt_install();
+extern void _jump_usermode();
 
 // Memory Allocation
 extern void init_mm(void);
@@ -489,7 +490,6 @@ extern void idt_set_gate(u8 num, u32 base, u16 sel, u8 flags);
 extern void idt_install();
 
 // Interrupt Service Routines (ISR)
-extern void fault_handler(isr_stack_state *r);
 extern void isrs_install();
 extern void irq_install_handler(u32 irq, isr_handler handler, c_str name);
 extern void irq_uninstall_handler(u32 irq);

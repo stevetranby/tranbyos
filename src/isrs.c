@@ -177,26 +177,70 @@ void irq_uninstall_handler(u32 irq)
     kmemsetb((u8*)&irq_names[irq], 0, 20);
 }
 
+#define PIC1_CMD            0x20
+#define PIC1_DATA           0x21
+#define PIC2_CMD            0xA0
+#define PIC2_DATA           0xA1
+
+#define PIC_CMD_EOI         0x20   // end of interrupt
+
+#define ICW1_ICW4           0x01   // ICW4 (not) needed
+#define ICW1_SINGLE         0x02   // Single (cascade) mode
+#define ICW1_INTERVAL4      0x04   // Call address interval 4 (8)
+#define ICW1_LEVEL		  	0x08   // Level triggered (edge) mode
+#define ICW1_INIT           0x10   // Initialization - required!
+
+#define ICW4_8086           0x01   // 8086/88 (MCS-80/85) mode
+#define ICW4_AUTO           0x02   // Auto (normal) EOI
+#define ICW4_BUF_SLAVE      0x08   // Buffered mode/slave
+#define ICW4_BUF_MASTER     0x0C   // Buffered mode/master
+#define ICW4_SFNM           0x10   // Special fully nested (not)
+
 /// Remap IRQs 0-7 since they are mapped to IDT entries 8-15 by default
 /// IRQ 0 is mapped to IDT entry 8 is Double Fault
 /// (only an issue in protected mode: )
 void irq_remap()
 {
-    outb(0x20, 0x11);
-    outb(0xA0, 0x11);
-    outb(0x21, 0x20);
-    outb(0xA1, 0x28);
-    outb(0x21, 0x04);
-    outb(0xA1, 0x02);
-    outb(0x21, 0x01);
-    outb(0xA1, 0x01);
-    outb(0x21, 0x0);
-    outb(0xA1, 0x0);
+    // TODO: name consts
+    outb(PIC1_CMD, 0x11);
+    outb(PIC2_CMD, 0x11);
+
+    outb(PIC1_DATA, 0x20);
+    outb(PIC2_DATA, 0x28);
+
+    outb(PIC1_DATA, 0x04);
+    outb(PIC2_DATA, 0x02);
+
+    outb(PIC1_DATA, 0x01);
+    outb(PIC2_DATA, 0x01);
+
+    outb(PIC1_DATA, 0x00);
+    outb(PIC2_DATA, 0x00);
 
     // reset PIC's
-    outb(0x21, 0x20);
-    outb(0xA1, 0x20);
+    outb(PIC1_DATA, 0x20);
+    outb(PIC2_DATA, 0x20);
+
+//    // ICW1
+//    outb(PIC1, ICW1);
+//    outb(PIC2, ICW1);
+//
+//    // ICW2
+//    outb(PIC1 + 1, pic1);	/* remap */
+//    outb(PIC2 + 1, pic2);	/*  pics */
+//
+//    // ICW3
+//    outb(PIC1 + 1, 4);	/* IRQ2 -> connection to slave */
+//    outb(PIC2 + 1, 2);
+//
+//    // ICW4
+//    outb(PIC1 + 1, ICW4);
+//    outb(PIC2 + 1, ICW4);
+//
+//    /* disable all IRQs */
+//    outb(PIC1 + 1, 0xFF);
 }
+
 
 void kernel_panic()
 {
@@ -220,27 +264,59 @@ void fault_handler(isr_stack_state* r)
     if (r->int_no < 32)
     {
         kputs(exception_messages[r->int_no]);
+        kernel_panic();
     }
 
-    kputs("\n");
-    //kernel_panic();
+    kputs("... Not Handling\n");
+
+    sti();
 }
 
-const u8 END_OF_INTERRUPT = 0x20;
-const u8 IRQ_BANK_MASTER = 0x20;
-const u8 IRQ_BANK_SLAVE = 0xA0;
+//void irq_set_mask(unsigned char irqLine)
+//{
+//    uint16_t port;
+//    uint8_t value;
+//
+//    if(IRQline < 8) {
+//        port = PIC1_DATA;
+//    } else {
+//        port = PIC2_DATA;
+//        IRQline -= 8;
+//    }
+//    value = inb(port) | (1 << IRQline);
+//    outb(port, value);
+//}
+//
+//void irq_clear_mask(unsigned char IRQline)
+//{
+//    uint16_t port;
+//    uint8_t value;
+//
+//    if(IRQline < 8) {
+//        port = PIC1_DATA;
+//    } else {
+//        port = PIC2_DATA;
+//        IRQline -= 8;
+//    }
+//    value = inb(port) & ~(1 << IRQline);
+//    outb(port, value);
+//}
+//
 
-/// IRQs
+
+
+
 /// Two 8259 chips: First bank: 0x20, Second: 0xA0.
 /// IRQ handler - called from assembly
 void irq_ack(u32 irq_no)
 {
     // Need to send IRQ 8-15 to SLAVE as well
     if (irq_no >= 40) {
-        outb(IRQ_BANK_SLAVE, END_OF_INTERRUPT);
+        outb(PIC2_CMD, PIC_CMD_EOI);
     }
-    outb(IRQ_BANK_MASTER, END_OF_INTERRUPT);
+    outb(PIC1_CMD, PIC_CMD_EOI);
 }
+
 void irq_handler(isr_stack_state* r)
 {
     // if we've installed a handler, call it
@@ -262,3 +338,42 @@ void print_irq_counts()
     }
 }
 
+
+///////
+// Spurious IRQs
+
+// http://wiki.osdev.org/PIC
+
+/*
+ When an IRQ occurs, the PIC chip tells the CPU (via. the PIC's INTR line) that there's an interrupt, 
+ and the CPU acknowledges this and waits for the PIC to send the interrupt vector. This creates a race
+ condition: if the IRQ disappears after the PIC has told the CPU there's an interrupt but before the PIC 
+ has sent the interrupt vector to the CPU, then the CPU will be waiting for the PIC to tell it which 
+ interrupt vector but the PIC won't have a valid interrupt vector to tell the CPU.
+ To get around this, the PIC tells the CPU a fake interrupt number. This is a spurious IRQ. The fake 
+ interrupt number is the lowest priority interrupt number for the corresponding PIC chip (IRQ 7 for the 
+ master PIC, and IRQ 15 for the slave PIC).
+ There are several reasons for the interrupt to disappear. In my experience the most common reason is 
+ software sending an EOI at the wrong time. Other reasons include noise on IRQ lines (or the INTR line).
+
+ Handling Spurious IRQs
+ 
+ For a spurious IRQ, there is no real IRQ and the PIC chip's ISR (In Service Register) flag for the
+ corresponding IRQ will not be set. This means that the interrupt handler must not send an EOI back to 
+ the PIC to reset the ISR flag.
+
+ The correct way to handle an IRQ 7 is to first check the master PIC chip's ISR to see if the IRQ is a 
+ spurious IRQ or a real IRQ. If it is a real IRQ then it is treated the same as any other real IRQ. 
+ If it is a spurious IRQ then you ignore it (and do not send the EOI).
+
+ The correct way to handle an IRQ 15 is similar, but a little trickier due to the interaction between 
+ the slave PIC and the master PIC. First check the slave PIC chip's ISR to see if the IRQ is a spurious 
+ IRQ or a real IRQ. If it is a real IRQ then it is treated the same as any other real IRQ. If it's a 
+ spurious IRQ then don't send the EOI to the slave PIC; however you will still need to send the EOI to
+ the master PIC because the master PIC itself won't know that it was a spurious IRQ from the slave. 
+ Also note that some operating systems (e.g. Linux) keep track of the number of spurious IRQs that have 
+ occurred (e.g. by incrementing a counter when a spurious IRQ occurs). This can be useful for detecting 
+ problems in software (e.g. sending EOIs at the wrong time) and detecting problems in hardware 
+ (e.g. line noise).
+
+ */

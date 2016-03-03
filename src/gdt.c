@@ -110,8 +110,8 @@ void gdt_install()
     // Do it
     gdt_flush();
 
-    //write_tss(5, 0x10, 0x0);
-    //tss_flush();
+    write_tss(5, 0x10, 0x0);
+    tss_flush();
 }
 
 static void write_tss(int32_t num, uint16_t ss0, uint32_t esp0)
@@ -136,8 +136,27 @@ static void write_tss(int32_t num, uint16_t ss0, uint32_t esp0)
     tss.iomap_base = sizeof(tss);
 }
 
-void set_kernel_stack(uintptr_t stack) {
-    /* Set the kernel stack */
+// Use When Interrupt Occurs
+void set_kernel_stack(uintptr_t stack) 
+{
     tss.esp0 = stack;
 }
+
+//////////////////////////////////
+
+void _test_user_function()
+{
+    kwritef(serial_write_b, "We were called from asm, we should be in ring 3, and cause GPF now!\n");
+    kwritef(serial_write_b, "1/\n");
+    kwritef(serial_write_b, "2/\n");
+    kwritef(serial_write_b, "3/\n");
+
+    asm_volatile ("mov $0x123456, %%eax" : : );
+
+    kwritef(serial_write_b, "4/\n");
+    kwritef(serial_write_b, "5/\n");
+
+    //cli();
+}
+
 

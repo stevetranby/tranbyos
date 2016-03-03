@@ -336,6 +336,7 @@ void my_testl(long double l) { UNUSED_PARAM(l); kputs("long double\n"); }
 
 //#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 
+internal vbe_controller_info *vbe_ctrl;
 internal vbe_mode_info *vbe;
 internal uint8_t *mem;
 
@@ -362,6 +363,11 @@ void draw_rectangle(u32 x, u32 y, u32 width, u32 height, uint32_t color)
     }
 }
 
+// convert [seg]:[off] u32=u16:u16 into linear
+static void* linear_addr(segoff p)
+{
+    return (void*)((p.seg << 4) + p.off);
+}
 
 // NASM assembly boot loader calls this method
 u32 _kmain(multiboot_info* mbh, u32 magic)
@@ -394,6 +400,57 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     // TODO: create text mode first if no VBE
     if(BIT(mbh->flags, 11))
     {
+
+        for(int i=0; i<4; ++i)
+            kwritef(serial_write_b, "===================================================================\n");
+
+        for(int i=0; i<2; ++i)
+        {
+            output_writer writer = (i == 0) ? serial_write_b : kputch;
+            kwritef(writer, "VBE: %x,%x,%x,%x,%x,%x\n",
+                    mbh->vbe_controller_info,
+                    mbh->vbe_mode_info,
+                    mbh->vbe_mode,
+                    mbh->vbe_interface_seg,
+                    mbh->vbe_interface_off,
+                    mbh->vbe_interface_len);
+        }
+
+        vbe_ctrl = (vbe_controller_info*)mbh->vbe_controller_info;
+
+        serial_write("\n");
+        kwritef(serial_write_b, "vbe_control_info: %x\n", (u32)&mbh->vbe_controller_info);
+        kwritef(serial_write_b, "vbe buff [addr]: %x\n", (u32)&vbe_ctrl->buff[0]);
+        serial_write("\n");
+
+        kwritef(serial_write_b, "signature: %s [%x] addr: %x\nver: %x\noem: %s\ncaps: %x\n",
+                &vbe_ctrl->signature, (u32)vbe_ctrl->signature, vbe_ctrl->signature,
+                vbe_ctrl->version,
+                (c_str*)linear_addr(vbe_ctrl->oem),
+                vbe_ctrl->caps);
+
+        kwritef(serial_write_b, "oem vendor name: %s\n", (c_str*)linear_addr(vbe_ctrl->oem_vendor_name));
+        kwritef(serial_write_b, "oem product name: %s\n", (c_str*)linear_addr(vbe_ctrl->oem_product_name));
+        kwritef(serial_write_b, "oem product rev: %s\n", (c_str*)linear_addr(vbe_ctrl->oem_product_revision));
+
+        kwritef(serial_write_b, "list of modes: [%x]\n", vbe_ctrl->mode_list.segoff);
+
+        //u32* mode = linear_addr(vbe_ctrl->mode_list) - 34;
+
+        // TODO: should really just not bother with the multiboot VESA, unless we're only using QEMU/BOCHS
+        // TODO: we could 
+        u16* mode = (u16*)&vbe_ctrl->reserved[0];
+        for(u32 i=0; 0xFFFF != *mode; ++mode, ++i) {
+            kwritef(serial_write_b, "\t[%x]: %x", mode, *mode);
+            if(i % 8 == 7)
+                serial_write("\n");
+            if(i > 512) break;
+        }
+        serial_write("\n");
+
+        for(int i=0; i<4; ++i)
+            kwritef(serial_write_b, "===================================================================\n");
+
         // https://codereview.stackexchange.com/questions/108168/vbe-bdf-font-rendering
         vbe = (vbe_mode_info*)mbh->vbe_mode_info;
         kwritef(serial_write_b, "attributes: %u\nwinA: %u\nwinB: %u\ngranularity: %u\nwinsize: %u\nsegmentA: %x\nsegmentB: %x\nwinFuncPtr: %x\npitch: %u\nXres: %u\nYres: %u\nWchar: %u\nYchar: %u\nplanes: %u\nbpp: %u\nbanks: %u\nmemory_model: %u\nbank_size: %u\nimage_pages: %u\nreserved0: %u\nred_mask_size: %u\nred_position: %u\ngreen_mask_size: %u\ngreen_position: %u\nblue_mask_size: %u\nblue_position: %u\nrsv_mask: %u\nrsv_position: %u\ndirectcolor_attributes: %u\nphysbase: %x\nreserved1: %u\nreserved2: %u\nLinBytesPerScanLine: %u\nBnkNumberofImagePages: %u\nLinNumberofImagePages: %u\nLinRedMaskSize: %u\nLinRedFieldPosition: %u\nLinGreenMaskSize: %u\nLinGreenFieldPosition: %u\nLinBlueMaskSize: %u\nLinBlueMaskPosition: %u\nLinRsvdMaskSize: %u\nLinRsvdFieldPosition: %u\nMaxPixelClock: %u\nReserved: %u\n",
@@ -520,16 +577,10 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
         output_writer writer = (i == 0) ? serial_write_b : kputch;
 
         // Multiboot Info
-        kwritef(writer, "MBInfo: %x, Mem: %d-%dB, Flags: %x\n",
+        kwritef(writer, "MBInfo: %x, Mem: %d - %d B, Flags: %b\n",
                 magic, mbh->mem_lower, mbh->mem_upper, mbh->flags);
-        kwritef(writer, "VBE: %x,%x,%x,%x,%x\n",
-                mbh->vbe_control_info,
-                mbh->vbe_mode_info,
-                mbh->vbe_mode,
-                mbh->vbe_interface_seg,
-                mbh->vbe_interface_off,
-                mbh->vbe_interface_len);
-        kwritef(writer,"MMap:\t%x\nAddr:\t%x\nDrives:\t%xAddr:\t%x\nConfig:\t%x\n",
+
+        kwritef(writer,"MMap:\t%x\nAddr:\t%x\nDrives:\t%x\nAddr:\t%x\nConfig:\t%x\n",
                 mbh->mmap_length,
                 mbh->mmap_addr,
                 mbh->drives_length,
@@ -704,7 +755,6 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 
     wait_any_key();
 
-
     trace("kmalloc");
     u8 *t = kmalloc(4);
     u8 *s = kmalloc(8);
@@ -716,7 +766,6 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     for(int i=0; i<4; ++i) {
         kprintf("%x : %d : %x : %d : %d\n", (u32)&t, t[i], (u32)&s, s[i*2], s[i*2+1]);
     }
-
 
     wait_any_key();
 
@@ -771,6 +820,14 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 //        vga_tests();
 //    }
 
+
+
+    // Test Division By 0
+    // need to hide the zero
+    // int i,z;
+    // z = 2-2; i = 10 / z; kputch(i);
+
+
     i32 x = 0;
     i32 y = 0;
     for (;;) {
@@ -779,10 +836,6 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
         fillrect(x,y);
         delay_ms(100);
     }
-
-    // Test Division By 0
-    // need to hide the zero
-    //z = 2-1; i = 10 / z; kputch(i);
 
     return 0;
 }
