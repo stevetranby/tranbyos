@@ -138,7 +138,7 @@ typedef struct
 
 
 // order important 0x[seg][off]
-typedef struct pack_struct
+typedef struct PACKED
 {
     union {
         struct {
@@ -150,7 +150,7 @@ typedef struct pack_struct
 } segoff;
 
 // 512 Bytes struct
-typedef struct pack_struct
+typedef struct PACKED
 {
     u8          signature[4];          /* VESA for <= 2.0, VBE2 for >= 3.0 */
     u16         version;            /* BCD, ie 0x0104 is version 1.4 */

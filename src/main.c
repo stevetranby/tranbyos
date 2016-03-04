@@ -103,13 +103,11 @@
  
 /* This tutorial will only work for the 32-bit ix86 targets. */
 #if !defined(__i386__)
-    #error "This tutorial needs to be compiled with a i386-elf compiler"
+    // #error "This tutorial needs to be compiled with a i386-elf compiler"
 #endif
 
 #include <system.h>
-
-// Grub2
-#include "include/multiboot.h"
+#include <multiboot.h>
 
 /////////////////////////////
 
@@ -374,7 +372,6 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 {
     gdt_install();
     idt_install();
-    isrs_install();
     timer_install();
     ps2_install();
 
@@ -389,11 +386,14 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 
     delay_ms(500);
 
+    kwritef(serial_write_b, "=============================================================\n");
+    kwritef(serial_write_b, "test double parsing: %f\n", 12349434.323423499);
+    kwritef(serial_write_b, "test double parsing: %f\n", 9582983498293849283984.133);
 
     // TODO: kdebugf (prints to both stdout and serial port)
     u32 a = addi(1,2);
     u32 b = addl(1,2);
-    u32 c = addll(1,2);
+    u64 c = addll(1,2);
     kwritef(serial_write_b, "Test: calling %d, %d, %d\n", a, b, c);
 
 
@@ -402,7 +402,7 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     {
 
         for(int i=0; i<4; ++i)
-            kwritef(serial_write_b, "===================================================================\n");
+            kwritef(serial_write_b, "=============================================================\n");
 
         for(int i=0; i<2; ++i)
         {

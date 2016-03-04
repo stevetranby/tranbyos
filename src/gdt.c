@@ -3,7 +3,7 @@
 /* Defines a GDT entry. We say packed, because it prevents the
 *  compiler from doing things that it thinks is best: Prevent
 *  compiler "optimization" by packing */
-typedef struct pack_struct
+typedef struct PACKED
 {
     u16 limit_low;
     u16 base_low;
@@ -15,13 +15,13 @@ typedef struct pack_struct
 
 /* Special pointer which includes the limit: The max bytes
 *  taken up by the GDT, minus 1. Again, this NEEDS to be packed */
-typedef struct pack_struct
+typedef struct PACKED
 {
     u16 limit;
     gdt_entry* base;
 } gdt_ptr;
 
-typedef struct pack_struct {
+typedef struct PACKED {
     u32    prev_tss;
     u32    esp0;
     u32    ss0;
@@ -151,7 +151,7 @@ void _test_user_function()
     kwritef(serial_write_b, "2/\n");
     kwritef(serial_write_b, "3/\n");
 
-    asm_volatile ("mov $0x123456, %%eax" : : );
+    asm volatile ("mov $0x123456, %%eax" : : );
 
     kwritef(serial_write_b, "4/\n");
     kwritef(serial_write_b, "5/\n");

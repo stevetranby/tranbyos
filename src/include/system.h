@@ -43,6 +43,7 @@ typedef __builtin_va_list va_list;
 
 #define UNUSED_PARAM(x) ((void)(x))
 #define UNUSED_VAR(x)   ((void)(x))
+
 #define ALIGN (sizeof(size_t))
 #define ONES ((size_t)-1/UCHAR_MAX)
 #define HIGHS (ONES * (UCHAR_MAX/2+1))
@@ -61,25 +62,29 @@ typedef __builtin_va_list va_list;
 #define MIN(a,b) (a < b ? a : b)
 #define CLAMP(x, low, high) MIN(MAX(x,low), high)
 
-
-
 //////////////////////////////////////////////////////////////////
 // Macros
+
+// TODO: only need to make sure work on other compilers we want to use for building the kernel, user level can be built with other compilers
 
 // Volatile - don't move instructions (no optimization)
 #define asm          __asm__
 #define volatile     __volatile__
-#define asm_volatile __asm__ __volatile__
-#define pack_struct  __attribute__((packed))
+#define PACKED  __attribute__((packed))
 
-#define sti()   asm_volatile ("sti");
-#define cli()   asm_volatile ("cli");
-#define nop()   asm_volatile ("nop");
-#define iret()  asm_volatile ("iret");
-#define pusha() asm_volatile ("pusha");
-#define popa()  asm_volatile ("popa");
+#define sti()   asm volatile ("sti");
+#define cli()   asm volatile ("cli");
+#define nop()   asm volatile ("nop");
+#define iret()  asm volatile ("iret");
+#define pusha() asm volatile ("pusha");
+#define popa()  asm volatile ("popa");
 
 //------------------
+// Error Handling
+
+
+//------------------
+// Debugging
 
 // TODO: improve this imensly with real logging
 // TODO: move this into `make debug`
@@ -129,6 +134,7 @@ typedef unsigned long      size_t;
 //////////////////////
 // Assertions and Errors
 
+#define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 #define	CONCAT(x,y)   x ## y
 #define	STRINGIFY(x)  #x
 extern void kassert_fail(c_str assertion, c_str file, unsigned int line, c_str func, c_str msg);
@@ -298,12 +304,13 @@ extern u8 *kmalloc(u32 size);
 
 typedef void(*output_writer)(u8 a);
 
-extern void writeInt(output_writer writer, i32 num);
+extern void writeInt(output_writer writer, i64 num);
 extern void writeUInt(output_writer writer, u32 num);
 extern void writeAddr(void* ptr, output_writer writer);
 extern void writeHex_b(output_writer writer, u8 num);
 extern void writeHex_w(output_writer writer, u16 num);
 extern void writeHex(output_writer writer, u32 num);
+extern void writeHex_q(output_writer writer, u64 num);
 extern void writeHexDigit(output_writer writer, u8 digit);
 extern void writeBinary_b(output_writer writer, u8 num);
 extern void writeBinary_w(output_writer writer, u16 num);
@@ -435,6 +442,8 @@ u32 chs2bytes(u16 c, u16 h, u16 s);
 //////////////////////////////////////////////////////////////////
 // Interrupts
 
+#define ISR_COUNT 32
+
 /// IRQ function table (0-7, 8-15)
 #define IRQ_COUNT 16
 
@@ -457,7 +466,7 @@ u32 chs2bytes(u16 c, u16 h, u16 s);
 #define IRQ_ATA_SLAVE           15
 
 /* Defines an IDT entry */
-typedef struct pack_struct
+typedef struct PACKED
 {
     u16 base_lo;
     u16 sel;        /* Our kernel segment goes here! */
@@ -466,7 +475,7 @@ typedef struct pack_struct
     u16 base_hi;
 } idt_entry;
 
-typedef struct pack_struct
+typedef struct PACKED
 {
     unsigned short limit;
     unsigned int base;
@@ -505,7 +514,9 @@ extern void print_irq_counts();
 
 /// Handlers (defined in asm)
 // TODO: can we reduce this to single wrapper?
-extern isr_handler isr_stubs[128];
+//extern isr_handler isr_stubs[ISR_COUNT];
+//extern isr_handler isr_syscall;
+
 extern void isr0();
 extern void isr1();
 extern void isr2();

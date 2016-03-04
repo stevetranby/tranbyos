@@ -1,5 +1,10 @@
+
 OSNAME=tranbyos
-CFLAGS_BASE= -O0 -g -m32 -Wall -Werror -Wno-unused-function -fstrength-reduce -fomit-frame-pointer -finline-functions -nostdlib -nostartfiles -nodefaultlibs -ffreestanding
+
+
+# -Werror (treat warnings as errors)
+CFLAGS_BASE= -O0 -g -m32 -Wall -Wno-unused-function -fstrength-reduce -fomit-frame-pointer -finline-functions -nostdlib -nostartfiles -nodefaultlibs -ffreestanding
+
 # CFLAGS=-std=c11 $(CFLAGS_BASE) -I./src/include # for i386 gcc tools
 CFLAGS=-std=c11 $(CFLAGS_BASE) -m32 -I./src/include
 CXXFLAGS=-std=c++14 $(CFLAGS_BASE) -fno-exceptions -fno-rtti -m32 -I./src/include
@@ -82,6 +87,10 @@ compile: dirs
 # currently working on
 assemble: dirs
 	@echo "\nAssembling...\n"
+	
+	# stdout the preproccessed version
+	#nasm -e elf -o $(OBJ_DIR)/start.o $(ASM_DIR)/start.s
+
 	nasm -f elf -o $(OBJ_DIR)/start.o $(ASM_DIR)/start.s
 	#nasm -f aout -o $(OBJ_DIR)/start.o $(SRC)/start.s
 

@@ -257,7 +257,6 @@ mouse_device_packet read_next_packet() {
 void mouse_handler(isr_stack_state *r)
 {
     UNUSED_PARAM(r);
-    serial_write("^");
 
     u8 mouse_in = inb(PS2_DATA);
 
@@ -324,11 +323,10 @@ finish_packet:
 
     mouse_x = CLAMP(mouse_x + packet.x_difference, 0, 600);
     mouse_y = CLAMP(mouse_y + packet.y_difference, 0, 400);
+
     //mouse_y += packet.y_difference;
+
     mouse_buttons = packet.buttons;
-
-    kwritef(serial_write_b, "mouse: %b, %d, %d [%d,%d]\n", mouse_byte[0], packet.x_difference, packet.y_difference, mouse_x, mouse_y);
-
 
     add_packet(packet);
 

@@ -185,50 +185,66 @@ void printBinary_b(u8 num) { writeBinary_b(kputch, num); }
 // TODO: should allow wrap on word
 // TODO: should allow padding (at least with (0) zeros)
 // Note: assume base 10 for right now
-void writeInt(output_writer writer, i32 num)
+void writeInt(output_writer writer, i64 num)
 {
-    b32 isNeg = false;
-    u8 buf[MAX_INT_DIGITS];
-    i32 cur, end, temp=0;
-
-    end = MAX_INT_DIGITS-1;
-    cur = end;
-
-    if(num == 0) {
-        writer('0');
-        return;
-    }
-
-    buf[cur] = '\0';
-
-    // check if negative and print neg character
+    u8 delim_negative = '-';
     if(num < 0) {
-        isNeg = 1;
-        num = -num;		// abs(num)
+        writer(delim_negative);
+        writeUInt(writer, -num);
+    } else {
+        writeUInt(writer, num);
     }
+    return;
 
-    while(num) {
-        temp = num % 10; // get 'ones' or right most digit
-        --cur;
-        buf[cur] = temp + '0'; // add the digit (temp) to ASCII code '0'
-        num /= 10; // remove right most digit
-    }
+//    b32 isNeg = false;
+//    u8 buf[MAX_INT_DIGITS];
+//    i32 cur, end, temp=0;
+//
+//    end = MAX_INT_DIGITS-1;
+//    cur = end;
+//
+//    if(num == 0) {
+//        writer('0');
+//        return;
+//    }
+//
+//    buf[cur] = '\0';
+//
+//    // check if negative and print neg character
+//    if(num < 0) {
+//        isNeg = 1;
+//        num = -num;		// abs(num)
+//    }
+//
+//    while(num) {
+//        temp = num % 10; // get 'ones' or right most digit
+//        --cur;
+//        buf[cur] = temp + '0'; // add the digit (temp) to ASCII code '0'
+//        num /= 10; // remove right most digit
+//    }
+//
+//    if(isNeg)
+//        writer('-');
+//
+//    // print the string
+//    char c = '0';
+//    for(; cur < end; ++cur) {
+//        c = buf[cur];
+//        writer(c);
+//    }
+}
 
-    if(isNeg)
-        writer('-');
+void writeUInt64(output_writer writer, u64 num)
+{
 
-    // print the string
-    char c = '0';
-    for(; cur < end; ++cur) {
-        c = buf[cur];
-        writer(c);
-    }
 }
 
 void writeUInt(output_writer writer, u32 num)
 {
+    const char digits[] = "0123456789";
+
     u8 buf[MAX_INT_DIGITS];
-    i32 cur, end, temp=0;
+    i32 cur, end;
 
     end = MAX_INT_DIGITS-1;
     cur = end;
@@ -241,14 +257,17 @@ void writeUInt(output_writer writer, u32 num)
     buf[cur] = '\0';
 
     // fill buf with each digit
+    i32 digit = 0;
     while(num)
     {
         // get 'ones' or right most digit
-        temp = num % 10;
+        digit = num % 10;
         --cur;
 
         // add the digit (temp) to ASCII code '0'
-        buf[cur] = temp + '0';
+        int n = COUNT_OF(digits);
+        ASSERT(digit < n, "Int Digit could not be parsed (should not have occured)!");
+        buf[cur] = digits[digit];
 
         // remove right most digit
         num /= 10;
@@ -262,38 +281,147 @@ void writeUInt(output_writer writer, u32 num)
     }
 }
 
+static inline unsigned bit_mask(int x)
+{
+    return (x >= sizeof(unsigned) * CHAR_BIT) ? (unsigned) -1 : (1U << x) - 1;
+}
+
+void writeRealDebug(output_writer writer, real64 num)
+{
+    // NOTE: Intel Double Precision
+    // NOTE: need to be careful to not get automatic value conversion instead of just type conversion
+    u64* numToIntPtr = (u64*)&num;
+    u64 numInt = *numToIntPtr;
+
+    u8  signbit = (numInt >> 63) & 1;
+    u16 exp = (numInt >> 52) & bit_mask(11);
+    u16 expbias = 1023;
+    u16 exponent = exp - expbias;
+    u64 mantissa = numInt & bit_mask(52);
+
+    if(exponent == 0) {
+        kwrites(writer, "signed zero (mantissa = 0) otherwise subnormal\n");
+    }
+    if(exponent == 0x7ff) {
+        kwrites(writer, "infinity (mantissa = 0) otherwise NaN\n");
+    }
+
+#if (DEBUG_LEVEL > 1)
+
+    writer('\n');
+    writer('[');
+    writeHex_q(writer, numInt);
+    writer(':');
+    writer(' ');
+    writeHex_b(writer, signbit);
+    writer(',');
+    writeHex_w(writer, exp);
+    kwrites(writer," => ");
+    writeInt(writer, exponent);
+    writer(',');
+    writeHex_q(writer, mantissa);
+    kwrites(writer," => ");
+    writeInt(writer, mantissa);
+    writer(']');
+    writer('\n');
+
+#endif
+
+    if(signbit) writer('-');
+    kwrites(writer, "1.");
+    writeUInt64(writer, mantissa);
+    kwrites(writer, " * 2^");
+    writeInt(writer, (i32)exponent);
+
+    return;
+}
+
+#define scast(typ) (typ)
+#define MAX_FLOATING_FRACTIONAL_DIGITS 10
+
+void writeReal_component(output_writer writer, real64 smallNum, bool write_fraction)
+{
+    if(smallNum < 0) {
+        smallNum = -smallNum;
+        writer('-');
+    }
+
+    // HACK: cast to truncate
+    i64 whole = (i64)smallNum;
+    real64 fractional = smallNum - (real64)whole;
+
+    writeInt(writer, whole);
+
+    if(! write_fraction)
+        return;
+
+    // print delimiter '.'
+    writer('.');
+
+    int iterations = MAX_FLOATING_FRACTIONAL_DIGITS; // @fixme @magic
+    while (iterations--) {
+        fractional = fractional * 10.0;
+        u32 wholeDigit = (u32)(fractional);
+        writeInt(writer, wholeDigit);
+
+        // are we done?
+        fractional = fractional - ((real64)wholeDigit);
+        if(fractional <= 0.0000001)
+            break;
+    }
+}
+
+// FIXME:
+// HACK:
+// TODO: use <math.h> instead
+//
+// - https://github.com/client9/stringencoders
+// - http://babbage.cs.qc.cuny.edu/IEEE-754.old/Decimal.html
+//
+void writeReal(output_writer writer, real64 num)
+{
+    // HACK
+    if(num > INT64_MAX) {
+        writeRealDebug(writer, num);
+    } else if(num > INT32_MAX) {
+        // can't div and modulo in 64 bits, without library
+        writeRealDebug(writer, num);
+    } else {
+        writeReal_component(writer, num, true);
+    }
+}
+
+
+internal
+void writeHex_bytes(output_writer writer, u64 num, u8 nibbles) {
+    writer('0'); writer('x');
+    for(int i = (nibbles << 2) - 4; i >= 0; i -= 4)
+        writeHexDigit(writer, (num >> i) & 0x0f);
+}
+
 void writeAddr(void* ptr, output_writer writer)
 {
-    writeHex(writer, (u32)ptr);
+    writeHex_bytes(writer, (u32)ptr, 8);
 }
 
-void writeHex_b(output_writer writer, u8 b)
+void writeHex_b(output_writer writer, u8 num)
 {
-    kputs("0x");
-    writeHexDigit(writer, (b >> 4) & 0x0f);
-    writeHexDigit(writer, (b) & 0x0f);
+    writeHex_bytes(writer, num, 2);
 }
 
-void writeHex_w(output_writer writer, u16 w)
+void writeHex_w(output_writer writer, u16 num)
 {
-    kputs("0x");
-    writeHexDigit(writer, (w>>12) & 0x0f);
-    writeHexDigit(writer, (w>>8) & 0x0f);
-    writeHexDigit(writer, (w>>4) & 0x0f);
-    writeHexDigit(writer, (w) & 0x0f);
+    writeHex_bytes(writer, num, 4);
 }
 
-void writeHex(output_writer writer, u32 w)
+void writeHex(output_writer writer, u32 num)
 {
-    writer('0'); writer('x');
-    writeHexDigit(writer, (w>>28) & 0x0f);
-    writeHexDigit(writer, (w>>24) & 0x0f);
-    writeHexDigit(writer, (w>>20) & 0x0f);
-    writeHexDigit(writer, (w>>16) & 0x0f);
-    writeHexDigit(writer, (w>>12) & 0x0f);
-    writeHexDigit(writer, (w>>8) & 0x0f);
-    writeHexDigit(writer, (w>>4) & 0x0f);
-    writeHexDigit(writer, (w) & 0x0f);
+        writeHex_bytes(writer, num, 8);
+}
+
+void writeHex_q(output_writer writer, u64 num)
+{
+        writeHex_bytes(writer, num, 16);
 }
 
 void writeHexDigit(output_writer writer, u8 digit)
@@ -455,14 +583,24 @@ void kwritef(output_writer writer, c_str format, ...)
                 writeBinary(writer, val);
                 break;
             }
-            case 'd':
-            case 'f': {
+            case 'd': {
                 int val = va_arg(ap, int);
                 writeInt(writer, val);
                 break;
             }
+            case 'f': {
+                // va_arg cannot handle float, only doubles
+                real64 val = va_arg(ap, real64);
+                writeReal(writer, val);
+                break;
+            }
             case 'u': {
                 u32 val = va_arg(ap, u32);
+                writeUInt(writer, val);
+                break;
+            }
+            case 'q': {
+                u64 val = va_arg(ap, u64);
                 writeUInt(writer, val);
                 break;
             }

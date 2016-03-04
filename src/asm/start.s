@@ -194,14 +194,20 @@ idt_load:
 
 ;--------------------------------------------------------------------
 ; Interrupt Service Routines (ISR)
+
+; make handler available to 'C' with `global`
+; only push 0 for NO ERROR gates
+
 %assign i 0
 %rep    32
-; make handler available to 'C'
+
 global isr %+ i
 ; IRQ handler
 isr %+ i:
     cli
+%if (i != 8 && (i < 10 || i > 14))
     push    byte 0
+%endif
     push    byte i
     jmp     isr_common_stub
 %assign i i+1

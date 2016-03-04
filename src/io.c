@@ -3,7 +3,7 @@
 //static inline u8 inb_dummy(u16 port)
 //{
 //    u8 ret;
-//    asm_volatile ( "inb %[port], %[ret]"
+//    asm volatile ( "inb %[port], %[ret]"
 //                  : [ret] "=a"(ret)
 //                  : [port] "Nd"(port) );
 //    return ret;
@@ -17,38 +17,38 @@
 u8 inb (u16 _port)
 {
     u8 rv;
-    asm_volatile ("inb %1, %0" : "=a" (rv) : "dN" (_port));
+    asm volatile ("inb %1, %0" : "=a" (rv) : "dN" (_port));
     return rv;
 }
 
 u16 inw(u16 _port)
 {
     u16 rv;
-    asm_volatile ("inw %1, %0" : "=a" (rv) : "dN" (_port));
+    asm volatile ("inw %1, %0" : "=a" (rv) : "dN" (_port));
     return rv;
 }
 
 u32 inl(u16 _port)
 {
     u32 rv;
-    asm_volatile ("inl %1, %0" : "=a" (rv) : "dN" (_port));
+    asm volatile ("inl %1, %0" : "=a" (rv) : "dN" (_port));
     return rv;
 }
 
 /// Write to IO port (8,16,32-bit value)
 void outb(u16 _port, u8 _data)
 {
-    asm_volatile ("outb %1, %0" : : "dN" (_port), "a" (_data));
+    asm volatile ("outb %1, %0" : : "dN" (_port), "a" (_data));
 }
 
 void outw(u16 _port, u16 _data)
 {
-    asm_volatile ("outw %1, %0" : : "dN" (_port), "a" (_data));
+    asm volatile ("outw %1, %0" : : "dN" (_port), "a" (_data));
 }
 
 void outd(u16 _port, u32 _data)
 {
-    asm_volatile ("outl %1, %0" : : "dN" (_port), "a" (_data));
+    asm volatile ("outl %1, %0" : : "dN" (_port), "a" (_data));
 }
 
 void print_port(u16 port)
@@ -106,7 +106,7 @@ void print_port(u16 port)
 //static inline u32 farpeekl(u16 sel, void* off)
 //{
 //    u32 ret;
-//    asm_volatile ( "push %%fs\n\t"
+//    asm volatile ( "push %%fs\n\t"
 //                     "mov  %1, %%fs\n\t"
 //                     "mov  %%fs:(%2), %0\n\t"
 //                     "pop  %%fs"
@@ -116,7 +116,7 @@ void print_port(u16 port)
 //
 //static inline void farpokeb(u16 sel, void* off, u8 v)
 //{
-//    asm_volatile ( "push %%fs\n\t"
+//    asm volatile ( "push %%fs\n\t"
 //                     "mov  %0, %%fs\n\t"
 //                     "movb %2, %%fs:(%1)\n\t"
 //                     "pop %%fs"
@@ -131,7 +131,7 @@ void print_port(u16 port)
 //    // return 1;
 //
 //    i32 result;
-//    asm_volatile (  "	pushfl\n"
+//    asm volatile (  "	pushfl\n"
 //                    "	pop	%%eax\n"
 //                    "	mov	%%eax,	%%ecx\n"
 //                    "	xor	$0x200000,	%%eax\n"
@@ -149,21 +149,21 @@ void print_port(u16 port)
 //static inline void cpuid(int code, u32* a, u32* d)
 //{
 //
-//    asm_volatile ( "cpuid" : "=a"(*a), "=d"(*d) : "0"(code) : "ebx", "ecx" );
+//    asm volatile ( "cpuid" : "=a"(*a), "=d"(*d) : "0"(code) : "ebx", "ecx" );
 //}
 //
 ///// CPU's time-stamp counter and store into EDX:EAX.
 //static inline u64 rdtsc()
 //{
 //    u64 ret;
-//    asm_volatile ( "rdtsc" : "=A"(ret) );
+//    asm volatile ( "rdtsc" : "=A"(ret) );
 //    return ret;
 //}
 //
 //static inline bool are_interrupts_enabled()
 //{
 //    unsigned long flags;
-//    asm_volatile ( "pushf\n\t"
+//    asm volatile ( "pushf\n\t"
 //                  "pop %0"
 //                  : "=g"(flags) );
 //    return flags & (1 << 9);
@@ -171,18 +171,18 @@ void print_port(u16 port)
 //
 //static inline void lidt(void* base, u16 size)
 //{   // This function works in 32 and 64bit mode
-//    struct pack_struct {
+//    struct PACKED {
 //        u16 length;
 //        void*    base;
 //    } IDTR = { size, base };
 //
-//    asm_volatile ( "lidt %0" : : "m"(IDTR) );  // let the compiler choose an addressing mode
+//    asm volatile ( "lidt %0" : : "m"(IDTR) );  // let the compiler choose an addressing mode
 //}
 //
 //static inline unsigned long read_cr0(void)
 //{
 //    unsigned long val;
-//    asm_volatile ( "mov %%cr0, %0" : "=r"(val) );
+//    asm volatile ( "mov %%cr0, %0" : "=r"(val) );
 //    return val;
 //}
 
@@ -190,20 +190,20 @@ void print_port(u16 port)
 inline void invlpg(void* m)
 {
     /* Clobber memory to avoid optimizer re-ordering access before invlpg, which may cause nasty bugs. */
-    asm_volatile ( "invlpg (%0)" : : "b"(m) : "memory" );
+    asm volatile ( "invlpg (%0)" : : "b"(m) : "memory" );
 }
 
 // Write a 64-bit value to a MSR. The A constraint stands for concatenation of registers EAX and EDX.
 inline void wrmsr(u32 msr_id, u64 msr_value)
 {
-    asm_volatile ( "wrmsr" : : "c" (msr_id), "A" (msr_value) );
+    asm volatile ( "wrmsr" : : "c" (msr_id), "A" (msr_value) );
 }
 
 // Read a 64-bit value from a MSR. The A constraint stands for concatenation of registers EAX and EDX.
 inline u64 rdmsr(u32 msr_id)
 {
     u64 msr_value;
-    asm_volatile ( "rdmsr" : "=A" (msr_value) : "c" (msr_id) );
+    asm volatile ( "rdmsr" : "=A" (msr_value) : "c" (msr_id) );
     return msr_value;
 }
 
