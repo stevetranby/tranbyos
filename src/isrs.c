@@ -232,11 +232,15 @@ c_str exception_messages[] =
     "Reserved"
 };
 
-static u32 isr_counts[ISR_COUNT] = { 0, };
-static isr_handler isr_stubs[ISR_COUNT] = { 0, };
+// TODO: check alignment
 
+static isr_handler isr_stubs[ISR_COUNT] = { 0, };
 static isr_handler irq_routines[IRQ_COUNT] = { 0, };
+
+static u32 isr_counts[ISR_COUNT] = { 0, };
 static u32 irq_counts[IRQ_COUNT] = { 0, };
+static u32 irq_spurious[IRQ_COUNT] = { 0, };
+
 static u8 irq_names[IRQ_COUNT][20] = { {0, }, };
 
 /// (Un)Install IRQ handler
@@ -256,7 +260,6 @@ void irq_uninstall_handler(u32 irq)
 
 // May be fragile? basically does an opcode for jmp twice
 #define PIC_WAIT() do { asm volatile("jmp 1f\n\t1:\n\tjmp 2f\n\t2:"); } while (0)
-
 
 #define PIC1_CMD            0x20
 #define PIC1_DATA           0x21
@@ -281,7 +284,6 @@ void irq_uninstall_handler(u32 irq)
 void irq_remap(int irqPrimary, int irqSecondary)
 {
     // NOTE: other implementations don't bother saving/restoring the masks
-
     // save masks
     u8 a1 = inb(PIC1_DATA);
     u8 a2 = inb(PIC2_DATA);
@@ -302,14 +304,9 @@ void irq_remap(int irqPrimary, int irqSecondary)
     outb(PIC1_DATA, ICW4_8086); PIC_WAIT();
     outb(PIC2_DATA, ICW4_8086); PIC_WAIT();
 
-
-//    outb(PIC1_DATA, 0x00);
-//    outb(PIC2_DATA, 0x00);
-//
-//    // reset PIC's
-//    outb(PIC1_DATA, 0x20);
-//    outb(PIC2_DATA, 0x20);
-
+    // reset PIC's
+    outb(PIC1_DATA, PIC_CMD_EOI);
+    outb(PIC2_DATA, PIC_CMD_EOI);
 
     // restore saved masks.
     outb(PIC1_DATA, a1);
@@ -320,9 +317,6 @@ void irq_remap(int irqPrimary, int irqSecondary)
 void kernel_panic()
 {
     kputs("\n\n ****  PANIC. System Halted! ******* \n\n");
-
-
-
     for (;;);
 }
 
@@ -331,45 +325,42 @@ void do_int3(u32* esp, u32 error_code, u32 fs, u32 es, u32 ds,
 {
     int tr;
     __asm__("str %%ax":"=a" (tr):"0" (0));
-    kprintf("\n\neax\t\tebx\t\tecx\t\tedx\n\r%x\t%x\t%x\t%x\n\r",
-            eax,ebx,ecx,edx);
-    kprintf("esi\t\tedi\t\tebp\t\tesp\n\r%x\t%x\t%x\t%x\n\r",
-            esi,edi,ebp,(long) esp);
-    kprintf("\n\rds\tes\tfs\ttr\n\r%x\t%x\t%x\t%x\n\r",
-            ds,es,fs,tr);
+    kprintf("\n\neax\t\tebx\t\tecx\t\tedx\n\r%x\t%x\t%x\t%x\n\r", eax,ebx,ecx,edx);
+    kprintf("esi\t\tedi\t\tebp\t\tesp\n\r%x\t%x\t%x\t%x\n\r", esi,edi,ebp,(long) esp);
+    kprintf("\n\rds\tes\tfs\ttr\n\r%x\t%x\t%x\t%x\n\r", ds,es,fs,tr);
     kprintf("\nEIP: %x   CS: %x  EFLAGS: %x\n\r",esp[0],esp[1],esp[2]);
 }
 
 
 // TODO:
 // - combine ISR w/IRQ (IRQs are mapped into IDT table, see above)
-// - IDT supports 128 ISRs
+// - IDT supports 128 ISRs, technically can have 256 ...
 // - fault_handler should handle some of the interrupts
 // - at least show a panic screen
+// - should change name or use this only for the real faults
+// - other ISRs are technically software ones where you can call w/INT ##
 
 /// The hardware ISRs use this handler
 /// cli() and sli() are called from asm
 void fault_handler(isr_stack_state* r)
 {
     int i = r->int_no;
+
     /// Should we handle this?
-    if (i < 32)
-    {
-        isr_handler handler = isr_stubs[i];
-        if(handler) {
-            // handle
-            handler(r);
-        } else if(i == 3) {
-            do_int3((u32*)r->esp, r->err_code, r->fs, r->es, r->ds, r->ebp, r->esi, r->edi, r->edx, r->ecx, r->ebx, r->eax);
-        } else {
-            kprintf("Unhandled Exception [ISR #%d]: %s", i, exception_messages[i]);
-
-            do_int3((u32*)r->esp, r->err_code, r->fs, r->es, r->ds, r->ebp, r->esi, r->edi, r->edx, r->ecx, r->ebx, r->eax);
-
-            kernel_panic();
-        }
+    isr_handler handler = isr_stubs[i];
+    if(handler) {
+        // handle
+        handler(r);
     } else {
-        kputs("Not Handling\n");
+        if (i < 32)
+        {
+            kprintf("Unhandled Exception [ISR #%d]: %s [err: %d]", i, exception_messages[i], r->err_code);
+            do_int3((u32*)r->esp, r->err_code, r->fs, r->es, r->ds, r->ebp, r->esi, r->edi, r->edx, r->ecx, r->ebx, r->eax);
+            kernel_panic();
+        } else {
+            kprintf("Unhandled Exception [ISR #%d]: %s [err: %d]", i, exception_messages[i], r->err_code);
+            kputs("No Handler Setup\n");
+        }
     }
 
     ++isr_counts[i];
@@ -405,44 +396,6 @@ void fault_handler(isr_stack_state* r)
 //    outb(port, value);
 //}
 //
-
-
-
-
-/// Two 8259 chips: First bank: 0x20, Second: 0xA0.
-/// IRQ handler - called from assembly
-// NOTE: irq_no is 0-15
-void irq_ack(u32 irq_no)
-{
-    // Need to send IRQ 8-15 to SLAVE as well
-    if (irq_no >= 8) {
-        outb(PIC2_CMD, PIC_CMD_EOI);
-    }
-    outb(PIC1_CMD, PIC_CMD_EOI);
-}
-
-void irq_handler(isr_stack_state* r)
-{
-    // if we've installed a handler, call it
-    u8 irq = r->int_no - 32;
-    if (irq_routines[irq]) {
-        isr_handler handler = irq_routines[irq];
-        handler(r);
-    }
-
-    irq_ack(irq);
-
-    irq_counts[irq]++;
-}
-
-void print_irq_counts()
-{
-    for(int i=0; i < IRQ_COUNT; ++i) {
-        kprintf("%d:\t%d\t'%s'\n", i, irq_counts[i], irq_names[i]);
-    }
-}
-
-
 ///////
 // Spurious IRQs
 
@@ -479,7 +432,7 @@ void print_irq_counts()
  occurred (e.g. by incrementing a counter when a spurious IRQ occurs). This can be useful for detecting
  problems in software (e.g. sending EOIs at the wrong time) and detecting problems in hardware
  (e.g. line noise).
- 
+
  */
 //#define PIC1_CMD                    0x20
 //#define PIC1_DATA                   0x21
@@ -508,4 +461,48 @@ uint16_t pic_get_irr(void)
 uint16_t pic_get_isr(void)
 {
     return __pic_get_irq_reg(PIC_READ_ISR);
+}
+
+
+/// Two 8259 chips: First bank: 0x20, Second: 0xA0.
+/// IRQ handler - called from assembly
+// NOTE: irq_no is 0-15
+void irq_ack(u32 irq_no)
+{
+    // Need to send IRQ 8-15 to SLAVE as well
+    if (irq_no >= 8) {
+        outb(PIC2_CMD, PIC_CMD_EOI);
+    }
+    outb(PIC1_CMD, PIC_CMD_EOI);
+}
+
+void irq_handler(isr_stack_state* r)
+{
+    u8 irq = r->int_no - 32;
+
+    // check if spurious?
+    u16 isrFlags = pic_get_isr();
+    if(! BIT(isrFlags, irq)) {
+        kwritef(serial_write_b, "isrflags = %b", isrFlags);
+        kwritef(serial_write_b, "spurious IRQ #%d detected", irq);
+        irq_spurious[irq]++;
+    }
+
+    // if we've installed a handler, call it
+    if (irq_routines[irq]) {
+        isr_handler handler = irq_routines[irq];
+        handler(r);
+    }
+
+    irq_ack(irq);
+
+    irq_counts[irq]++;
+}
+
+void print_irq_counts()
+{
+    serial_write("IRQ#\tCount\tName\t\tSpurious");
+    for(int i=0; i < IRQ_COUNT; ++i) {
+        kwritef(serial_write_b, "%d:\t%d\t'%s'\t%d\n", i, irq_counts[i], irq_names[i], irq_spurious[i]);
+    }
 }

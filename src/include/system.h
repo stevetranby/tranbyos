@@ -103,10 +103,6 @@ typedef __builtin_va_list va_list;
 #define trace_info(fmt, ...) do {} while(0);
 #endif
 
-
-// TODO: maybe move to exist with other print/write (possibly break out multi headers)
-#define kprintf(fmt, ...) kwritef(kputch, fmt, ##__VA_ARGS__)
-
 //////////////////////////////////////////////////////////////////
 // Types
 
@@ -144,6 +140,10 @@ extern void kassert_fail(c_str assertion, c_str file, unsigned int line, c_str f
 //////////////////////////////////////////////////////////////////
 // Utilities and Common
 
+// TODO: determine how to handle the desire for restrict in cpp code
+#if __cplusplus
+#define restrict
+#endif
 extern void* kmemcpy(void* restrict dest, const void* restrict src, size_t n);
 extern void* kmemset(void* dest, int c, size_t n);
 extern size_t   kmemcmp(const void* vl, const void* vr, size_t n);
@@ -336,10 +336,12 @@ extern void serial_writeHex_w(u16 num);
 extern void serial_writeHex_b(u8 num);
 extern void serial_writeBinary_b(u8 num);
 
+// TODO: kwrite("",a,b,c); should write to all output "subscribers"
 extern void kwrites(output_writer writer, c_str text);
 extern void kputs(const char* text);
 //extern void kprintf(c_str format, ...);
 extern void kwritef(output_writer writer, c_str format, ...);
+#define kprintf(fmt, ...) kwritef(kputch, fmt, ##__VA_ARGS__)
 
 ////////////////////////////////////////////////////////////////////////////
 // User Input Devices
