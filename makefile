@@ -53,12 +53,15 @@ link: compile assemble
 	# $(LD) -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/start.o
 
 	# x86_64 toolchain
-	$(LD) -m elf_i386 -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/start.o \
+	$(LD) -m elf_i386 -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin \
+							$(OBJ_DIR)/start.o \
+							$(OBJ_DIR)/kernel.o  \
 							$(OBJ_DIR)/main.o  \
 							$(OBJ_DIR)/scrn.o  \
 							$(OBJ_DIR)/gdt.o   \
 							$(OBJ_DIR)/isrs.o  \
 							$(OBJ_DIR)/timer.o \
+							$(OBJ_DIR)/task.o \
 							$(OBJ_DIR)/kb.o    \
 							$(OBJ_DIR)/mm.o    \
 							$(OBJ_DIR)/hd.o    \
@@ -75,6 +78,7 @@ compile: dirs
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/gdt.o   $(SRC)/gdt.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/isrs.o  $(SRC)/isrs.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/timer.o $(SRC)/timer.c
+	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/task.o   $(SRC)/task.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/kb.o    $(SRC)/kb.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/mm.o    $(SRC)/mm.c
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/hd.o    $(SRC)/hd.c
@@ -87,12 +91,14 @@ compile: dirs
 # currently working on
 assemble: dirs
 	@echo "\nAssembling...\n"
-	
 	# stdout the preproccessed version
 	#nasm -e elf -o $(OBJ_DIR)/start.o $(ASM_DIR)/start.s
-
-	nasm -f elf -o $(OBJ_DIR)/start.o $(ASM_DIR)/start.s
+	# aout
 	#nasm -f aout -o $(OBJ_DIR)/start.o $(SRC)/start.s
+	# elf obj format 
+	nasm -f elf -o $(OBJ_DIR)/start.o $(ASM_DIR)/start.s
+	nasm -f elf -o $(OBJ_DIR)/kernel.o $(ASM_DIR)/kernel.s
+	
 
 dirs:
 	mkdir -p $(BIN_DIR)

@@ -1,6 +1,4 @@
-//#pragma once
-#ifndef SYSTEM_H
-#define SYSTEM_H
+#pragma once
 
 #if !defined(__cplusplus)
 #include <stdbool.h> /* C doesn't have booleans by default. */
@@ -12,7 +10,36 @@
 // #include <stdarg.h>
 #include <stdint.h>
 
-#include <systemcpp.h>
+
+//////////////////////////////////////////////////////////////////
+// Types
+
+// Data Types
+// TODO: make sure to #ifdef or include in platform-specific header
+// TODO: 's' instead of 'i' prefix?
+typedef uint8_t    u8;
+typedef uint16_t  u16;
+typedef uint32_t  u32;
+typedef char       i8;
+typedef int16_t   i16;
+typedef int32_t   i32;
+typedef uint8_t    b8;
+typedef uint32_t  b32;
+
+typedef float              real32;
+typedef double             real64;
+typedef float                 f32;
+typedef double                f64;
+typedef const char*         c_str;
+typedef char*           c_str_mut;
+
+typedef unsigned long long    u64;
+typedef long long             i64;
+typedef unsigned long      size_t;
+
+//////////////////////////////////////////////////////////////////
+// variable arg functions (t, ....)
+// TODO: use builtin and clib headers instead
 
 #ifndef va_start
 typedef __builtin_va_list va_list;
@@ -103,30 +130,6 @@ typedef __builtin_va_list va_list;
 #define trace_info(fmt, ...) do {} while(0);
 #endif
 
-//////////////////////////////////////////////////////////////////
-// Types
-
-// Data Types
-// TODO: make sure to #ifdef or include in platform-specific header
-// TODO: 's' instead of 'i' prefix?
-typedef uint8_t    u8;
-typedef uint16_t  u16;
-typedef uint32_t  u32;
-typedef char       i8;
-typedef int16_t   i16;
-typedef int32_t   i32;
-typedef uint8_t    b8;
-typedef uint32_t  b32;
-
-typedef float              real32;
-typedef double             real64;
-typedef const char*         c_str;
-typedef char*           c_str_mut;
-
-typedef unsigned long long    u64;
-typedef long long             i64;
-typedef unsigned long      size_t;
-
 //////////////////////
 // Assertions and Errors
 
@@ -168,22 +171,27 @@ typedef struct {
     u32 esi, edi, esp, ebp, eip;
     // flags
     u32 eflags, cr3;
-} task_registers;
+} TaskRegisters;
 
-typedef struct task {
-    task_registers regs;
-    struct task *next;
-} task;
+// NOTE: require struct w/ tag because typedef not defined yet
+typedef struct Task {
+    TaskRegisters regs;
+    struct Task* next;
+} Task;
 
-typedef void(*task_handler)();
+typedef void(*TaskHandler)();
 
 /// Initialize the multitasking system and structures
-extern void task_init();
+extern void initTask();
 /// Kernel interface to switching task
-extern void task_preempt();
-extern void ktask_create(task*, task_handler, u32, u32*);
+extern void preemptCurrentTask();
+extern void createTask(Task*, TaskHandler, u32, u32*);
 /// Kernel impl for switching task
-extern void task_switch(task_registers *prev, task_registers *next);
+extern void switchTask(TaskRegisters* prev, TaskRegisters* next);
+
+// testing
+extern void k_preempt();
+extern void k_doIt();
 
 //////////////////////////////////////////////////////////////////
 // Real Time & Clock and Timers
@@ -264,7 +272,7 @@ extern u32 init_graph_vga(u32 width, u32 height, b32 chain4);
 extern void plot_pixel(u32 x, u32 y, u8 color);
 extern void line_fast(u32 x1, u32 y1, u32 x2, u32 y2, u8 color);
 extern void polygon(u32 num_vertices,  u32 *vertices, u8 color);
-extern void fillrect(u32 xoff, u32 yoff);
+extern void fillrect(u32 xoff, u32 yoff, u8 color);
 extern void vga_tests();
 
 
@@ -292,20 +300,27 @@ extern void print_port(u16 port);
 /// - Defines the memory paging table map
 extern void gdt_set_gate(u32 num, u32 base, u32 limit, u8 access, u8 gran);
 extern void gdt_install();
-extern void _jump_usermode();
+extern void jump_usermode();
 
 // Memory Allocation
 extern void init_mm(void);
 extern void print_heap_magic(void);
 extern u8 *kmalloc(u32 size);
 
+
+extern void loadPageDirectory(u32*);
+extern void enablePaging();
+extern void init_page_directory();
+
 //////////////////////////////////////////////////////////////////
 // STDOUT and friends
 
 typedef void(*output_writer)(u8 a);
 
-extern void writeInt(output_writer writer, i64 num);
+extern void writeInt(output_writer writer, i32 num);
 extern void writeUInt(output_writer writer, u32 num);
+extern void writeInt64(output_writer writer, i64 num);
+extern void writeUInt64(output_writer writer, u64 num);
 extern void writeAddr(void* ptr, output_writer writer);
 extern void writeHex_b(output_writer writer, u8 num);
 extern void writeHex_w(output_writer writer, u16 num);
@@ -346,8 +361,24 @@ extern void kwritef(output_writer writer, c_str format, ...);
 ////////////////////////////////////////////////////////////////////////////
 // User Input Devices
 
-extern i32 mouse_getx();
-extern i32 mouse_gety();
+typedef struct {
+    u32 magic;
+    i16 x_difference;
+    i16 y_difference;
+    u16 buttons;
+} mouse_device_packet;
+
+#define MOUSE_MAGIC 0x57343
+#define LEFT_CLICK 0x01
+#define RIGHT_CLICK 0x02
+#define MIDDLE_CLICK 0x04
+#define MOUSE_SCROLL_DOWN 0x08
+#define MOUSE_SCROLL_UP 0x10
+
+extern i32 mouse_get_x();
+extern i32 mouse_get_y();
+extern u16 mouse_get_buttons();
+extern i8 mouse_get_scrolling();
 
 extern void ps2_install();
 
@@ -666,4 +697,3 @@ extern i32 mouse_get_y();
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 
-#endif // SYSTEM_H

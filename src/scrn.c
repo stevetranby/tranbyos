@@ -1,5 +1,8 @@
 #include <system.h>
 
+
+////////////////////////////////////////////////////////////////////////////////
+
 /*
  * These define our textpointer, our background and foreground
  * colors (attributes), and x and y cursor coordinates
@@ -180,71 +183,174 @@ void printAddr(void* addr) { writeAddr(kputch, addr); }
 void printBinary_b(u8 num) { writeBinary_b(kputch, num); }
 
 // u32 - 10, u64 - 20
-#define MAX_INT_DIGITS 20
+#define MAX_INT_DIGITS 24
 
 // TODO: should allow wrap on word
 // TODO: should allow padding (at least with (0) zeros)
 // Note: assume base 10 for right now
-void writeInt(output_writer writer, i64 num)
+void writeInt(output_writer writer, i32 num)
 {
     u8 delim_negative = '-';
     if(num < 0) {
         writer(delim_negative);
-        writeUInt(writer, -num);
+        writeUInt(writer, (u32)-num);
     } else {
-        writeUInt(writer, num);
+        writeUInt(writer, (u32)num);
     }
     return;
+}
 
-//    b32 isNeg = false;
-//    u8 buf[MAX_INT_DIGITS];
-//    i32 cur, end, temp=0;
+/*
+
+ print u64
+
+ .data
+ decstr  db      24 dup (0)
+ pfstr   db      '%','s',0dh,0ah,0
+ .code
+ extrn   _printf:NEAR
+ _main   proc    near
+ mov     edi,000000002h          ;edi = high order dvnd
+ mov     esi,04CB016EAh          ;esi = low  order dvnd
+ lea     ebx,decstr+23           ;ebx = ptr to end string
+ mov     ecx,10                  ;ecx = 10 (constant)
+ div0:   xor     edx,edx                 ;clear edx
+ mov     eax,edi                 ;divide high order
+ div     ecx
+ mov     edi,eax
+ mov     eax,esi                 ;divide low order
+ div     ecx
+ mov     esi,eax
+ add     dl,'0'                  ;store ascii digit
+ dec     ebx
+ mov     [ebx],dl
+ mov     eax,edi                 ;repeat till dvnd == 0
+ or      eax,esi
+ jnz     div0
+ push    ebx                     ;display string
+ push    offset pfstr
+ call    _printf
+ add     sp,8
+ xor     eax,eax
+ ret
+ _main   endp
+
+
+ asm ("movl %0,%%eax;
+ movl %1,%%ecx;
+ call _foo"
+ :
+ : "g" (from), "g" (to)
+ : "eax", "ecx"
+ );
+
+
+ */
+
+
+// TODO: need to link in libgcc (should have been with compiler build)
 //
-//    end = MAX_INT_DIGITS-1;
-//    cur = end;
+// http://www.delorie.com/gnu/docs/gcc/gcc_80.html
+// http://www.ic.unicamp.br/~islene/2s2008-mo806/libc/sysdeps/wordsize-32/divdi3.c
 //
-//    if(num == 0) {
-//        writer('0');
-//        return;
-//    }
+// HACK: subtrack out divisor until left with A
+// - https://stackoverflow.com/questions/2566010/fastest-way-to-calculate-a-128-bit-integer-modulo-a-64-bit-integer?rq=1
 //
-//    buf[cur] = '\0';
-//
-//    // check if negative and print neg character
-//    if(num < 0) {
-//        isNeg = 1;
-//        num = -num;		// abs(num)
-//    }
-//
-//    while(num) {
-//        temp = num % 10; // get 'ones' or right most digit
-//        --cur;
-//        buf[cur] = temp + '0'; // add the digit (temp) to ASCII code '0'
-//        num /= 10; // remove right most digit
-//    }
-//
-//    if(isNeg)
-//        writer('-');
-//
-//    // print the string
-//    char c = '0';
-//    for(; cur < end; ++cur) {
-//        c = buf[cur];
-//        writer(c);
-//    }
+
+typedef struct { u64 quotient; u64 remainder; } div_t;
+u64 modulo(u64 A, u64 B)
+{
+    u64 X = B;
+
+    // find a decent divisor
+    while (X < A/2) {
+        X <<= 1;
+    }
+
+    // divide by subtracting, remainders left in A
+    while (A >= B) {
+        if (A >= X)
+            A -= X;
+        X >>= 1;
+    }
+    return A;
+}
+
+// STEVE: simple SLOW version of division
+div_t div64_slow(u64 dividend, u64 divisor)
+{
+    ASSERT(divisor, "can't divide with zero divisor!");
+    // TODO: speed up a bit by testing the divisor size
+    // - for large dividend and small divisor can look at first
+    // - subtracting a large multiple of divisor
+
+    u64 quotient = 0;
+    u64 quotient_per_removal = 1;
+    // find a decent divisor
+    u64 A = dividend;
+    u64 B = divisor;
+    u64 X = B;
+    while (X < A/2) {
+        X <<= 1; // mult by two
+        //        ++quotient_per_removal;
+        quotient_per_removal <<= 1;
+    }
+
+    // divide by subtracting, remainders left in A
+    while (A >= B) {
+        if (A >= X) {
+            A -= X;
+            quotient += quotient_per_removal;
+        }
+        X >>= 1;
+        quotient_per_removal >>= 1;
+    }
+
+    div_t ret = { quotient, A };
+    return ret;
 }
 
 void writeUInt64(output_writer writer, u64 num)
 {
+    if(num == 0) {
+        writer('0');
+        return;
+    }
 
+    u8 buf[MAX_INT_DIGITS + 1];
+    u8 cur = MAX_INT_DIGITS;
+    buf[cur] = '\0';
+
+    while(num) {
+        --cur;
+        div_t qr = div64_slow(num, 10);
+        num = qr.quotient;
+        buf[cur] = qr.remainder + '0'; // add the digit (temp) to ASCII code '0'
+    }
+
+    // print the string
+    char c = '0';
+    for(; cur < MAX_INT_DIGITS; ++cur) {
+        c = buf[cur];
+        writer(c);
+    }
+}
+
+void writeInt64(output_writer writer, i64 num)
+{
+    u8 delim_negative = '-';
+    if(num < 0) {
+        writer(delim_negative);
+        num = -num;
+    }
+    writeUInt64(writer, (u64)num);
 }
 
 void writeUInt(output_writer writer, u32 num)
 {
-    const char digits[] = "0123456789";
-
+    b32 isNeg = false;
     u8 buf[MAX_INT_DIGITS];
-    i32 cur, end;
+    i32 cur, end, temp=0;
 
     end = MAX_INT_DIGITS-1;
     cur = end;
@@ -256,24 +362,14 @@ void writeUInt(output_writer writer, u32 num)
 
     buf[cur] = '\0';
 
-    // fill buf with each digit
-    i32 digit = 0;
-    while(num)
-    {
-        // get 'ones' or right most digit
-        digit = num % 10;
+    while(num) {
+        temp = num % 10; // get 'ones' or right most digit
         --cur;
-
-        // add the digit (temp) to ASCII code '0'
-        int n = COUNT_OF(digits);
-        ASSERT(digit < n, "Int Digit could not be parsed (should not have occured)!");
-        buf[cur] = digits[digit];
-
-        // remove right most digit
-        num /= 10;
+        buf[cur] = temp + '0'; // add the digit (temp) to ASCII code '0'
+        num /= 10; // remove right most digit
     }
 
-    // write out buf
+    // print the string
     char c = '0';
     for(; cur < end; ++cur) {
         c = buf[cur];
@@ -350,7 +446,7 @@ void writeReal_component(output_writer writer, real64 smallNum, bool write_fract
     i64 whole = (i64)smallNum;
     real64 fractional = smallNum - (real64)whole;
 
-    writeInt(writer, whole);
+    writeInt64(writer, whole);
 
     if(! write_fraction)
         return;
@@ -416,30 +512,30 @@ void writeHex_w(output_writer writer, u16 num)
 
 void writeHex(output_writer writer, u32 num)
 {
-        writeHex_bytes(writer, num, 8);
+    writeHex_bytes(writer, num, 8);
 }
 
 void writeHex_q(output_writer writer, u64 num)
 {
-        writeHex_bytes(writer, num, 16);
+    writeHex_bytes(writer, num, 16);
 }
 
 void writeHexDigit(output_writer writer, u8 digit)
 {
     const char* digits = "0123456789abcdef";
     writer(digits[digit]);
-//    if(digit < 10)
-//        writeInt(writer, digit);
-//    else {
-//        switch(digit) {
-//            case 10: writer('a'); break;
-//            case 11: writer('b'); break;
-//            case 12: writer('c'); break;
-//            case 13: writer('d'); break;
-//            case 14: writer('e'); break;
-//            case 15: writer('f'); break;
-//        }
-//    }
+    //    if(digit < 10)
+    //        writeInt(writer, digit);
+    //    else {
+    //        switch(digit) {
+    //            case 10: writer('a'); break;
+    //            case 11: writer('b'); break;
+    //            case 12: writer('c'); break;
+    //            case 13: writer('d'); break;
+    //            case 14: writer('e'); break;
+    //            case 15: writer('f'); break;
+    //        }
+    //    }
 }
 
 void writeBinary_b(output_writer writer, u8 num)
@@ -463,15 +559,15 @@ void writeBinary(output_writer writer, u32 num)
 {
     writer('0'); writer('b');
     int i = 32;
-//    bool foundOne = false;
+    //    bool foundOne = false;
     while(i--) {
         u8 bit = (num & (1<<i)) >> i;
         writer(bit ? '1' : '0');
-//        if(bit || foundOne) {
-//            foundOne = true;
-//            // TODO: writeDigit instead
-//            writer(bit ? '1' : '0');
-//        }
+        //        if(bit || foundOne) {
+        //            foundOne = true;
+        //            // TODO: writeDigit instead
+        //            writer(bit ? '1' : '0');
+        //        }
     }
 }
 
@@ -601,7 +697,7 @@ void kwritef(output_writer writer, c_str format, ...)
             }
             case 'q': {
                 u64 val = va_arg(ap, u64);
-                writeUInt(writer, val);
+                writeUInt64(writer, val);
                 break;
             }
             case 'x': {
@@ -618,7 +714,7 @@ void kwritef(output_writer writer, c_str format, ...)
                 break;
         }
     }
-
+    
     va_end(ap);
 }
 

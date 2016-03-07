@@ -146,12 +146,12 @@ void print_port(u16 port)
 //                    : "=m"(result) : : "eax", "ecx", "memory");
 //    return (result != 0);
 //}
+
 //static inline void cpuid(int code, u32* a, u32* d)
 //{
-//
-//    asm volatile ( "cpuid" : "=a"(*a), "=d"(*d) : "0"(code) : "ebx", "ecx" );
+//   asm volatile ( "cpuid" : "=a"(*a), "=d"(*d) : "0"(code) : "ebx", "ecx" );
 //}
-//
+
 ///// CPU's time-stamp counter and store into EDX:EAX.
 //static inline u64 rdtsc()
 //{

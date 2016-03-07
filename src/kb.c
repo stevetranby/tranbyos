@@ -190,7 +190,7 @@ void keyboard_handler(isr_stack_state *r)
             kputch('\n');
         } else if(scancode == SCAN_US_F2) {
             kputs("\nPressed F2!\n");
-            _jump_usermode();
+            jump_usermode();
         } else if(scancode == SCAN_US_F3) {
             kputs("\nPressed F2!\n");
             print_irq_counts();
@@ -210,20 +210,6 @@ void keyboard_handler(isr_stack_state *r)
 //
 // http://wiki.osdev.org/Mouse_Input
 
-typedef struct {
-    u32 magic;
-    i16 x_difference;
-    i16 y_difference;
-    u16 buttons;
-} mouse_device_packet;
-
-#define MOUSE_MAGIC 0x57343
-#define LEFT_CLICK 0x01
-#define RIGHT_CLICK 0x02
-#define MIDDLE_CLICK 0x04
-#define MOUSE_SCROLL_DOWN 0x08
-#define MOUSE_SCROLL_UP 0x10
-
 internal mouse_device_packet mouse_packets[256];
 internal u8 mouse_packets_first = 0;
 internal u8 mouse_packets_last = 0;
@@ -232,7 +218,7 @@ internal u8 mouse_mode = 0;
 internal u8 mouse_cycle = 0;
 internal i32 mouse_x = 0;
 internal i32 mouse_y = 0;
-internal u32 mouse_buttons = 0;
+internal u16 mouse_buttons = 0;
 
 //TODO: i think 4 would be enough??
 internal u8 mouse_byte[5] = { 0, };
@@ -240,7 +226,8 @@ internal u8 mouse_byte[5] = { 0, };
 // TODO: Need to think about coordinate system
 i32 mouse_get_x() { return mouse_x; }
 i32 mouse_get_y() { return mouse_y; }
-i32 mouse_get_buttons() { return mouse_buttons; }
+u16 mouse_get_buttons() { return mouse_buttons; }
+i8 mouse_get_scrolling() { return 0; }
 
 void add_packet(mouse_device_packet packet) {
     mouse_packets[mouse_packets_last++] = packet;
@@ -334,87 +321,6 @@ read_next:
     inb(PS2_STATUS);
 
     return;
-
-
-    //    // Hot Swapping:
-    //    // When a mouse is plugged into a running system it may send a 0xAA, then a 0x00 byte
-    //    // and then go into default state (see below).
-    //
-    //    switch(mouse_cycle)
-    //    {
-    //        case 0:
-    //            mouse_byte[0] = inb(PS2_PORT);
-    //            mouse_cycle++;
-    //            break;
-    //        case 1:
-    //            mouse_byte[1] = inb(PS2_PORT);
-    //            mouse_cycle++;
-    //            break;
-    //        case 2:
-    //            mouse_byte[2] = inb(PS2_PORT);
-    //
-    //            // The top two bits of the first byte (values 0x80 and 0x40) supposedly show Y and X overflows.
-    //            // They are not useful. If they are set, you should probably just discard the entire packet.
-    //
-    //            i8 state = mouse_byte[0];
-    //            i32 dx = mouse_byte[1];
-    //            i32 dy = mouse_byte[2];
-    //
-    //            if(state & 0x10) {
-    //                // dx is negative
-    //                dx = dx & 0xffffff00;
-    //            }
-    //
-    //            if(state & 0x20) {
-    //                // dy is negative
-    //                dx = dx & 0xffffff00;
-    //            }
-    //
-    //            if(0 == (state & 0x08)) {
-    //                // invalid packed
-    //                serial_write("INVALID PACKED\n");
-    //            }
-    //            if(0 == (state & 0x40)) {
-    //                serial_write("X Overflow!\n");
-    //            }
-    //            if(0 == (state & 0x80)) {
-    //                serial_write("Y Overflow!\n");
-    //            }
-    //
-    //            // bits 0-4 are the buttons left(0),right(1),middle(2),4th(3),5th(4)
-    //            mouse_button[0] = state & 0x01;
-    //            mouse_button[1] = state & 0x02;
-    //            mouse_button[2] = state & 0x03;
-    //
-    //            serial_writeInt(23);
-    //            serial_write(": mouse = ");
-    //            serial_writeInt(dx);
-    //            serial_write(", ");
-    //            serial_writeInt(dy);
-    //            serial_write(" ::\t");
-    //            serial_writeBinary_b(mouse_byte[0]);
-    //            serial_write(", ");
-    //            serial_writeHex_b(mouse_byte[1]);
-    //            serial_write(", ");
-    //            serial_writeHex_b(mouse_byte[2]);
-    //            serial_write("\n");
-    //
-    //            mouse_x += dx;
-    //            mouse_y += dy;
-    //
-    //            mouse_cycle = 0;
-    //            break;
-    //    }
-    //
-    //    status = inb(PS2_STATUS);
-    //    while (status & KBD_STAT_BUFF_FULL)
-    //    {
-    //        u8 scancode = inb(PS2_PORT);
-    //        if (status & KBD_STAT_MOUSE_BUFF_FULL) {
-    //            UNUSED_VAR(scancode);
-    //        }
-    //        status = inb(PS2_STATUS);
-    //    }
 }
 
 static inline void mouse_write(u8 data)
@@ -428,7 +334,7 @@ static inline void mouse_write(u8 data)
 /// Get's response from mouse
 internal inline u8 mouse_read()
 {
-    if(ps2_wait_write() == ERROR_TIMEOUT)
+    if(ps2_wait_read() == ERROR_TIMEOUT)
         return 0; // no data
     return inb(PS2_DATA);
 }
@@ -647,13 +553,13 @@ void ps2_install()
 
     // Try to enable scroll wheel (but not buttons)
     // TODO:
-    if(false && is_dual_device)
+    if(is_dual_device)
     {
         mouse_write(MOUSE_CMD_GET_MOUSE_ID);
-        mouse_read();
         result = mouse_read();
+        kwritef(serial_write_b,"MOUSE_CMD_GET_MOUSE_ID = %d", result);
 
-        // Writing Mouse Settings (TODO: 200,100,80 ???)
+        // Writing Magic Mouse Settings to test for scroll wheel
         mouse_write(0xF3);
         mouse_read();
         mouse_write(200);
@@ -666,12 +572,58 @@ void ps2_install()
         mouse_read();
         mouse_write(80);
         mouse_read();
-        mouse_write(0xF2);
-        mouse_read();
+
+        // TODO: this is wrong, i think (try with real corded mouse)
+        serial_write("Set Mouse Sample Rate to 80.\n");
+        mouse_write(MOUSE_CMD_GET_MOUSE_ID);
+        do {
+            ps2_wait_read();
+            status = inb(PS2_DATA);
+        } while(status != PS2_ACK_BYTE);
         result = mouse_read();
-        if (result == 3) {
-            serial_write("Has Scroll Wheel.\n");
+        kwritef(serial_write_b,"MOUSE_CMD_GET_MOUSE_ID = %d\n", result);
+        if (result == 3)
+        {
+            serial_write_b(result);
+            serial_write(" - Has Scroll Wheel.\n");
             mouse_mode = MOUSE_SCROLLWHEEL;
+        } else {
+            serial_write_b(result);
+            serial_write(" - Unsure if Has Scroll Wheel.\n");
+        }
+
+
+        // Writing Magic Mouse Settings to test for scroll wheel
+        mouse_write(0xF3);
+        mouse_read();
+        mouse_write(200);
+        mouse_read();
+        mouse_write(0xF3);
+        mouse_read();
+        mouse_write(200);
+        mouse_read();
+        mouse_write(0xF3);
+        mouse_read();
+        mouse_write(80);
+        mouse_read();
+
+        // TODO: this is wrong, i think (try with real corded mouse)
+        serial_write("Set Mouse Sample Rate to 80.\n");
+        mouse_write(MOUSE_CMD_GET_MOUSE_ID);
+        do {
+            ps2_wait_read();
+            status = inb(PS2_DATA);
+        } while(status != PS2_ACK_BYTE);
+        result = mouse_read();
+        kwritef(serial_write_b,"MOUSE_CMD_GET_MOUSE_ID = %d\n", result);
+        if (result == 4)
+        {
+            serial_write_b(result);
+            serial_write(" - Has 4th/5th buttons.\n");
+            mouse_mode = MOUSE_SCROLLWHEEL;
+        }else {
+            serial_write_b(result);
+            serial_write(" - Unsure if Has 4th/5th buttons.\n");
         }
     }
 

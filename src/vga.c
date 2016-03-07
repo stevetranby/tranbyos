@@ -325,10 +325,8 @@ void polygon(u32 num_vertices, u32* vertices, u8 color)
               vertices[(num_vertices << 1) - 1], color);
 }
 
-void fillrect(u32 xoff, u32 yoff)//, u8 color)
+void fillrect(u32 xoff, u32 yoff, u8 color)
 {
-    static u8 color = 0;
-    color++;
     u32 height = 10;
     u32 width = 10;
     for (u32 y = 0; y < height; ++y) {

@@ -144,7 +144,7 @@ void set_kernel_stack(uintptr_t stack)
 
 //////////////////////////////////
 
-void _test_user_function()
+void test_user_function()
 {
     kwritef(serial_write_b, "We were called from asm, we should be in ring 3, and cause GPF now!\n");
     kwritef(serial_write_b, "1/\n");

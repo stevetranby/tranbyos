@@ -84,33 +84,105 @@ __asm__("str %%ax\n\t" \
 
  */
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// From linux kernel 0.1
 
-//static void panic_exception(char * str,long esp_ptr,long nr)
-//{
-//    long * esp = (long *) esp_ptr;
-//    int i;
-//
-//    kprintk("%s: %04x\n\r",str,nr&0xffff);
-//    kprintk("EIP:\t%04x:%p\nEFLAGS:\t%p\nESP:\t%04x:%p\n",
-//           esp[1],esp[0],esp[2],esp[4],esp[3]);
-//    kprintk("fs: %04x\n",_fs());
-//    kprintk("base: %p, limit: %p\n",get_base(current->ldt[1]),get_limit(0x17));
-//    if (esp[4] == 0x17) {
-//        kprintk("Stack: ");
-//        for (i=0;i<4;i++)
-//            kprintk("%p ",get_seg_long(0x17,i+(long *)esp[3]));
-//        kprintk("\n");
-//    }
-//    str(i);
-//    kprintk("Pid: %d, process nr: %d\n\r",current->pid,0xffff & i);
-//    for(i=0;i<10;i++)
-//        kprintk("%02x ",0xff & get_seg_byte(esp[1],(i+(char *)esp[0])));
-//    kprintk("\n\r");
-//
-//
-//    do_exit(11);
-//}
+#define PAGE_ALIGN(n) (((n)+0xfff)&0xfffff000)
+/*
+#define _set_base(addr,base) \
+__asm__("movw %%dx,%0\n\t" \
+    "rorl $16,%%edx\n\t" \
+    "movb %%dl,%1\n\t" \
+    "movb %%dh,%2" \
+    ::"m" (*((addr)+2)), \
+      "m" (*((addr)+4)), \
+      "m" (*((addr)+7)), \
+      "d" (base) \
+    :"dx")
 
+#define _set_limit(addr,limit) \
+__asm__("movw %%dx,%0\n\t" \
+    "rorl $16,%%edx\n\t" \
+    "movb %1,%%dh\n\t" \
+    "andb $0xf0,%%dh\n\t" \
+    "orb %%dh,%%dl\n\t" \
+    "movb %%dl,%1" \
+    ::"m" (*(addr)), \
+      "m" (*((addr)+6)), \
+      "d" (limit) \
+    :"dx")
+*/
+// #define set_base(ldt,base) _set_base( ((char *)&(ldt)) , base )
+// #define set_limit(ldt,limit) _set_limit( ((char *)&(ldt)) , (limit-1)>>12 )
+
+#define _get_base(addr) ({\
+unsigned long __base; \
+__asm__("movb %3,%%dh\n\t" \
+    "movb %2,%%dl\n\t" \
+    "shll $16,%%edx\n\t" \
+    "movw %1,%%dx" \
+    :"=d" (__base) \
+    :"m" (*((addr)+2)), \
+     "m" (*((addr)+4)), \
+     "m" (*((addr)+7))); \
+__base;})
+
+#define get_base(ldt) _get_base( ((char *)&(ldt)) )
+
+#define get_limit(segment) ({ \
+unsigned long __limit; \
+__asm__("lsll %1,%0\n\tincl %0":"=r" (__limit):"r" (segment)); \
+__limit;})
+
+#define get_seg_byte(seg,addr) ({ \
+register char __res; \
+__asm__("push %%fs;mov %%ax,%%fs;movb %%fs:%2,%%al;pop %%fs" \
+    :"=a" (__res):"0" (seg),"m" (*(addr))); \
+__res;})
+
+#define get_seg_long(seg,addr) ({ \
+register unsigned long __res; \
+__asm__("push %%fs;mov %%ax,%%fs;movl %%fs:%2,%%eax;pop %%fs" \
+    :"=a" (__res):"0" (seg),"m" (*(addr))); \
+__res;})
+/*
+#define str(n) \
+__asm__("str %%ax\n\t" \
+    "subl %2,%%eax\n\t" \
+    "shrl $4,%%eax" \
+    :"=a" (n) \
+    :"a" (0),"i" (FIRST_TSS_ENTRY<<3))
+*/
+#define _fs() ({ \
+register unsigned short __res; \
+__asm__("mov %%fs,%%ax":"=a" (__res):); \
+__res;})
+
+internal void die(char * str, long esp_ptr, long nr)
+{
+    long * esp = (long *) esp_ptr;
+    int i;
+
+    output_writer writer = serial_write_b;
+
+    kwritef(writer, "%s: %x\n\r", str, nr & 0xffff);
+    kwritef(writer, "EIP:\t%x:%p\nEFLAGS:\t%p\nESP:\t%x:%p\n", esp[1], esp[0], esp[2], esp[4], esp[3]);
+    kwritef(writer, "fs: %x\n", _fs());
+    //kwritef(writer, "base: %p, limit: %p\n", get_base(current->ldt[1]), get_limit(0x17));
+    if (esp[4] == 0x17) {
+        kwritef(writer, "Stack: ");
+        for (i=0; i<4; i++)
+            kwritef(writer, "%p ",get_seg_long(0x17,i+(long *)esp[3]));
+        kwritef(writer, "\n");
+    }
+    //str(i);
+    //kwritef(writer, "Pid: %d, process nr: %d\n\r",current->pid,0xffff & i);
+    for(i=0;i<10;i++)
+        kwritef(writer, "%x ",0xff & get_seg_byte(esp[1],(i+(char *)esp[0])));
+    kwritef(writer, "\n\r");
+    // TODO: do_exit(11);        /* play segment exception */
+}
 
 //////////////////////////////////////////////////////////////////
 // ISRS
@@ -234,16 +306,32 @@ c_str exception_messages[] =
 
 // TODO: check alignment
 
-static isr_handler isr_stubs[ISR_COUNT] = { 0, };
+static isr_handler isr_routines[ISR_COUNT] = { 0, };
 static isr_handler irq_routines[IRQ_COUNT] = { 0, };
 
 static u32 isr_counts[ISR_COUNT] = { 0, };
 static u32 irq_counts[IRQ_COUNT] = { 0, };
 static u32 irq_spurious[IRQ_COUNT] = { 0, };
 
+// these are global data so we don't need to bother w/alloc
+static u8 isr_names[ISR_COUNT][20] = { {0, }, };
 static u8 irq_names[IRQ_COUNT][20] = { {0, }, };
 
 /// (Un)Install IRQ handler
+
+void isr_install_handler(u32 isr, isr_handler handler, c_str name)
+{
+    ASSERT(kstrlen(name) < 20, "name length must be < 20!\n");
+    isr_routines[isr] = handler;
+    kmemcpyb((u8*)irq_names[isr], (u8*)name, 20);
+    kwritef(serial_write_b, "installing isr: %d, %x, '%s'\n", isr, (u32)handler, name);
+}
+
+void isr_uninstall_handler(u32 isr)
+{
+    isr_routines[isr] = 0;
+    kmemsetb((u8*)&isr_names[isr], 0, 20);
+}
 
 void irq_install_handler(u32 irq, isr_handler handler, c_str name)
 {
@@ -317,7 +405,9 @@ void irq_remap(int irqPrimary, int irqSecondary)
 void kernel_panic()
 {
     kputs("\n\n ****  PANIC. System Halted! ******* \n\n");
-    for (;;);
+
+    // TODO: pass in correct stack pointer
+    die("die not implemented", 0, 0);
 }
 
 void do_int3(u32* esp, u32 error_code, u32 fs, u32 es, u32 ds,
@@ -325,10 +415,10 @@ void do_int3(u32* esp, u32 error_code, u32 fs, u32 es, u32 ds,
 {
     int tr;
     __asm__("str %%ax":"=a" (tr):"0" (0));
-    kprintf("\n\neax\t\tebx\t\tecx\t\tedx\n\r%x\t%x\t%x\t%x\n\r", eax,ebx,ecx,edx);
-    kprintf("esi\t\tedi\t\tebp\t\tesp\n\r%x\t%x\t%x\t%x\n\r", esi,edi,ebp,(long) esp);
-    kprintf("\n\rds\tes\tfs\ttr\n\r%x\t%x\t%x\t%x\n\r", ds,es,fs,tr);
-    kprintf("\nEIP: %x   CS: %x  EFLAGS: %x\n\r",esp[0],esp[1],esp[2]);
+    kwritef(serial_write_b, "\n\neax\t\tebx\t\tecx\t\tedx\n\r%x\t%x\t%x\t%x\n\r", eax,ebx,ecx,edx);
+    kwritef(serial_write_b, "esi\t\tedi\t\tebp\t\tesp\n\r%x\t%x\t%x\t%x\n\r", esi,edi,ebp,(long) esp);
+    kwritef(serial_write_b, "\n\rds\tes\tfs\ttr\n\r%x\t%x\t%x\t%x\n\r", ds,es,fs,tr);
+    kwritef(serial_write_b, "\nEIP: %x   CS: %x  EFLAGS: %x\n\r",esp[0],esp[1],esp[2]);
 }
 
 
@@ -347,19 +437,20 @@ void fault_handler(isr_stack_state* r)
     int i = r->int_no;
 
     /// Should we handle this?
-    isr_handler handler = isr_stubs[i];
+    isr_handler handler = isr_routines[i];
     if(handler) {
         // handle
         handler(r);
     } else {
         if (i < 32)
         {
-            kprintf("Unhandled Exception [ISR #%d]: %s [err: %d]", i, exception_messages[i], r->err_code);
+            kwritef(serial_write_b, "Unhandled Exception in Kernel [ISR #%d]: %s [err: %d]", i, exception_messages[i], r->err_code);
+            kwritef(serial_write_b, "Can recover by killing this process and calling scheduler");
             do_int3((u32*)r->esp, r->err_code, r->fs, r->es, r->ds, r->ebp, r->esi, r->edi, r->edx, r->ecx, r->ebx, r->eax);
             kernel_panic();
         } else {
-            kprintf("Unhandled Exception [ISR #%d]: %s [err: %d]", i, exception_messages[i], r->err_code);
-            kputs("No Handler Setup\n");
+            kwritef(serial_write_b, "Unhandled Exception [ISR #%d]: %s [err: %d]", i, exception_messages[i], r->err_code);
+            serial_write("No Handler Setup\n");
         }
     }
 

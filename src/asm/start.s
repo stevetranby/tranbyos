@@ -3,27 +3,34 @@
 ; Using NASM, GCC (for now), ELF
 ; TranbyOS Boot and Assembly Hooks
 ; GRUB MultiBoot Loader 
+;
+; Ref: [TODO: osdev wiki link]
 ;**********************************
 
 ; Utilize 32-bit x86
 [BITS 32]
 
-global start
-global gdt_flush	       ; Allows the C code to link to this
-global tss_flush	       ; Allows the C code to link to this
-global idt_load		       ; Allows the C code to link to this
-global _sys_heap	       ; Allows the C code to link to this 
-global _jump_usermode      ; 
+global prog_entry
+extern prog_code_section
+extern prog_bss_section
+extern prog_bss_end
 
-extern _kmain		       ; have to specify '_main' instead of 'main' since we're using ELF format
-extern gp                  ; Says that 'gp' is in another file
-extern idtp                ;
-extern fault_handler       ;
-extern irq_handler         ;
-extern _test_user_function ;
 
-start:
-    mov esp, _sys_stack		; This points the stack to our new stack area
+global gdt_flush	    
+global tss_flush	    
+global idt_load		    
+global sys_heap	        
+global jump_usermode  
+
+extern kmain
+extern gp                 
+extern idtp               
+extern fault_handler      
+extern irq_handler        
+extern test_user_function 
+
+prog_entry:
+    mov esp, sys_stack		; This points the stack to our new stack area
     jmp stublet
 
 ; This part MUST be 4byte aligned, so we solve that issue using 'ALIGN 4'
@@ -40,8 +47,6 @@ mboot:
 ;    MULTIBOOT_HEADER_FLAGS	equ MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO | MULTIBOOT_VIDEO_INFO
     MULTIBOOT_CHECKSUM		equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
 
-    EXTERN code, bss, end
-
     ; This is the GRUB Multiboot header. A boot signature
     dd MULTIBOOT_HEADER_MAGIC
     dd MULTIBOOT_HEADER_FLAGS
@@ -49,11 +54,11 @@ mboot:
     
     ; AOUT kludge - must be physical addresses. Make a note of these:
     ; The linker script fills in the data for these ones!
-    dd mboot    ; header
-    dd code     ; load addr
-    dd bss      ; load end, bss start
-    dd end      ; bss end
-    dd start    ; entry
+    dd mboot                ; header
+    dd prog_code_section    ; load addr
+    dd prog_bss_section     ; load end, bss start
+    dd prog_bss_end         ; bss end
+    dd prog_entry           ; entry
 
     ; Request linear graphics mode
     dd 0        ; request mode type
@@ -66,7 +71,7 @@ stublet:
 	push eax    ; contains 0x2BADB002
 	push ebx    ; header physical address
     cli
-	call _kmain
+	call kmain
     cli
 
 halt:
@@ -80,10 +85,8 @@ sse_enabled:
     jz .noSSE
     ;SSE is available
     ret;
-
 .noSSE:
     ret;
-
 
 ;now enable SSE and the like
 enable_sse:
@@ -158,34 +161,6 @@ flush2:
 
 ;--------------------------------------------------------------------
 
-; Load the index of our TSS structure - The index is
-; 0x28, as it is the 5th selector and each is 8 bytes
-; long, but we set the bottom two bits (making 0x2B)
-; so that it has an RPL of 3, not zero.
-; Load 0x2B into the task state register.
-tss_flush:
-    mov ax, 0x2B
-    ltr ax
-    ret
-
-; Will switch over to Ring 3 
-_jump_usermode:
-     mov ax,0x23
-     mov ds,ax
-     mov es,ax 
-     mov fs,ax 
-     mov gs,ax      ;we don't need to worry about SS. it's handled by iret
- 
-     mov eax,esp
-     push 0x23      ;user data segment with bottom 2 bits set for ring 3
-     push eax       ;push our current stack just for the heck of it
-     pushf
-     push 0x1B      ;user code segment with bottom 2 bits set for ring 3
-     push _test_user_function ;may need to remove the _ for this to work right 
-     iret
-
-;--------------------------------------------------------------------
-
 ; Loads the IDT defined in '_idtp' into the processor.
 ; This is declared in C as 'extern void idt_load();'
 idt_load:
@@ -194,7 +169,9 @@ idt_load:
 
 ;--------------------------------------------------------------------
 ; Interrupt Service Routines (ISR)
-
+;
+; http://wiki.osdev.org/Exceptions
+;
 ; make handler available to 'C' with `global`
 ; only push 0 for NO ERROR gates
 
@@ -313,6 +290,7 @@ irq_common_stub:
 ;
 SECTION .bss
     resb 16384               ; This reserves 8KBytes of memory here for the stack
-_sys_stack:
-	resb 16384              ; This is the heap
-_sys_heap:
+sys_stack:
+	resb 2048              ; This is the heap
+sys_heap:
+sys_heap_end:

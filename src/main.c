@@ -107,6 +107,7 @@
 #endif
 
 #include <system.h>
+#include <systemcpp.h>
 #include <multiboot.h>
 
 /////////////////////////////
@@ -145,9 +146,12 @@ size_t kmemcmp(const void* vl, const void* vr, size_t n)
     return n ? *l-*r : 0;
 }
 
-void* kmemchr(const void * src, int c, size_t n) {
+void* kmemchr(const void * src, int c, size_t n)
+{
     const unsigned char * s = src;
     c = (unsigned char)c;
+    // TODO: clarify code
+
     for (; ((uintptr_t)s & (ALIGN - 1)) && n && *s != c; s++, n--);
     if (n && *s != c) {
         const size_t * w;
@@ -339,7 +343,7 @@ internal vbe_mode_info *vbe;
 internal uint8_t *mem;
 
 // 24bpp
-void draw_pixel(u32 x, u32 y, u32 color)
+internal void draw_pixel(u32 x, u32 y, u32 color)
 {
     u32 pos = y * vbe->LinBytesPerScanLine + x * (vbe->bpp / 8);
     // Assuming 24-bit color mode
@@ -349,7 +353,7 @@ void draw_pixel(u32 x, u32 y, u32 color)
     //kwritef(serial_write_b, "draw pixel {%d, %d} [%d] w/color %x\n    ", x, y, pos, color);
 }
 
-void draw_rectangle(u32 x, u32 y, u32 width, u32 height, uint32_t color)
+internal void draw_rectangle(u32 x, u32 y, u32 width, u32 height, uint32_t color)
 {
     kwritef(serial_write_b, "draw rect {%d, %d, %d, %d} w/color %x\n", x, y, width, height, color);
     for (u32 i = x; i < x + width; ++i)
@@ -367,8 +371,142 @@ static void* linear_addr(segoff p)
     return (void*)((p.seg << 4) + p.off);
 }
 
+internal void test_harddisk()
+{
+    // -- BEG HARD DISK ACCESS TESTING ---
+
+    ata_soft_reset();
+
+    // wait while not ready
+    cli();
+    ata_wait_ready();
+    outb(HD_DH, IDE0_BASE & 0xff);
+    outb(HD_CMD, HD_CMD_IDENTIFY);
+    ata_wait_drq();
+    u16 ident_data[256];
+    for(int i=0; i<256; ++i) {
+        ident_data[i] = inw(HD_DATA);
+    }
+    sti();
+
+    // 00 - Useful if not Hard Disk
+    kprintf("Disk: %x, Cyl:%d, Head:%d, Sec:%d\n",
+            ident_data[0],
+            ident_data[1],
+            ident_data[3],
+            ident_data[6]);
+
+    u32 bytes = chs2bytes(ident_data[1], ident_data[3], ident_data[6]);
+    u32 kilobytes = bytes/1024;
+    u32 megabytes = bytes/1048576;
+    u32 gigabytes = bytes/1073741824;
+
+    kprintf("Storage Size is %dKB, %dMB, %dGB\n",
+            kilobytes, megabytes, gigabytes);
+
+    // 10-19 - Serial Number
+    kputs("Serial: ");
+    for(int i=10; i<19; ++i) {
+        kputch((ident_data[i] >> 8) & 0xff);
+        kputch(ident_data[i] & 0xff);
+    }
+    kputs("\n");
+
+    // 23-26 Firmware Revision
+    kputs("Firmware: ");
+    for(int i=23; i<26; ++i) {
+        kputch((ident_data[i] >> 8) & 0xff);
+        kputch(ident_data[i] & 0xff);
+    }
+    kputs("\n");
+
+    // 27-46 - Model Name
+    kputs("Model: ");
+    for(int i=27; i<46; ++i) {
+        kputch((ident_data[i] >> 8) & 0xff);
+        kputch(ident_data[i] & 0xff);
+    }
+    kputs("\n");
+
+    wait_any_key();
+
+    // TODO: ident_data should have a struct type instead
+    // 49 - (bit 9) LBA Supported
+    if(ident_data[49] & 0x0100)
+        kputs("LBA Supported!\n");
+    if(ident_data[59] & 0x0100)
+        kputs("Multiple sector setting is valid!\n");
+
+    // 60/61 - taken as DWORD => total # LBA28 sectors (if > 0, supports LBA28)
+    u32 lba_capacity = (ident_data[61] << 16) + ident_data[60];
+    u32 lba_bytes = (lba_capacity/MEGA*SECTOR_BYTES);
+
+    kprintf("LBA Capacity: %d sectors, %dMB\n", lba_capacity, lba_bytes);
+
+    if(ata_controller_present(0)){
+        trace_info("\nController 0 EXISTS");
+    } else {
+        trace_info("\nController 0 NOT EXIST");
+    }
+
+    if(ata_controller_present(1)){
+        trace_info(" Controller 1 EXISTS");
+    } else {
+        trace_info(" Controller 1 NOT EXIST");
+    }
+
+    //ata_soft_reset();
+
+    if(ata_drive_present(0, 0)){
+        trace_info("\nPri Drive 0 EXISTS");
+    } else {
+        trace_info("\nPri Drive 0 NOT EXIST");
+    }
+
+    if(ata_drive_present(0, 1)){
+        trace_info(" Pri Drive 1 EXISTS");
+    } else {
+        trace_info(" Pri Drive 1 NOT EXIST");
+    }
+
+    if(ata_drive_present(1, 0)){
+        trace_info("\nSec Drive 0 EXISTS");
+    } else {
+        trace_info("\nSec Drive 0 NOT EXIST");
+    }
+
+    if(ata_drive_present(1,1)){
+        trace_info(" Sec Drive 1 EXISTS");
+    } else {
+        trace_info(" Sec Drive 1 NOT EXIST");
+    }
+
+    u16 data[512];
+    for(int i=0; i<512; ++i)
+        data[i]=0x5A;
+
+    ata_pio_write_w(0,1,1,1,data);
+    kputch('\n');
+    for(int i=0; i<10; ++i)
+        printHex_w(data[i]);
+
+    // wait
+    while((inb(HD_ST_ALT) & 0xc0) != 0x40)
+        ;
+
+    // NOTE: QEMU protects block 0 from being written to if img format is unknown or raw
+    u16 data2[512];
+    ata_pio_read_w(0,1,1,1,data2);
+    kputch('\n');
+    for(int i=0; i<10; ++i)
+        printHex_w(data2[i]);
+    kputch('\n');
+    
+    // -- END HARD DISK ACCESS TESTING ---
+}
+
 // NASM assembly boot loader calls this method
-u32 _kmain(multiboot_info* mbh, u32 magic)
+u32 kmain(multiboot_info* mbh, u32 magic)
 {
     gdt_install();
     idt_install();
@@ -601,147 +739,12 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 
         kwritef(writer, "Bootloader Name: %s\n", (i8*)mbh->boot_loader_name);
     }
-
-
     wait_any_key();
-
     set_text_color(COLOR_MAGENTA, COLOR_BLACK);
 
-
-
-    // -- BEG HARD DISK ACCESS TESTING ---
-
-    ata_soft_reset();
-
-    // wait while not ready
-    cli();
-    ata_wait_ready();
-    outb(HD_DH, IDE0_BASE & 0xff);
-    outb(HD_CMD, HD_CMD_IDENTIFY);
-    ata_wait_drq();
-    u16 ident_data[256];
-    for(int i=0; i<256; ++i) {
-        ident_data[i] = inw(HD_DATA);
-    }
-    sti();
-
-    // 00 - Useful if not Hard Disk
-    kprintf("Disk: %x, Cyl:%d, Head:%d, Sec:%d\n",
-          ident_data[0],
-          ident_data[1],
-          ident_data[3],
-          ident_data[6]);
-
-    u32 bytes = chs2bytes(ident_data[1], ident_data[3], ident_data[6]);
-    u32 kilobytes = bytes/1024;
-    u32 megabytes = bytes/1048576;
-    u32 gigabytes = bytes/1073741824;
-
-    kprintf("Storage Size is %dKB, %dMB, %dGB\n",
-            kilobytes, megabytes, gigabytes);
-
-    // 10-19 - Serial Number
-    kputs("Serial: ");
-    for(int i=10; i<19; ++i) {
-        kputch((ident_data[i] >> 8) & 0xff);
-        kputch(ident_data[i] & 0xff);
-    }
-    kputs("\n");
-
-    // 23-26 Firmware Revision
-    kputs("Firmware: ");
-    for(int i=23; i<26; ++i) {
-        kputch((ident_data[i] >> 8) & 0xff);
-        kputch(ident_data[i] & 0xff);
-    }
-    kputs("\n");
-
-    // 27-46 - Model Name
-    kputs("Model: ");
-    for(int i=27; i<46; ++i) {
-        kputch((ident_data[i] >> 8) & 0xff);
-        kputch(ident_data[i] & 0xff);
-    }
-    kputs("\n");
+    test_harddisk();
 
     wait_any_key();
-
-    // TODO: ident_data should have a struct type instead
-    // 49 - (bit 9) LBA Supported
-    if(ident_data[49] & 0x0100)
-        kputs("LBA Supported!\n");
-    if(ident_data[59] & 0x0100)
-        kputs("Multiple sector setting is valid!\n");
-
-    // 60/61 - taken as DWORD => total # LBA28 sectors (if > 0, supports LBA28)
-    u32 lba_capacity = (ident_data[61] << 16) + ident_data[60];
-    u32 lba_bytes = (lba_capacity/MEGA*SECTOR_BYTES);
-
-    kprintf("LBA Capacity: %d sectors, %dMB\n", lba_capacity, lba_bytes);
-
-    if(ata_controller_present(0)){
-        trace_info("\nController 0 EXISTS");
-    } else {
-        trace_info("\nController 0 NOT EXIST");
-    }
-
-    if(ata_controller_present(1)){
-        trace_info(" Controller 1 EXISTS");
-    } else {
-        trace_info(" Controller 1 NOT EXIST");
-    }
-
-    //ata_soft_reset();
-
-    if(ata_drive_present(0, 0)){
-        trace_info("\nPri Drive 0 EXISTS");
-    } else {
-        trace_info("\nPri Drive 0 NOT EXIST");
-    }
-
-    if(ata_drive_present(0, 1)){
-        trace_info(" Pri Drive 1 EXISTS");
-    } else {
-        trace_info(" Pri Drive 1 NOT EXIST");
-    }
-
-    if(ata_drive_present(1, 0)){
-        trace_info("\nSec Drive 0 EXISTS");
-    } else {
-        trace_info("\nSec Drive 0 NOT EXIST");
-    }
-
-    if(ata_drive_present(1,1)){
-        trace_info(" Sec Drive 1 EXISTS");
-    } else {
-        trace_info(" Sec Drive 1 NOT EXIST");
-    }
-
-    u16 data[512];
-    for(int i=0; i<512; ++i)
-        data[i]=0x5A;
-
-    ata_pio_write_w(0,1,1,1,data);
-    kputch('\n');
-    for(int i=0; i<10; ++i)
-        printHex_w(data[i]);
-
-    // wait
-    while((inb(HD_ST_ALT) & 0xc0) != 0x40)
-        ;
-
-    // NOTE: QEMU protects block 0 from being written to if img format is unknown or raw
-    u16 data2[512];
-    ata_pio_read_w(0,1,1,1,data2);
-    kputch('\n');
-    for(int i=0; i<10; ++i)
-        printHex_w(data2[i]);
-    kputch('\n');
-
-    // -- END HARD DISK ACCESS TESTING ---
-
-    wait_any_key();
-
     set_text_color(COLOR_YELLOW, COLOR_BLACK);
 
     trace("print address test\n");
@@ -754,6 +757,8 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     print_heap_magic();
 
     wait_any_key();
+
+        //--------------------------------------------
 
     trace("kmalloc");
     u8 *t = kmalloc(4);
@@ -768,6 +773,9 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     }
 
     wait_any_key();
+
+    //--------------------------------------------
+
 
     // print out some memory
     kputch('\n');
@@ -787,6 +795,8 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 
     wait_any_key();
 
+        //--------------------------------------------
+
     // TODO: allow switching "stdout" from direct to serial or both
     rtc_time time = read_rtc();
     kprintf("datetime = %d-%d-%d %d:%d:%d\n",
@@ -801,6 +811,12 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
     u8 SCAN_SPACE = 0x39;
     while(SCAN_SPACE != keyboard_read_next())
         ;
+
+    //--------------------------------------------
+
+    k_preempt();
+
+    //--------------------------------------------
 
     // TEST Setup VGA Graphics mode
     //set_video_mode(video_mode_13h);
@@ -821,24 +837,41 @@ u32 _kmain(multiboot_info* mbh, u32 magic)
 //    }
 
 
-
-    // Test Division By 0
-    // need to hide the zero
-    // int i,z;
-    // z = 2-2; i = 10 / z; kputch(i);
-
+    // TODO: fork this into another process
     static u16 x = 0;
     static u16 y = 0;
     static u16 screen_width = 320;
     static u16 screen_height = 200;
+    static u8 colorIndex = 0;
 
     for (;;) {
         x = CLAMP(mouse_get_x(), 0, screen_width);
         y = CLAMP(mouse_get_y(), 0, screen_height);
 
-        fillrect(x, y);
+        u32 buttons = mouse_get_buttons();
+        //u8 scroll = mouse_gety();
+        if(buttons & MOUSE_SCROLL_UP)
+            ++colorIndex;
+        else if(buttons & MOUSE_SCROLL_DOWN)
+            --colorIndex;
+
+        fillrect(x, y, colorIndex);
+
         //delay_ms(100);
+
+        //kwritef(serial_write_b, "test\n");
     }
+
+
+//    // TODO: once the previous is forked, this should behave okay
+//    // Test Division By 0
+//    // need to hide the zero
+//    serial_write("trying divide by zero");
+//    int i,z;
+//    z = 2-2; i = 10 / z; kputch(i);
+//
+//
+//    kwritef(serial_write_b, "exiting main");
 
     return 0;
 }

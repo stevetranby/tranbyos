@@ -1,5 +1,7 @@
 #include <system.h>
 
+// TODO: http://codereview.stackexchange.com/questions/108168/vbe-bdf-font-rendering
+
 typedef struct PACKED
 {
     u8  VbeSignature[4];             // == "VESA"
