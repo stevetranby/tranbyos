@@ -6,7 +6,7 @@
 
 typedef char byte;
 typedef unsigned short word;
-typedef unsigned long dword;
+typedef u32 dword;
 
 //////////////////////////////////////////////////////////////////
 

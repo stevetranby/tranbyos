@@ -52,7 +52,7 @@ link: compile assemble
 	# i386 toolchain
 	# $(LD) -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin $(OBJ_DIR)/start.o
 
-	# x86_64 toolchain
+	# x86_64 toolchain ( -M to print memory map)
 	$(LD) -m elf_i386 -T $(BUILD_DIR)/link.ld -o $(BIN_DIR)/$(OSNAME).bin \
 							$(OBJ_DIR)/start.o \
 							$(OBJ_DIR)/kernel.o  \
@@ -95,10 +95,10 @@ assemble: dirs
 	#nasm -e elf -o $(OBJ_DIR)/start.o $(ASM_DIR)/start.s
 	# aout
 	#nasm -f aout -o $(OBJ_DIR)/start.o $(SRC)/start.s
-	# elf obj format 
+	# elf obj format
 	nasm -f elf -o $(OBJ_DIR)/start.o $(ASM_DIR)/start.s
 	nasm -f elf -o $(OBJ_DIR)/kernel.o $(ASM_DIR)/kernel.s
-	
+
 
 dirs:
 	mkdir -p $(BIN_DIR)
@@ -130,14 +130,18 @@ test: build
 
 # -vga [std|cirrus|vmware|qxl|xenfb|tcx|cg3|virtio|none]
 # => VESA VBE virtual graphic card (std 1024x768, cirrus 4096x4096??, vmware fastest if can setup)
+# -vga std (Bochs VBE 2.0 support)
+# -vga vmware VMWare SVGA-II
 # -rtc [base=utc|localtime|date][,clock=host|vm][,driftfix=none|slew]
+# -usb, -usbdevice mouse
 run: copykernel disks
 	@echo "\nRun in QEMU"
 	# Use GRUB for multiboot
 	#$(QEMU) -m 32 -rtc base=localtime,clock=host,driftfix=slew -hda $(BUILD_DIR)/$(OSNAME)-hd-32mb.img -hdb $(BUILD_DIR)/$(OSNAME)-hd-64mb.img -fda $(BUILD_DIR)/grub_disk.img -vga vmware -serial stdio
 	# Use QEMU directly as multiboot loader
 	$(QEMU) -m 32 -rtc base=localtime,clock=host,driftfix=slew -hda $(BUILD_DIR)/$(OSNAME)-hd-32mb.img -hdb $(BUILD_DIR)/$(OSNAME)-hd-64mb.img -vga std -serial stdio -fda $(BUILD_DIR)/grub_disk.img
-	# -usb, -usbdevice mouse
+	$(QEMU) -m 32 -rtc base=localtime,clock=host,driftfix=slew -hda $(BUILD_DIR)/$(OSNAME)-hd-32mb.img -hdb $(BUILD_DIR)/$(OSNAME)-hd-64mb.img -vga std -serial -usbdevice mouse stdio -fda $(BUILD_DIR)/grub_disk.img
+
 
 riso: build
 	mkdir -p $(BUILD_DIR)/tmp/boot/grub

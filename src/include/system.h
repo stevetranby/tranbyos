@@ -1,15 +1,13 @@
 #pragma once
 
-#if !defined(__cplusplus)
 #include <stdbool.h> /* C doesn't have booleans by default. */
-#endif
-// #include <stddef.h>
-// #include <float.h>
- #include <limits.h>
-// #include <stdtypes.h>
-// #include <stdarg.h>
+#include <stddef.h>
+#include <float.h>
+#include <limits.h>
+#include <iso646.h>
+//#include <stdtypes.h>
+#include <stdarg.h>
 #include <stdint.h>
-
 
 //////////////////////////////////////////////////////////////////
 // Types
@@ -25,6 +23,8 @@ typedef int16_t   i16;
 typedef int32_t   i32;
 typedef uint8_t    b8;
 typedef uint32_t  b32;
+typedef int64_t   i64;
+typedef uint64_t  u64;
 
 typedef float              real32;
 typedef double             real64;
@@ -33,14 +33,10 @@ typedef double                f64;
 typedef const char*         c_str;
 typedef char*           c_str_mut;
 
-typedef unsigned long long    u64;
-typedef long long             i64;
-typedef unsigned long      size_t;
-
 //////////////////////////////////////////////////////////////////
-// variable arg functions (t, ....)
-// TODO: use builtin and clib headers instead
+// Variable arg functions (t, ....)
 
+// NOTE: uses <stdarg.h> and <stddef.h> by default
 #ifndef va_start
 typedef __builtin_va_list va_list;
 #define va_start(ap,last) __builtin_va_start(ap, last)
@@ -59,7 +55,7 @@ typedef __builtin_va_list va_list;
 /* The token pasting abuse that makes this possible */
 #define JOIN_INTERNAL( a, b ) a##b
 #define JOIN( a, b ) JOIN_INTERNAL( a, b )
-#define REPEAT_10(a) a(0);a(1);a(2);a(3);a(4); a(5);a(6);a(7);a(8);a(9);
+#define REPEAT_x0_x9(a,x) a(x##0); a(x##1); a(x##2); a(x##3); a(x##4); a(x##5); a(x##6); a(x##7); a(x##8); a(x##9);
 
 //////////////////////////////////////////////////////////////////
 // Defined Constants
@@ -165,12 +161,14 @@ extern void ksrand(u32 seed);
 // Multitasking (Tasks, TSS, etc)
 
 typedef struct {
-    // general
+    // general (0,4,8,12)
     u32 eax, ebx, ecx, edx;
-    // special
+    // special (eax + 16,20,24,28,32)
     u32 esi, edi, esp, ebp, eip;
-    // flags
-    u32 eflags, cr3;
+    // flags (eax + 36)
+    u32 eflags;
+    // page directory (eax + 40)
+    u32 cr3;
 } TaskRegisters;
 
 // NOTE: require struct w/ tag because typedef not defined yet
@@ -182,7 +180,7 @@ typedef struct Task {
 typedef void(*TaskHandler)();
 
 /// Initialize the multitasking system and structures
-extern void initTask();
+extern void initTasking();
 /// Kernel interface to switching task
 extern void preemptCurrentTask();
 extern void createTask(Task*, TaskHandler, u32, u32*);
@@ -303,12 +301,16 @@ extern void gdt_install();
 extern void jump_usermode();
 
 // Memory Allocation
-extern void init_mm(void);
-extern void print_heap_magic(void);
-extern u8 *kmalloc(u32 size);
+extern void init_mm();
+extern void print_heap_magic();
+extern void print_heap_bytes(u32 n);
+extern void print_blocks_avail();
+
+extern u8* kmalloc_b(u32 size);
+extern void free_b(u8* addr);
 
 
-extern void loadPageDirectory(u32*);
+extern void loadPageDirectory(u32* page_directory);
 extern void enablePaging();
 extern void init_page_directory();
 
@@ -321,7 +323,7 @@ extern void writeInt(output_writer writer, i32 num);
 extern void writeUInt(output_writer writer, u32 num);
 extern void writeInt64(output_writer writer, i64 num);
 extern void writeUInt64(output_writer writer, u64 num);
-extern void writeAddr(void* ptr, output_writer writer);
+extern void writeAddr(output_writer writer, void* ptr);
 extern void writeHex_b(output_writer writer, u8 num);
 extern void writeHex_w(output_writer writer, u16 num);
 extern void writeHex(output_writer writer, u32 num);
@@ -529,10 +531,12 @@ typedef struct
     u32 eip, cs, eflags, useresp, ss;
 } isr_stack_state;
 
-typedef void(*isr_handler)(isr_stack_state* r);
+typedef void(*isr_handler)(isr_stack_state* regs);
 
 /// (in start.s)
 extern void idt_load();
+
+extern void k_panic();
 
 /// Interrupt Descriptor Table (IDT)
 extern void idt_set_gate(u8 num, u32 base, u16 sel, u8 flags);
@@ -540,71 +544,42 @@ extern void idt_install();
 
 // Interrupt Service Routines (ISR)
 extern void isrs_install();
+
+extern void isr_install_handler(u32 isr, isr_handler handler, c_str name);
+extern void isr_uninstall_handler(u32 isr);
 extern void irq_install_handler(u32 irq, isr_handler handler, c_str name);
 extern void irq_uninstall_handler(u32 irq);
+
 extern void irq_remap();
 extern void print_irq_counts();
+
 
 /// Handlers (defined in asm)
 // TODO: can we reduce this to single wrapper?
 //extern isr_handler isr_stubs[ISR_COUNT];
 //extern isr_handler isr_syscall;
 
-extern void isr0();
-extern void isr1();
-extern void isr2();
-extern void isr3();
-extern void isr4();
-extern void isr5();
-extern void isr6();
-extern void isr7();
-extern void isr8();
-extern void isr9();
-extern void isr10();
-extern void isr11();
-extern void isr12();
-extern void isr13();
-extern void isr14();
-extern void isr15();
-extern void isr16();
-extern void isr17();
-extern void isr18();
-extern void isr19();
-extern void isr20();
-extern void isr21();
-extern void isr22();
-extern void isr23();
-extern void isr24();
-extern void isr25();
-extern void isr26();
-extern void isr27();
-extern void isr28();
-extern void isr29();
-extern void isr30();
-extern void isr31();
-
-extern void irq0();
-extern void irq1();
-extern void irq2();
-extern void irq3();
-extern void irq4();
-extern void irq5();
-extern void irq6();
-extern void irq7();
-extern void irq8();
-extern void irq9();
-extern void irq10();
-extern void irq11();
-extern void irq12();
-extern void irq13();
-extern void irq14();
-extern void irq15();
-
+#define ISR(a) void isr##a();
+#define IRQ(a) void irq##a();
+REPEAT_x0_x9(ISR,);
+REPEAT_x0_x9(ISR,1);
+REPEAT_x0_x9(ISR,2);
+REPEAT_x0_x9(ISR,3);
+REPEAT_x0_x9(IRQ,);
+REPEAT_x0_x9(IRQ,1);
+//
+//extern void isr0();
+//extern void isr1();
+// ...
+//extern void irq0();
+//extern void irq1();
+// ...
 
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 // Keyboard
 
+// TODO: define mapping in config file (include a couple test to confirm scan codes valid)
 // maybe move to it's own include file
 // http://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html#ss1.1
 /*
@@ -627,23 +602,6 @@ extern void irq15();
  #define SCAN_Q
  #define SCAN_W
  #define SCAN_E
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
- #define SCAN_
  */
 
 #define KBDUS_DOWNARROW		137
@@ -676,9 +634,11 @@ extern void irq15();
 #define KBDUS_LEFTARROW		164
 #define KBDUS_END			165
 
-#define SCAN_US_SPACE 0x39
-#define SCAN_US_F2 0x3c
-#define SCAN_US_F3 0x3d
+#define SCAN_US_SPACE   0x39
+#define SCAN_US_F2      0x3c
+#define SCAN_US_F3      0x3d
+#define SCAN_US_F4      0x3e
+#define SCAN_US_ENTER   0x1c // 28
 
 /* KBDUS means US Keyboard Layout. This is a scancode table
  *  used to layout a standard US keyboard. I have left some

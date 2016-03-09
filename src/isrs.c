@@ -65,7 +65,7 @@ __asm__("push %%fs;mov %%ax,%%fs;movb %%fs:%2,%%al;pop %%fs" \
 __res;})
 
 #define get_seg_long(seg,addr) ({ \
-register unsigned long __res; \
+register u32 __res; \
 __asm__("push %%fs;mov %%ax,%%fs;movl %%fs:%2,%%eax;pop %%fs" \
 :"=a" (__res):"0" (seg),"m" (*(addr))); \
 __res;})
@@ -117,7 +117,7 @@ __asm__("movw %%dx,%0\n\t" \
 // #define set_limit(ldt,limit) _set_limit( ((char *)&(ldt)) , (limit-1)>>12 )
 
 #define _get_base(addr) ({\
-unsigned long __base; \
+u32 __base; \
 __asm__("movb %3,%%dh\n\t" \
     "movb %2,%%dl\n\t" \
     "shll $16,%%edx\n\t" \
@@ -131,7 +131,7 @@ __base;})
 #define get_base(ldt) _get_base( ((char *)&(ldt)) )
 
 #define get_limit(segment) ({ \
-unsigned long __limit; \
+u32 __limit; \
 __asm__("lsll %1,%0\n\tincl %0":"=r" (__limit):"r" (segment)); \
 __limit;})
 
@@ -142,7 +142,7 @@ __asm__("push %%fs;mov %%ax,%%fs;movb %%fs:%2,%%al;pop %%fs" \
 __res;})
 
 #define get_seg_long(seg,addr) ({ \
-register unsigned long __res; \
+register u32 __res; \
 __asm__("push %%fs;mov %%ax,%%fs;movl %%fs:%2,%%eax;pop %%fs" \
     :"=a" (__res):"0" (seg),"m" (*(addr))); \
 __res;})
@@ -197,16 +197,16 @@ void isrs_install()
 #define IDT_GATE_TRAP       0x8F // (dpl protection level max - ring = 0, Gate Type = 0xF)
 #define IDT_GATE_SYSTEM     0xEF // (dpl protection level max - ring = 3, Gate Type = 0xF)
 
-    idt_set_gate(0, (u32)isr0, 0x08, IDT_GATE_TRAP);
-    idt_set_gate(1, (u32)isr1, 0x08, IDT_GATE_TRAP);
-    idt_set_gate(2, (u32)isr2, 0x08, IDT_GATE_TRAP);
-    idt_set_gate(3, (u32)isr3, 0x08, IDT_GATE_SYSTEM);
-    idt_set_gate(4, (u32)isr4, 0x08, IDT_GATE_SYSTEM);
-    idt_set_gate(5, (u32)isr5, 0x08, IDT_GATE_SYSTEM);
-    idt_set_gate(6, (u32)isr6, 0x08, IDT_GATE_TRAP);
-    idt_set_gate(7, (u32)isr7, 0x08, IDT_GATE_TRAP);
-    idt_set_gate(8, (u32)isr8, 0x08, IDT_GATE_TRAP);
-    idt_set_gate(9, (u32)isr9, 0x08, IDT_GATE_TRAP);
+    idt_set_gate(0,  (u32)isr0,  0x08, IDT_GATE_TRAP);
+    idt_set_gate(1,  (u32)isr1,  0x08, IDT_GATE_TRAP);
+    idt_set_gate(2,  (u32)isr2,  0x08, IDT_GATE_TRAP);
+    idt_set_gate(3,  (u32)isr3,  0x08, IDT_GATE_SYSTEM);
+    idt_set_gate(4,  (u32)isr4,  0x08, IDT_GATE_SYSTEM);
+    idt_set_gate(5,  (u32)isr5,  0x08, IDT_GATE_SYSTEM);
+    idt_set_gate(6,  (u32)isr6,  0x08, IDT_GATE_TRAP);
+    idt_set_gate(7,  (u32)isr7,  0x08, IDT_GATE_TRAP);
+    idt_set_gate(8,  (u32)isr8,  0x08, IDT_GATE_TRAP);
+    idt_set_gate(9,  (u32)isr9,  0x08, IDT_GATE_TRAP);
     idt_set_gate(10, (u32)isr10, 0x08, IDT_GATE_TRAP);
     idt_set_gate(11, (u32)isr11, 0x08, IDT_GATE_TRAP);
     idt_set_gate(12, (u32)isr12, 0x08, IDT_GATE_TRAP);
@@ -276,7 +276,7 @@ c_str exception_messages[] =
     // CSO is on 386 and earlier only
     "Coprocessor Segment Overrun",
 
-    // 0x0A-0x13
+    // 0x0A - 0x13
     "Bad TSS", // Invalid Task State Segment
     "Segment Not Present",
     "Stack Fault",
@@ -324,7 +324,7 @@ void isr_install_handler(u32 isr, isr_handler handler, c_str name)
     ASSERT(kstrlen(name) < 20, "name length must be < 20!\n");
     isr_routines[isr] = handler;
     kmemcpyb((u8*)irq_names[isr], (u8*)name, 20);
-    kwritef(serial_write_b, "installing isr: %d, %x, '%s'\n", isr, (u32)handler, name);
+    trace("installing isr: %d, %x, '%s'\n", isr, (u32)handler, name);
 }
 
 void isr_uninstall_handler(u32 isr)
@@ -338,7 +338,7 @@ void irq_install_handler(u32 irq, isr_handler handler, c_str name)
     ASSERT(kstrlen(name) < 20, "name length must be < 20!\n");
     irq_routines[irq] = handler;
     kmemcpyb((u8*)irq_names[irq], (u8*)name, 20);
-    kwritef(serial_write_b, "installing irq: %d, %x, '%s'\n", irq, (u32)handler, name);
+    trace("installing irq: %d, %x, '%s'\n", irq, (u32)handler, name);
 }
 void irq_uninstall_handler(u32 irq)
 {
@@ -402,19 +402,20 @@ void irq_remap(int irqPrimary, int irqSecondary)
 }
 
 
-void kernel_panic()
+void k_panic()
 {
-    kputs("\n\n ****  PANIC. System Halted! ******* \n\n");
+    trace("\n\n ****  PANIC. System Halted! ******* \n\n");
 
     // TODO: pass in correct stack pointer
-    die("die not implemented", 0, 0);
+    //die("die not implemented", 0, 0);
+    //asm("hlt");
 }
 
 void do_int3(u32* esp, u32 error_code, u32 fs, u32 es, u32 ds,
              u32 ebp, u32 esi, u32 edi, u32 edx, u32 ecx, u32 ebx,u32 eax)
 {
     int tr;
-    __asm__("str %%ax":"=a" (tr):"0" (0));
+    asm ("str %%ax" : "=a" (tr) : "0" (0) );
     kwritef(serial_write_b, "\n\neax\t\tebx\t\tecx\t\tedx\n\r%x\t%x\t%x\t%x\n\r", eax,ebx,ecx,edx);
     kwritef(serial_write_b, "esi\t\tedi\t\tebp\t\tesp\n\r%x\t%x\t%x\t%x\n\r", esi,edi,ebp,(long) esp);
     kwritef(serial_write_b, "\n\rds\tes\tfs\ttr\n\r%x\t%x\t%x\t%x\n\r", ds,es,fs,tr);
@@ -447,7 +448,7 @@ void fault_handler(isr_stack_state* r)
             kwritef(serial_write_b, "Unhandled Exception in Kernel [ISR #%d]: %s [err: %d]", i, exception_messages[i], r->err_code);
             kwritef(serial_write_b, "Can recover by killing this process and calling scheduler");
             do_int3((u32*)r->esp, r->err_code, r->fs, r->es, r->ds, r->ebp, r->esi, r->edi, r->edx, r->ecx, r->ebx, r->eax);
-            kernel_panic();
+            k_panic();
         } else {
             kwritef(serial_write_b, "Unhandled Exception [ISR #%d]: %s [err: %d]", i, exception_messages[i], r->err_code);
             serial_write("No Handler Setup\n");

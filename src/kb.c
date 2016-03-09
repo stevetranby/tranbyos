@@ -58,7 +58,7 @@
 // maybe u8 IRQ scan buf and u32 kernel scan buf
 #define MAX_BUFFERED_INPUT_KEYS 255
 // fixed-size ring buff using overflow to wrap around
-u8  kb_buf[MAX_BUFFERED_INPUT_KEYS] = { 0, };
+u8 kb_buf[MAX_BUFFERED_INPUT_KEYS] = { 0, };
 u8 kb_buf_first = 0; // points to first scan (not read yet)
 u8 kb_buf_last = 0; // points to last scan received (LIFO)
 b32 kb_buf_empty() { return kb_buf_last == kb_buf_first; }
@@ -76,7 +76,7 @@ u8 scan_to_ascii_us[128] =
     '9', '0', '-', '=', '\b', /* Backspace */
     '\t', /* Tab */
     'q', 'w', 'e', 'r', /* 19 */
-    't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', /* Enter key */
+    't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', /* Enter key (28) */
     KBDUS_CONTROL, /* 29 - Control */
     'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', /* 39 */
     '\'', '`', KBDUS_LEFTSHIFT, /* Left shift */
@@ -184,7 +184,7 @@ void keyboard_handler(isr_stack_state *r)
         };
         //u8 _curPrintMode = PRINT_MODE_ASCII;
         u8 _curPrintMode = PRINT_MODE_SCAN;
-        if(scancode == SCAN_US_SPACE) {
+        if(scancode == SCAN_US_ENTER) {
             kputs("Elasped Time (in seconds): ");
             printInt( timer_seconds() );
             kputch('\n');
@@ -192,8 +192,11 @@ void keyboard_handler(isr_stack_state *r)
             kputs("\nPressed F2!\n");
             jump_usermode();
         } else if(scancode == SCAN_US_F3) {
-            kputs("\nPressed F2!\n");
+            kputs("\nPressed F3!\n");
             print_irq_counts();
+        } else if(scancode == SCAN_US_F4) {
+            kputs("\nPressed F4!\n");
+            print_blocks_avail();
         } else if(_curPrintMode == PRINT_MODE_SCAN) {
             printHex(scancode);
             kputch('[');

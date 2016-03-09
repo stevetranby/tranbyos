@@ -9,22 +9,55 @@
 //#include <stdint.h>
 #include <system.h>
 
-static Task *runningTask;
-static Task mainTask;
-static Task otherTask;
+internal Task *runningTask;
+internal Task mainTask;
+internal Task otherTask;
+
+//////////////////////////////////////////////////////////////////
+// Testing
 
 static void otherMain()
 {
-    // Not implemented here...
-    kwritef(serial_write_b, "Hello multitasking world!");
+    // Not implemented here...?
+    trace("Hello multitasking world!\n");
     k_preempt();
 }
 
-void task_init()
+
+void k_preempt()
 {
+    trace("k_preempt called [%d]\n", timer_ticks());
+    Task *last = runningTask;
+    runningTask = runningTask->next;
+    switchTask(&last->regs, &runningTask->regs);
+}
+
+void k_doIt()
+{
+    trace("Switching to otherTask... \n");
+    k_preempt();
+    trace("Returned to mainTask!\n");
+}
+
+//////////////////////////////////////////////////////////////////
+
+void initTasking()
+{
+    trace("init multitasking\n");
+    
     // Get EFLAGS and CR3
-    asm volatile("movl %%cr3, %%eax; movl %%eax, %0;":"=m"(mainTask.regs.cr3)::"%eax");
-    asm volatile("pushfl; movl (%%esp), %%eax; movl %%eax, %0; popfl;":"=m"(mainTask.regs.eflags)::"%eax");
+    asm volatile("movl %%cr3, %%eax; movl %%eax, %0;"
+                 : "=m"(mainTask.regs.cr3)
+                 :
+                 : "%eax");
+
+    asm volatile("pushfl; movl (%%esp), %%eax; movl %%eax, %0; popfl;"
+                 : "=m"(mainTask.regs.eflags)
+                 :
+                 : "%eax");
+
+    trace("main.cr3 = %x\n", mainTask.regs.cr3);
+    trace("main.eflags = %b\n", mainTask.regs.eflags);
 
     createTask(&otherTask, otherMain, mainTask.regs.eflags, (u32*)mainTask.regs.cr3);
 
@@ -33,7 +66,10 @@ void task_init()
     runningTask = &mainTask;
 }
 
-u32 allocPage() { return 0; }
+u32 allocPage()
+{
+    return 0;
+}
 
 void createTask(Task* task, TaskHandler handler, u32 flags, u32* pagedir)
 {
@@ -48,18 +84,4 @@ void createTask(Task* task, TaskHandler handler, u32 flags, u32* pagedir)
     task->regs.cr3 = (u32) pagedir;
     task->regs.esp = (u32) allocPage() + 0x1000; // Not implemented here
     task->next = 0;
-}
-
-void k_preempt()
-{
-    Task *last = runningTask;
-    runningTask = runningTask->next;
-    switchTask(&last->regs, &runningTask->regs);
-}
-
-void doIt()
-{
-    kwritef(serial_write_b, "Switching to otherTask... \n");
-    k_preempt();
-    kwritef(serial_write_b, "Returned to mainTask!\n");
 }

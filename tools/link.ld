@@ -1,25 +1,33 @@
 OUTPUT_FORMAT("binary")
-ENTRY(prog_entry)
-phys = 0x100000;
+ENTRY(_entry)
 SECTIONS
 {
-  .text phys : AT(phys) {
-    prog_code_section = .;
+  . = 0x100000;
+  .text : {
+    _text_start = .;
+    *(.multiboot)
     *(.text)
+    _text_end = .;
+    . = ALIGN(4096);
+  }
+  .rodata :
+  {
     *(.rodata)
     . = ALIGN(4096);
   }
-  .data : AT(phys + (data - prog_code_section))
+  .data :
   {
+	_data_start = .;
     data = .;
     *(.data)
+    _data_end = .;
     . = ALIGN(4096);
   }
-  .bss : AT(phys + (prog_bss_section - prog_code_section))
+  .bss :
   {
-    prog_bss_section = .;
+    _bss_start = .;
     *(.bss)
+    _bss_end = .;
     . = ALIGN(4096);
   }
-  prog_bss_end = .;
 }

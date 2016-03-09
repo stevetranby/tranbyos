@@ -348,7 +348,6 @@ void writeInt64(output_writer writer, i64 num)
 
 void writeUInt(output_writer writer, u32 num)
 {
-    b32 isNeg = false;
     u8 buf[MAX_INT_DIGITS];
     i32 cur, end, temp=0;
 
@@ -495,9 +494,9 @@ void writeHex_bytes(output_writer writer, u64 num, u8 nibbles) {
         writeHexDigit(writer, (num >> i) & 0x0f);
 }
 
-void writeAddr(void* ptr, output_writer writer)
+void writeAddr(output_writer writer, void* ptr)
 {
-    writeHex_bytes(writer, (u32)ptr, 8);
+    writeHex_bytes(writer, (intptr_t)ptr, 8);
 }
 
 void writeHex_b(output_writer writer, u8 num)
@@ -703,6 +702,11 @@ void kwritef(output_writer writer, c_str format, ...)
             case 'x': {
                 int val = va_arg(ap, int);
                 writeHex(writer, val);
+                break;
+            }
+            case 'p': {
+                void* val = va_arg(ap, void*);
+                writeAddr(writer, val);
                 break;
             }
             case 's': {

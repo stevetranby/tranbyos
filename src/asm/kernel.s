@@ -36,59 +36,72 @@ jump_usermode:
      push test_user_function
      iret           
 
+
 global switchTask
 switchTask:
-    pusha
-    pushf
+                            ; arg1, arg2 (esp -= 8)
+                            ; eip (esp -= 4)
+    pusha                   ; ax,bx,cx,dx(16),sp,bp,si,di(16) (esp -= 32)
+    pushf                   ; eflags (esp -= 4)
     
     mov eax, cr3                                         
-    push eax
+    push eax                ; cr3 (esp -= 4)
+
+    ; ESP  +  0 ,   4   ,  8 , 12 , 16 , 20 , 24 , 28 , 32 , 36 , 40 , 44 , 48
+    ; Stack: cr3, eflags, edi, esi, ebp, esp, edx, ecx, ebx, eax, eip, arg1, arg2
                                                
     mov eax, [esp+44]       ; The first argument, where to save 
     mov [eax+4], ebx        ;   
     mov [eax+8], ecx        ;   
     mov [eax+12], edx       ;   
     mov [eax+16], esi       ;   
-    mov [eax+20], edi       ;   
-    mov ebx, [esp+36]       ; EAX                                      
-    mov ecx, [esp+40]       ; IP                                       
-    mov edx, [esp+20]       ; ESP                                      
-    add edx, 4              ; Remove the return value                  
-                            ;  
-    mov esi, [esp+16]       ; EBP                                      
-    mov edi, [esp+4]        ; EFLAGS                                   
-    mov [eax], ebx          ;   
-    mov [eax+24], edx       ;   
-    mov [eax+28], esi       ;   
-    mov [eax+32], ecx       ;   
-    mov [eax+36], edi       ;  
-    pop ebx                 ; CR3                                      
-                            ;  
-    mov [eax+40], ebx 
-    push ebx                ; Goodbye again                            
+    mov [eax+20], edi       ;
+
+    mov ebx, [esp+36]       ; eax
+    mov ecx, [esp+40]       ; eip
+    mov esi, [esp+16]       ; ebp
+    mov edi, [esp+4]        ; eflags
+    mov edx, [esp+20]       ; esp
+    add edx, 4              ; Remove the return value
+
+    mov [eax], ebx          ; eax
+    mov [eax+24], edx       ; esp
+    mov [eax+28], esi       ; ebp
+    mov [eax+32], ecx       ; eip
+    mov [eax+36], edi       ; eflags
+
+    pop ebx                 ; was pushed last
+    mov [eax+40], ebx       ; cr3
+    push ebx                ;
  
-    mov eax, [esp+48]       ; Now it is the new object 
-    mov ebx, [eax+4]        ;                                     
+    mov eax, [esp+48]       ; eax points to "next" task obj
+    mov ebx, [eax+4]        ;
     mov ecx, [eax+8]        ;                                     
     mov edx, [eax+12]       ;                                     
     mov esi, [eax+16]       ;                                     
     mov edi, [eax+20]       ;                                     
-    mov ebp, [eax+28]       ;                                     
-    push eax                ;  
-    mov eax, [eax+36]       ; EFLAGS                                   
-    push eax                ; 
-    popf                    ; pop eflags
-    pop eax                 ; 
-    mov esp, [eax+24]       ; ESP                                      
-    push eax                ;  
-    mov eax, [eax+44]       ; CR3 
-    mov cr3, eax            ;  
-    pop eax                 ;  
-    push eax 
-    mov eax, [eax+32]       ; EIP                                      
+    mov ebp, [eax+28]       ;  
+
+    push eax                ; save obj pointer
+    mov eax, [eax+36]       ; eflags
+    push eax                ; push onto stack
+    popf                    ; pop into eflags registers
+    pop eax                 ; restore obj pointer
+
+    mov esp, [eax+24]       ; esp - restore "next" stack
+
+    ; new stack
+    push eax                ; save obj pointer
+    mov eax, [eax+40]       ; cr3
+    mov cr3, eax            ; restore cr3
+    pop eax                 ; restore obj pointer
+
+    push eax                ; save obj pointer
+    mov eax, [eax+32]       ; eip - return address
     xchg [esp], eax         ; We do not have any more registers to use as tmp storage 
-    mov eax, [eax]          ; EAX                                           
-    ret                     ; This ends all!                                           
+    mov eax, [eax]          ; eax
+
+    ret                     ; This ends all!
 
 
 
@@ -117,11 +130,7 @@ enable_pse:
     or eax, 0x00000010
     mov cr4, eax
 
-; TODO:  Physical Address Extension (PAE)
-
-
-section text
-global loadPageDirectory
+global loadPageDirectory ; &page_directory -> void
 loadPageDirectory:
     push ebp
     mov ebp, esp
@@ -131,18 +140,18 @@ loadPageDirectory:
     pop ebp
     ret
 
-section text
-global enablePaging
+global enablePaging ; void -> void
 enablePaging:
     push ebp
     mov ebp, esp
     mov eax, cr0
-    or  eax, 0x80000000
+    or  eax, 0x80000000 ; 32nd bit - enable paging
     mov cr0, eax
     mov esp, ebp
     pop ebp
     ret
 
+; TODO:  Physical Address Extension (PAE)
 
 
 

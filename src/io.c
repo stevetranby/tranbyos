@@ -83,11 +83,11 @@ void print_port(u16 port)
 //}
 
 
-//void outportsm(unsigned short port, unsigned char * data, unsigned long size) {
+//void outportsm(unsigned short port, unsigned char * data, u32 size) {
 //    asm volatile ("rep outsw" : "+S" (data), "+c" (size) : "d" (port));
 //}
 //
-//void inportsm(unsigned short port, unsigned char * data, unsigned long size) {
+//void inportsm(unsigned short port, unsigned char * data, u32 size) {
 //    asm volatile ("rep insw" : "+D" (data), "+c" (size) : "d" (port) : "memory");
 //}
 //
@@ -162,7 +162,7 @@ void print_port(u16 port)
 //
 //static inline bool are_interrupts_enabled()
 //{
-//    unsigned long flags;
+//    u32 flags;
 //    asm volatile ( "pushf\n\t"
 //                  "pop %0"
 //                  : "=g"(flags) );
@@ -179,9 +179,9 @@ void print_port(u16 port)
 //    asm volatile ( "lidt %0" : : "m"(IDTR) );  // let the compiler choose an addressing mode
 //}
 //
-//static inline unsigned long read_cr0(void)
+//static inline u32 read_cr0(void)
 //{
-//    unsigned long val;
+//    u32 val;
 //    asm volatile ( "mov %%cr0, %0" : "=r"(val) );
 //    return val;
 //}

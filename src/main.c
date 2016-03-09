@@ -715,8 +715,8 @@ u32 kmain(multiboot_info* mbh, u32 magic)
         output_writer writer = (i == 0) ? serial_write_b : kputch;
 
         // Multiboot Info
-        kwritef(writer, "MBInfo: %x, Mem: %d - %d B, Flags: %b\n",
-                magic, mbh->mem_lower, mbh->mem_upper, mbh->flags);
+        kwritef(writer, "MBInfo: %x [%x], Mem: %d - %d B, Flags: %b\n",
+                magic, &mbh, mbh->mem_lower, mbh->mem_upper, mbh->flags);
 
         kwritef(writer,"MMap:\t%x\nAddr:\t%x\nDrives:\t%x\nAddr:\t%x\nConfig:\t%x\n",
                 mbh->mmap_length,
@@ -753,16 +753,11 @@ u32 kmain(multiboot_info* mbh, u32 magic)
 
     wait_any_key();
 
-    // DEBUG::Testing heap code
-    print_heap_magic();
-
-    wait_any_key();
-
         //--------------------------------------------
 
-    trace("kmalloc");
-    u8 *t = kmalloc(4);
-    u8 *s = kmalloc(8);
+    trace("kmalloc\n");
+    u8 *t = kmalloc_b(4);
+    u8 *s = kmalloc_b(8);
     for(int i=0; i<4; ++i) {
         t[i] = i;
         s[i*2] = i*2;
@@ -772,12 +767,23 @@ u32 kmain(multiboot_info* mbh, u32 magic)
         kprintf("%x : %d : %x : %d : %d\n", (u32)&t, t[i], (u32)&s, s[i*2], s[i*2+1]);
     }
 
+    // DEBUG::Testing heap code
+    print_heap_magic();
+    u8* testMalloc = kmalloc_b(20);
+    testMalloc[0] = 'S';
+    testMalloc[1] = 't';
+    testMalloc[2] = 'e';
+    testMalloc[3] = 'v';
+    testMalloc[4] = 'e';
+    print_heap_bytes(128);
+    serial_write("\n");
+    print_blocks_avail();
+
     wait_any_key();
 
     //--------------------------------------------
 
-
-    // print out some memory
+    // print out some stack memory
     kputch('\n');
     int array[10] = { 1,1,2,3,5,8,13,21,34 };
     int *p = array;
@@ -788,33 +794,44 @@ u32 kmain(multiboot_info* mbh, u32 magic)
     }
     kputs("\n");
 
-    trace("print out memory\n");
     wait_any_key();
 
-    kputch('\n');
-
-    wait_any_key();
-
-        //--------------------------------------------
+    //--------------------------------------------
 
     // TODO: allow switching "stdout" from direct to serial or both
     rtc_time time = read_rtc();
     kprintf("datetime = %d-%d-%d %d:%d:%d\n",
             time.year, time.month, time.day,
             time.hour, time.minute, time.second);
+    
+
 
     // TODO: fork off shell process
     serial_write("Starting Infinite Loop!\r\n");
     kputs("Starting Infinite Loop!\n");
 
     kputs("Press SPACE BAR:");
-    u8 SCAN_SPACE = 0x39;
-    while(SCAN_SPACE != keyboard_read_next())
-        ;
+    for(u8 ch = 0; ch != SCAN_US_SPACE; ch = keyboard_read_next()) {
+        serial_write("still waiting for SPACE KEY PRESS!\n");
+        delay_ms(100);
+    }
+
+    wait_any_key();
 
     //--------------------------------------------
 
-    k_preempt();
+    init_page_directory();
+    serial_write("[main] set up page directory!");
+    wait_any_key();
+
+    //--------------------------------------------
+
+    // TODO: fix this
+    initTasking();
+    trace("[main] before k_doIt\n");
+    k_doIt();
+    trace("[main] back after k_doIt\n");
+    wait_any_key();
 
     //--------------------------------------------
 

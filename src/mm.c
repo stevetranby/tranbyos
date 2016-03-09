@@ -1,5 +1,21 @@
 #include <system.h>
 
+// NOTE: the linker symbol variables have their addresses defined
+//       value stored as the pointer is data found at symbol address
+// ex: 0x00100000 (address of _text_start)
+//     0x1badb002 (data @ _text_start cast as void*) <- multiboot header
+extern intptr_t _text_start;
+extern intptr_t _text_end;
+extern intptr_t _data_start;
+extern intptr_t _data_end;
+extern intptr_t _bss_start;
+extern intptr_t _bss_end;
+// these
+extern intptr_t sys_stack_bottom;
+extern intptr_t sys_stack_top;
+extern intptr_t sys_heap_bottom;
+extern intptr_t sys_heap_top;
+
 // Define max blocks allowed to be allocated
 #define MAX_BLOCKS 2048
 
@@ -20,60 +36,137 @@ struct freeblock {
 	u32 len;
 };
 
-// This is in start.asm at the end of the file (it's basically the same as the stack pointer + 4k;
-extern u8* sys_heap;
-extern u8* prog_bss_end;
+// NOTE: current kernel blocks are byte-sized
+u32 blocks_used[MAX_BLOCKS];
 
 //static void *brkval;
-u8 *heap_ptr;
-u8 *free_ptr;
+u8* heap_ptr;
+u8* free_ptr;
 //static block_t *freelist;
 
 // Initialize the Memory Manager
 void init_mm()
 {
-	// Let's start simple and create just a standard heap
-	heap_ptr = sys_heap + 1;
-	heap_ptr[0] = 'H';
-	heap_ptr[1] = 'E';
-	heap_ptr[2] = 'A';
-	heap_ptr[3] = 'P';
-    heap_ptr[4] = '\0';
-	free_ptr = heap_ptr + 5;
+    kmemset(blocks_used, 0, MAX_BLOCKS);
+    // Let's start simple and create just a standard heap
+    heap_ptr = (u8*)&sys_heap_bottom + 1;
+    free_ptr = heap_ptr;
+
+    {
+        // TEST MAGIC
+        u8* ptr = kmalloc_b(5);
+        kwritef(serial_write_b, "ptr = %p\n", ptr);
+        ptr[0] = 'H';
+        ptr[1] = 'E';
+        ptr[2] = 'A';
+        ptr[3] = 'P';
+        ptr[4] = '\0';
+    }
+    {
+        // TEST MAGIC
+        u8* ptr = kmalloc_b(5);
+        kwritef(serial_write_b, "ptr = %p\n", ptr);
+        ptr[0] = 'H';
+        ptr[1] = 'E';
+        ptr[2] = 'A';
+        ptr[3] = 'P';
+        ptr[4] = '\0';
+    }
 }
 
 void print_heap_magic()
 {
     trace("heap magic\n");
-    kprintf("Heap: %x | %x | %x\n", (u32)sys_heap, (u32)heap_ptr, (u32)prog_bss_end);
+
+    // NOTE: the linker symbol variables have their addresses defined
+    //       value stored as the pointer is data found at symbol address
+    // ex: 0x00100000 (address of _text_start)
+    //     0x1badb002 (data @ _text_start cast as void*) <- multiboot header
+    kwritef(serial_write_b, "Text Section: %p | %p\n", &_text_start, &_text_end);
+    kwritef(serial_write_b, "Data Section: %p | %p\n", &_data_start, &_data_end);
+    kwritef(serial_write_b, "BSS Section:  %p | %p\n", &_bss_start, &_bss_end);
+    kwritef(serial_write_b, "STACK:        %p | %p\n", &sys_stack_bottom, &sys_stack_top);
+    kwritef(serial_write_b, "HEAP:         %p | %p\n", &sys_heap_bottom, &sys_heap_top);
+    kwritef(serial_write_b, "Heap Magic String: %p '%s'\n", heap_ptr, heap_ptr);
+    kwritef(serial_write_b, "Free Ptr:          %p\n", free_ptr);
+
 }
 
-// Byte Allocator for Heap
-u8 * kmalloc(u32 nblks)
+void print_heap_bytes(u32 n)
 {
-    if((u32)free_ptr + nblks > MAX_BLOCKS)
+    trace("print_heap_bytes\n");
+    int i = 0;
+    for(u32* ptr = (u32*)heap_ptr; i < n; ++i, ++ptr) {
+        kwritef(serial_write_b, "%x", *ptr);
+        if(0 == (i+1) % 8) kwritef(serial_write_b, "\n");
+        else kwritef(serial_write_b, " ");
+    }
+
+}
+
+// TODO: a lot of potential places to macro or pre-proc out the excess
+// TODO: do we want this? it's a nice handy shortcut
+#define FOR(n) for(int i=0; i<10;)
+
+void print_blocks_avail()
+{
+//    FOR(MAX_BLOCKS) {
+//        kwritef(serial_write_b, "", block_avail);
+//    }
+    for(int i = 0; i < MAX_BLOCKS; ++i)
+    {
+        kwritef(serial_write_b, "%d", blocks_used[i]);
+        if(0 == (i+1) % 60) kwritef(serial_write_b, "\n");
+        else kwritef(serial_write_b, ",");
+    }
+}
+
+// TODO: allocate extra block on each side and fill with debug markers
+// TODO: make block size larger (multiple sizes)
+// Byte Allocator for Heap
+u8* kmalloc_b(u32 nblks)
+{
+    u32 offset = free_ptr - heap_ptr;
+
+    // TODO: wrap around search and try to find contiguous space in freed blocks
+    //       if wrapping need to check blocks_used[] to make sure it's free
+    if((u32)offset + nblks > MAX_BLOCKS) {
+        trace("TODO: need to have wrap around malloc\n");
 		return NULL;
-	u8 *tmp = free_ptr;
-	free_ptr = free_ptr + nblks + 1;
+    }
+
+    // mark used
+    kwritef(serial_write_b, "blocks_used %p, %d, %d, %d\n", blocks_used + offset, offset, nblks, nblks);
+    kmemset(blocks_used + offset, nblks, nblks);
+
+    // return init block (debug fill with known data)
+    u8* tmp = free_ptr;
+	free_ptr = free_ptr + nblks;
+#ifdef _DEBUG_
+    kmemset(tmp, 0xee, nblks);
+#endif
+    kwritef(serial_write_b, "malloc ret ptr = %p\n", tmp);
 	return tmp;
 }
 
-/*
-void * malloc(u32 size) 
- {
-	// Find free block(s) for memory of size nbytes	
-	// Set that block(s) to used
-	// Possibly store some extra information
-	// Return the address of this block
-	return NULL;
-}
+//void* malloc(u32 size)
+//{
+//	// Find free block(s) for memory of size nbytes	
+//	// Set that block(s) to used
+//	// Possibly store some extra information
+//	// Return the address of this block
+//	return NULL;
+//}
 
-void free(void * addr)
+void kfree_b(u8* addr)
  {
+     u32 start = addr - heap_ptr;
+     u32 nblks = blocks_used[start];
+     kmemset(blocks_used, 0, nblks);
+
 	// Find block(s) starting at memory address of addr
 	// Set these block(s) to free!
 }
-*/
 
 
 // TODO: everything below needs to be studied once working, then re-written by hand
@@ -113,103 +206,223 @@ void free(void * addr)
 //    // NOTE: http://wiki.osdev.org/Setting_Up_Paging_With_PAE
 //    // Now you can access all structures in virtual memory. Mapping the PDPT into the directory wastes quite much virtual memory as only 32 bytes are used, but if you allocate most/all PDPT's into one page then you can access ALL of them, which can be quite useful You can also statically allocate the PDPT at boot time, put the 4 page directory addresses in your process struct, and then just write the same PDPT address to CR3 on a context switch after you've patched the PDPT.
 //}
+
+
+
+
+//////////////////////////////////////////////////
+// Paging
+
+// TODO: can we use packed bitfield structs without issue?
+// - do we want to? if not create helper funcs for bit twiddle with DEFINES
+typedef struct PACKED
+{
+    u32 present:1;
+    u32 readwrite:1;
+    u32 access_supervisor:1;
+    u32 write_through:1;
+    u32 cache_disabled:1;
+    u32 accessed:1;
+    u32 _zero:1;
+    u32 page_size:1;
+    u32 _ignored:1;
+    u32 _unused:3;
+    u32 addr:20;
+} page_directory_entry;
+
+typedef struct PACKED
+{
+    u32 present:1;
+    u32 readwrite:1;
+    u32 access_supervisor:1;
+    u32 write_through:1;
+    u32 cache_disabled:1;
+    u32 accessed:1;
+    u32 dirty:1;
+    u32 isglobal:1;
+    u32 _unused:3;
+    u32 addr:20;
+} page_table_entry;
+
+#define PAGE_DIR_PRESENT         	0x00000001 // 1 - in physical memory
+#define PAGE_DIR_READWRITE          0x00000002 // 1 - readwrite, 0 - readonly
+#define PAGE_DIR_USER_ALL           0x00000004 // 1 - access by ALL, 0 - only supervisor
+#define PAGE_DIR_WRITE_THROUGH      0x00000008 // 1 - write-through, 0 - write-back
+#define PAGE_DIR_CACHE_DISABLED     0x00000010 // 1 - page will NOT be cached
+#define PAGE_DIR_ACCESSED_RECENTLY  0x00000020 // 1 - read/written recently, OS must clear
+#define PAGE_DIR_ZERO_unused        0x00000040 // for OS use
+#define PAGE_TABLE_DIRTY            0x00000040 // written to, OS must clear
+#define PAGE_DIR_PAGE_SIZE_4M       0x00000080 // 1 - 4MB pages, 0 - 4KB pages
+#define PAGE_TABLE_zero_unused      0x00000080 // for OS use
+#define PAGE_DIR_ignored            0x00000100 // ignored ...
+#define PAGE_TABLE_GLOBAL           0x00000100 // The Global, or 'G' above, flag, if set, prevents the TLB from updating the address in it's cache if CR3 is reset. Note, that the page global enable bit in CR4 must be set to enable this feature.
+#define PAGE_DIR_unused             0x00000200 // for OS use
+#define PAGE_DIR_unused1            0x00000400 // for OS use
+#define PAGE_DIR_unused2            0x00000800 // for OS use
+#define PAGE_DIR_ADDR_BASE          0x00001000 // Base bit of start of address bits
+#define PAGE_DIR_ADDR_MASK          0xfffff000 // mask of all bits in address
+
+typedef uintptr_t vaddr;
+typedef uintptr_t paddr;
+
+u32 page_directory[1024] __attribute__((aligned(4096)));
+u32 first_page_table[1024] __attribute__((aligned(4096)));
+// TODO: if you want more than 4K dir * 4K pages need to add another level
+
+
 //
-////////////////////////////////////////////////////
-//// Paging
-//
-//// And this inside a function
-//i32 page_directory[1024] __attribute__((aligned(4096)));
-//i32 first_page_table[1024] __attribute__((aligned(4096)));
-//
-//void init_page_directory() 
-//{
-//	void loadPageDirectory(i32* page_directory);
-//	void enablePaging();
-//
-//	//set each entry to not present
-//	for(i32 i = 0; i < 1024; i++)
-//	{
-//	    // This sets the following flags to the pages:
-//	    //   Supervisor: Only kernel-mode can access them
-//	    //   Write Enabled: It can be both read from and written to
-//	    //   Not Present: The page table is not present
-//	    page_directory[i] = 0x00000002;
-//	}
-//
-//	// holds the physical address where we want to start mapping these pages to.
-//	// in this case, we want to map these pages to the very beginning of memory.
-//
-//	//we will fill all 1024 entries in the table, mapping 4 megabytes
-//	for(i32 i = 0; i < 1024; i++)
-//	{
-//	    // As the address is page aligned, it will always leave 12 bits zeroed.
-//	    // Those bits are used by the attributes ;)
-//	    first_page_table[i] = (i * 0x1000) | 3; // attributes: supervisor level, read/write, present.
-//	}
-//
-//	// attributes: supervisor level, read/write, present
-//	page_directory[0] = ((i32)first_page_table) | 3;
-//}
-//
-//void* get_physaddr(void* virtualaddr)
-//{
-//    uintptr_t pdindex = (uintptr_t)virtualaddr >> 22;
-// 	uintptr_t ptindex = (uintptr_t)virtualaddr >> 12 & 0x03FF;
-// 
-//    void* pd = (void*)0xFFFFF000;
-//
-//    // Here you need to check whether the PD entry is present.
-// 
-//    void* pt = ((void*)0xFFC00000) + (0x400 * pdindex);
-//    // Here you need to check whether the PT entry is present.
-// 
-//    return (void*)( (pt[ptindex] & ~0xFFF) + ( (void*)virtualaddr & 0xFFF ) );
-//}
-//
-//void map_page(void* physaddr, void* virtualaddr, i32 flags)
-//{
-//    // Make sure that both addresses are page-aligned.
-// 
-//    uintptr_t pdindex = (u64)virtualaddr >> 22;
-//    uintptr_t ptindex = (intptr_t)virtualaddr >> 12 & 0x03FF;
-// 
-//    void* pd = (void*)0xFFFFF000;
-//
-//    // Here you need to check whether the PD entry is present.
-//    // When it is not present, you need to create a new empty PT and
-//    // adjust the PDE accordingly.
-// 
-//    void* pt = ((uintptr_t)0xFFC00000) + (0x400 * pdindex);
-//    // Here you need to check whether the PT entry is present.
-//    // When it is, then there is already a mapping present. What do you do now?
-// 
-//    pt[ptindex] = ((uintptr_t)physaddr) | (flags & 0xFFF) | 0x01; // Present
-// 
-//    // Now you need to flush the entry in the TLB
-//    // or you might not notice the change.
-//}
-//
-//
-//
-//
+// US RW  P - Description
+// 0  0  0 - Supervisory process tried to read a non-present page entry
+// 0  0  1 - Supervisory process tried to read a page and caused a protection fault
+// 0  1  0 - Supervisory process tried to write to a non-present page entry
+// 0  1  1 - Supervisory process tried to write a page and caused a protection fault
+// 1  0  0 - User process tried to read a non-present page entry
+// 1  0  1 - User process tried to read a page and caused a protection fault
+// 1  1  0 - User process tried to write to a non-present page entry
+// 1  1  1 - User process tried to write a page and caused a protection fault
+void page_fault_handler(isr_stack_state* r)
+{
+    u32 i = r->int_no;
+    u32 err = r->err_code;
+    trace("page fault handler (isr #%d) called with err: %x", i, err);
+
+    //k_panic();
+}
+
+// TODO:
+/*
+ Creating a Blank Page Directory
+
+ The first step is to create a blank page directory. The page directory is blank because we have not yet
+ created any page tables where the entries in the page directory can point.
+
+ Note that all of your paging structures need to be at page-aligned addresses (i.e. being a multiple of 4096).
+ If you have already written a page frame allocator then you can use it to allocate the first free page after
+ your kernel for the page directory. If you have not created a proper page allocator, simply finding the first
+ free page-aligned address after the kernel will be fine, but you should write the page frame allocator as
+ soon as possible. Another temporary solution (used in this tutorial) is to simply declare global objects 
+ with __attribute__((align(4096))). Note that this is a GCC extension. It allows you to declare data aligned 
+ with some mark, such as 4KiB here. We can use this because we are only using one page directory and one page 
+ table. Please note that on the real world, dynamic allocation is too basic to be missing, and paging 
+ structures are constantly being added, deleted, and modified. For now, just use static objects;
+ */
+void init_page_directory() 
+{
+    trace("init multitasking\n");
+
+    //set each entry to not present
+    for(int i = 0; i < 1024; i++)
+    {
+        // This sets the following flags to the pages:
+        // bit 0 = 0 - not present
+        // bit 1 = 1 - writable
+        // bit 2 = 0 - supervisor only
+        page_directory[i] = PAGE_DIR_READWRITE;
+    }
+
+    //we will fill all 1024 entries in the table, mapping 4 megabytes
+    for(int i = 0; i < 1024; i++)
+    {
+        // As the address is page aligned, it will always leave 12 bits zeroed.
+        // attributes: supervisor level (0), read/write (1), present (1)
+        first_page_table[i] = (i * PAGE_DIR_ADDR_BASE) | PAGE_DIR_READWRITE | PAGE_DIR_PRESENT;
+    }
+
+    // attributes: supervisor level (0), read/write (1), present (1)
+    //page_directory[0] = ((unsigned int)first_page_table) | 3;
+    page_directory[0] = (u32)first_page_table | PAGE_DIR_READWRITE | PAGE_DIR_PRESENT;
+
+    trace("loading in page directory\n");
+
+    // must have page fault handler installed before enabling paging otherwise GPF calling `trace()` or other
+    const int ISR_PAGE_FAULT = 0x0e;
+    isr_install_handler(ISR_PAGE_FAULT, page_fault_handler, "page fault");
+    loadPageDirectory(page_directory);
+    enablePaging();
+
+    trace("paging enabled\n");
+}
+
+
+// from - virtual address to start Ident paging
+// size - # bytes to page from start(from)
+void idpaging(uint32_t *first_pte, vaddr from, int size);
+void idpaging(uint32_t *first_pte, vaddr from, int size)
+{
+    // discard bits we don't want
+    from = from & 0xfffff000;
+    for(; size > 0; from += 4096, size -= 4096, ++first_pte)
+    {
+        *first_pte = from|1;     // mark page present.
+    }
+}
+
+void* get_physaddr(void* virtualaddr)
+{
+    u32 pdindex = (u32)virtualaddr >> 22;
+    u32 ptindex = (u32)virtualaddr >> 12 & 0x03FF;
+
+    //u32 * pd = (u32*)0xFFFFF000;
+
+    u32 pd = page_directory[pdindex];
+
+    // Here you need to check whether the PD entry is present.
+    // TODO: if(BIT(pd, PAGE_DIR_PRESENT))
+
+    u32 pt = 0xFFC00000 + (0x400 * pdindex);
+
+    // Here you need to check whether the PT entry is present.
+
+    u32 base = first_page_table[ptindex] & ~0xFFF;
+    u32 offset = (u32)virtualaddr & 0xFFF;
+    return (void *)(base + offset);
+}
+
+void map_page(void* physaddr, void* virtualaddr, i32 flags)
+{
+    // Make sure that both addresses are page-aligned.
+
+    u32 pdindex = (u32)virtualaddr >> 22;
+    u32 ptindex = (u32)virtualaddr >> 12 & 0x03FF;
+
+    //u32 * pd = (u32 *)0xFFFFF000;
+
+    // Here you need to check whether the PD entry is present.
+
+    // When it is not present, you need to create a new empty PT and
+    // adjust the PDE accordingly.
+
+
+    u32 * pt = ((u32 *)0xFFC00000) + (0x400 * pdindex);
+    // Here you need to check whether the PT entry is present.
+    // When it is, then there is already a mapping present. What do you do now?
+
+    pt[ptindex] = ((u32)physaddr) | (flags & 0xFFF) | 0x01; // Present
+
+    // Now you need to flush the entry in the TLB
+    // or you might not notice the change.
+}
+
+
+
+
 //// Abstract model of a TLB.
 //
-//typedef uintptr_t vaddr_t;
-//typedef uintptr_t paddr_t;
 //
 //// Flag to mark an entry in the modelled hardware TLB as having been set for use as a valid translation.
 //#define TLB_ENTRY_FLAGS_INUSE
+//#define CPU_MODEL_MAX_TLB_ENTRIES 10
 //
-//struct tlb_cache_record_t
+//typedef struct
 //{
 //    vaddr_t entry_virtual_address;
 //    paddr_t relevant_physical_address;
 //    uint16_t permissions;
-//};
+//} tlb_cache_record;
 //
 //// Instance of a hardware Translation Lookaside Buffer.
-//struct tlb_cache_record_t   hw_tlb[CPU_MODEL_MAX_TLB_ENTRIES];
 //
+//internal tlb_cache_record hw_tlb[CPU_MODEL_MAX_TLB_ENTRIES];
 //
 //// Model routine for a TLB lookup.
 //
@@ -217,7 +430,7 @@ void free(void * addr)
 //{
 //    for (int i=0; i<CPU_MODEL_MAX_TLB_ENTRIES; i++)
 //    {
-//        if (hw_tlb[i].flags & TLB_ENTRY_FLAGS_INUSE && hw_tlb[i].entry_virtual_address == v)
+//        if (hw_tlb[i].permissions & TLB_ENTRY_FLAGS_INUSE && hw_tlb[i].entry_virtual_address == v)
 //        {
 //            *p = hw_tlb[i].relevant_physical_address;
 //            return 1;
@@ -228,7 +441,7 @@ void free(void * addr)
 //
 //void tlb_flush()
 //{
-//    asm volatile ("TLBFLSH   %0\n\t"::"r" (virtual_address));
+//    asm volatile ("tlbflsh %0\n\t" : : "r" (virtual_address));
 //}
 //
 //// Modelled function for a flush of the TLB modelled earlier on.
@@ -237,9 +450,9 @@ void free(void * addr)
 //{
 //    for (int i=0; i<CPU_MODEL_MAX_TLB_ENTRIES; i++)
 //    {
-//        if (hw_tlb[i].flags & TLB_ENTRY_FLAGS_INUSE && hw_tlb[i].entry_virtual_address == v)
+//        if (hw_tlb[i].permissions & TLB_ENTRY_FLAGS_INUSE && hw_tlb[i].entry_virtual_address == v)
 //        {
-//            ht_tlb[i].flags &= ~TLB_ENTRY_FLAGS_INUSE;
+//            ht_tlb[i].permissions &= ~TLB_ENTRY_FLAGS_INUSE;
 //            return;
 //        };
 //    };

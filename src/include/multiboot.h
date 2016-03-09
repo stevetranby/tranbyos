@@ -169,20 +169,20 @@ typedef struct PACKED
 /* The module structure. */
 typedef struct
 {
-    unsigned long mod_start;
-    unsigned long mod_end;
-    unsigned long string;
-    unsigned long reserved;
+    u32 mod_start;
+    u32 mod_end;
+    u32 string;
+    u32 reserved;
 } module_t;
 
 /* The memory map. Be careful that the offset 0 is base_addr_low
  but no size. */
 typedef struct
 {
-    unsigned long size;
-    unsigned long base_addr_low;
-    unsigned long base_addr_high;
-    unsigned long length_low;
-    unsigned long length_high;
-    unsigned long type;
+    u32 size;
+    u32 base_addr_low;
+    u32 base_addr_high;
+    u32 length_low;
+    u32 length_high;
+    u32 type;
 } memory_map_t;
