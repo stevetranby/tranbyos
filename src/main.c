@@ -110,6 +110,10 @@
 #include <systemcpp.h>
 #include <multiboot.h>
 
+//////////////////////////////
+
+u32 initial_esp;
+
 /////////////////////////////
 
 void kassert_fail(c_str assertion, c_str file, unsigned int line, c_str func, c_str msg)
@@ -506,8 +510,10 @@ internal void test_harddisk()
 }
 
 // NASM assembly boot loader calls this method
-u32 kmain(multiboot_info* mbh, u32 magic)
+u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 {
+    initial_esp = initial_stack;
+
     gdt_install();
     idt_install();
     timer_install();
@@ -874,9 +880,9 @@ u32 kmain(multiboot_info* mbh, u32 magic)
 
         fillrect(x, y, colorIndex);
 
+        trace("Running Process MAIN!\n");
         //delay_ms(100);
-
-        //kwritef(serial_write_b, "test\n");
+        k_preempt();
     }
 
 

@@ -37,7 +37,6 @@ global sys_stack_bottom
 global sys_stack_top
 global sys_heap_bottom
 global sys_heap_top
-global jump_usermode
 
 section .text
 
@@ -82,7 +81,8 @@ section .text
 
 ; call our main() function 
 stublet:
-	push eax    ; contains 0x2BADB002
+    push esp    ; pass in the kernel stack address
+	push eax    ; contains 0x2BADB002 (magic)
 	push ebx    ; header physical address
     cli
 	call kmain
@@ -225,7 +225,6 @@ isr_common_stub:
     push eax
 
     mov eax, fault_handler
-
     call eax       ; A special call, preserves the 'eip' register
 
     pop eax
@@ -239,7 +238,7 @@ isr_common_stub:
     add esp, 8     ; Cleans up the pushed error code and pushed ISR number
 
     ; iret pops 5 things at once: EIP, CS, EFLAGS, ESP, SS
-    iret
+    iret           
     ; WRONG pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP!
 
 ;--------------------------------------------------------------------

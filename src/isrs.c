@@ -88,7 +88,7 @@ __asm__("str %%ax\n\t" \
 ////////////////////////////////////////////////////////////////////////////////
 // From linux kernel 0.1
 
-#define PAGE_ALIGN(n) (((n)+0xfff)&0xfffff000)
+#define PAGE_ALIGN(n) ( ( (n) + 0xfff ) & 0xfffff000)
 /*
 #define _set_base(addr,base) \
 __asm__("movw %%dx,%0\n\t" \
@@ -598,3 +598,44 @@ void print_irq_counts()
         trace("%d:\t%d\t'%s'\t%d\n", i, irq_counts[i], irq_names[i], irq_spurious[i]);
     }
 }
+
+void print_regs(isr_stack_state *regs)
+{
+    kprintf("\n\rPushed by CPU:\n\r");
+    kprintf("ss: %x uesp: %x eflags: %x cs: %x eip: %x\n\r",
+            regs->ss,
+            regs->esp,
+            regs->eflags,
+            regs->cs,
+            regs->eip
+            );
+    kprintf("int_no: %x err_code: %x\n\r", regs->int_no, regs->err_code);
+    kprintf("Pushed by pusha:\n\r");
+    kprintf("eax: %x ecx: %x edx: %x ebx: %x kesp: %x\n\r",
+            regs->eax,
+            regs->ecx,
+            regs->edx,
+            regs->ebx//,
+            // regs->kesp
+            );
+
+    kprintf("ebp: %x esi: %x edi: %x\n\r",
+            regs->ebp,
+            regs->esi,
+            regs->edi
+            );
+    kprintf("Others:\n\r");
+    kprintf("es: %x ds: %x fs: %x gs: %x\n\r",
+            regs->es,
+            regs->ds,
+            regs->fs,
+            regs->gs
+            );
+
+    // TODO:
+//    kprintf("cr2: %x cr3: %x\n\r",
+//            regs->cr2,
+//            regs->cr3
+//            );
+}
+
