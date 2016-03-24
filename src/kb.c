@@ -372,7 +372,7 @@ void ps2_install()
     ps2_wait_read();
     status = inb(PS2_DATA);
 
-    kwritef(serial_write_b, "initial config =  %b, %b\n", status, (status & 0b110111100));
+    trace("initial config =  %b, %b\n", status, (status & 0b110111100));
 
     // write
     outb(PS2_CMD, PS2_CONFIG_WRITE);
@@ -384,7 +384,7 @@ void ps2_install()
     ps2_wait_read();
     status = inb(PS2_DATA);
 
-    kwritef(serial_write_b, "official config = %b\n", status);
+    trace("official config = %b\n", status);
 
     // if clock bit for 2nd port (bit 5) is still enabled
     // assume older "single device" controller mark it unusable
@@ -404,11 +404,11 @@ void ps2_install()
     status = inb(PS2_DATA);
 
     if(status == 0x55) {
-        kwritef(serial_write_b, "PS2 Controller Test Passed\n");
+        trace("PS2 Controller Test Passed\n");
     } else if(status == 0xFC) {
-        kwritef(serial_write_b, "[err] PS2 Controller Test FAILED\n");
+        trace("[err] PS2 Controller Test FAILED\n");
     } else {
-        kwritef(serial_write_b, "[err] Unknown PS2 Controller Test Response\n");
+        trace("[err] Unknown PS2 Controller Test Response\n");
     }
 
     if(is_dual_device)
@@ -443,7 +443,7 @@ void ps2_install()
     status |= 0b01000001;
     if(is_dual_device)
         status |= 0b000000010;
-    kwritef(serial_write_b, "final config = %b\n", status);
+    trace("final config = %b\n", status);
     outb(PS2_CMD, PS2_CONFIG_WRITE);
     ps2_wait_write();
     outb(PS2_DATA, status);
@@ -484,9 +484,9 @@ void ps2_install()
         if(status != 0)
         {
             // error occured
-            kwritef(serial_write_b, "[ERR] PS2 Port #%d Failed Test [code: %x!\n", i, status);
+            trace("[ERR] PS2 Port #%d Failed Test [code: %x!\n", i, status);
         } else {
-            kwritef(serial_write_b, "PS2 Port #%d Passed Test Successfully\n", i);
+            trace("PS2 Port #%d Passed Test Successfully\n", i);
         }
     }
 
@@ -509,12 +509,12 @@ void ps2_install()
             status = inb(PS2_DATA);
             if(status == 0xAA)
             {
-                kwritef(serial_write_b, "Reset PS2 Port #%d Successfully\n", i);
+                trace("Reset PS2 Port #%d Successfully\n", i);
             }
         } else if(status == 0xFC) {
-            kwritef(serial_write_b, "[ERR] Failure Resetting PS2 Port #%d\n", i);
+            trace("[ERR] Failure Resetting PS2 Port #%d\n", i);
         } else {
-            kwritef(serial_write_b, "[ERR] Unknown error code %x Resetting PS2 Port #2\n", status, i);
+            trace("[ERR] Unknown error code %x Resetting PS2 Port #2\n", status, i);
         }
     }
 
@@ -550,7 +550,7 @@ void ps2_install()
         ps2_identify[i][0] = inb(PS2_DATA);
         ps2_wait_read();
         ps2_identify[i][1] = inb(PS2_DATA);
-        kwritef(serial_write_b, "ident %d: %x,%x\n", i, ps2_identify[i][0], ps2_identify[i][1]);
+        trace("ident %d: %x,%x\n", i, ps2_identify[i][0], ps2_identify[i][1]);
     }
 
 

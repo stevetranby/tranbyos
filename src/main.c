@@ -350,12 +350,12 @@ internal void draw_pixel(u32 x, u32 y, u32 color)
     mem[pos] = color & 0xFF;
     mem[pos + 1] = (color >> 8) & 0xFF;
     mem[pos + 2] = (color >> 16) & 0xFF;
-    //kwritef(serial_write_b, "draw pixel {%d, %d} [%d] w/color %x\n    ", x, y, pos, color);
+    //trace("draw pixel {%d, %d} [%d] w/color %x\n    ", x, y, pos, color);
 }
 
 internal void draw_rectangle(u32 x, u32 y, u32 width, u32 height, uint32_t color)
 {
-    kwritef(serial_write_b, "draw rect {%d, %d, %d, %d} w/color %x\n", x, y, width, height, color);
+    trace("draw rect {%d, %d, %d, %d} w/color %x\n", x, y, width, height, color);
     for (u32 i = x; i < x + width; ++i)
     {
         for (u32 j = y; j < y + height; ++j)
@@ -524,15 +524,15 @@ u32 kmain(multiboot_info* mbh, u32 magic)
 
     delay_ms(500);
 
-    kwritef(serial_write_b, "=============================================================\n");
-    kwritef(serial_write_b, "test double parsing: %f\n", 12349434.323423499);
-    kwritef(serial_write_b, "test double parsing: %f\n", 9582983498293849283984.133);
+    trace("=============================================================\n");
+    trace("test double parsing: %f\n", 12349434.323423499);
+    trace("test double parsing: %f\n", 9582983498293849283984.133);
 
     // TODO: kdebugf (prints to both stdout and serial port)
     u32 a = addi(1,2);
     u32 b = addl(1,2);
     u64 c = addll(1,2);
-    kwritef(serial_write_b, "Test: calling %d, %d, %d\n", a, b, c);
+    trace("Test: calling %d, %d, %d\n", a, b, c);
 
 
     // TODO: create text mode first if no VBE
@@ -540,7 +540,7 @@ u32 kmain(multiboot_info* mbh, u32 magic)
     {
 
         for(int i=0; i<4; ++i)
-            kwritef(serial_write_b, "=============================================================\n");
+            trace("=============================================================\n");
 
         for(int i=0; i<2; ++i)
         {
@@ -557,21 +557,21 @@ u32 kmain(multiboot_info* mbh, u32 magic)
         vbe_ctrl = (vbe_controller_info*)mbh->vbe_controller_info;
 
         serial_write("\n");
-        kwritef(serial_write_b, "vbe_control_info: %x\n", (u32)&mbh->vbe_controller_info);
-        kwritef(serial_write_b, "vbe buff [addr]: %x\n", (u32)&vbe_ctrl->buff[0]);
+        trace("vbe_control_info: %x\n", (u32)&mbh->vbe_controller_info);
+        trace("vbe buff [addr]: %x\n", (u32)&vbe_ctrl->buff[0]);
         serial_write("\n");
 
-        kwritef(serial_write_b, "signature: %s [%x] addr: %x\nver: %x\noem: %s\ncaps: %x\n",
+        trace("signature: %s [%x] addr: %x\nver: %x\noem: %s\ncaps: %x\n",
                 &vbe_ctrl->signature, (u32)vbe_ctrl->signature, vbe_ctrl->signature,
                 vbe_ctrl->version,
                 (c_str*)linear_addr(vbe_ctrl->oem),
                 vbe_ctrl->caps);
 
-        kwritef(serial_write_b, "oem vendor name: %s\n", (c_str*)linear_addr(vbe_ctrl->oem_vendor_name));
-        kwritef(serial_write_b, "oem product name: %s\n", (c_str*)linear_addr(vbe_ctrl->oem_product_name));
-        kwritef(serial_write_b, "oem product rev: %s\n", (c_str*)linear_addr(vbe_ctrl->oem_product_revision));
+        trace("oem vendor name: %s\n", (c_str*)linear_addr(vbe_ctrl->oem_vendor_name));
+        trace("oem product name: %s\n", (c_str*)linear_addr(vbe_ctrl->oem_product_name));
+        trace("oem product rev: %s\n", (c_str*)linear_addr(vbe_ctrl->oem_product_revision));
 
-        kwritef(serial_write_b, "list of modes: [%x]\n", vbe_ctrl->mode_list.segoff);
+        trace("list of modes: [%x]\n", vbe_ctrl->mode_list.segoff);
 
         //u32* mode = linear_addr(vbe_ctrl->mode_list) - 34;
 
@@ -579,7 +579,7 @@ u32 kmain(multiboot_info* mbh, u32 magic)
         // TODO: we could 
         u16* mode = (u16*)&vbe_ctrl->reserved[0];
         for(u32 i=0; 0xFFFF != *mode; ++mode, ++i) {
-            kwritef(serial_write_b, "\t[%x]: %x", mode, *mode);
+            trace("\t[%x]: %x", mode, *mode);
             if(i % 8 == 7)
                 serial_write("\n");
             if(i > 512) break;
@@ -587,11 +587,11 @@ u32 kmain(multiboot_info* mbh, u32 magic)
         serial_write("\n");
 
         for(int i=0; i<4; ++i)
-            kwritef(serial_write_b, "===================================================================\n");
+            trace("===================================================================\n");
 
         // https://codereview.stackexchange.com/questions/108168/vbe-bdf-font-rendering
         vbe = (vbe_mode_info*)mbh->vbe_mode_info;
-        kwritef(serial_write_b, "attributes: %u\nwinA: %u\nwinB: %u\ngranularity: %u\nwinsize: %u\nsegmentA: %x\nsegmentB: %x\nwinFuncPtr: %x\npitch: %u\nXres: %u\nYres: %u\nWchar: %u\nYchar: %u\nplanes: %u\nbpp: %u\nbanks: %u\nmemory_model: %u\nbank_size: %u\nimage_pages: %u\nreserved0: %u\nred_mask_size: %u\nred_position: %u\ngreen_mask_size: %u\ngreen_position: %u\nblue_mask_size: %u\nblue_position: %u\nrsv_mask: %u\nrsv_position: %u\ndirectcolor_attributes: %u\nphysbase: %x\nreserved1: %u\nreserved2: %u\nLinBytesPerScanLine: %u\nBnkNumberofImagePages: %u\nLinNumberofImagePages: %u\nLinRedMaskSize: %u\nLinRedFieldPosition: %u\nLinGreenMaskSize: %u\nLinGreenFieldPosition: %u\nLinBlueMaskSize: %u\nLinBlueMaskPosition: %u\nLinRsvdMaskSize: %u\nLinRsvdFieldPosition: %u\nMaxPixelClock: %u\nReserved: %u\n",
+        trace("attributes: %u\nwinA: %u\nwinB: %u\ngranularity: %u\nwinsize: %u\nsegmentA: %x\nsegmentB: %x\nwinFuncPtr: %x\npitch: %u\nXres: %u\nYres: %u\nWchar: %u\nYchar: %u\nplanes: %u\nbpp: %u\nbanks: %u\nmemory_model: %u\nbank_size: %u\nimage_pages: %u\nreserved0: %u\nred_mask_size: %u\nred_position: %u\ngreen_mask_size: %u\ngreen_position: %u\nblue_mask_size: %u\nblue_position: %u\nrsv_mask: %u\nrsv_position: %u\ndirectcolor_attributes: %u\nphysbase: %x\nreserved1: %u\nreserved2: %u\nLinBytesPerScanLine: %u\nBnkNumberofImagePages: %u\nLinNumberofImagePages: %u\nLinRedMaskSize: %u\nLinRedFieldPosition: %u\nLinGreenMaskSize: %u\nLinGreenFieldPosition: %u\nLinBlueMaskSize: %u\nLinBlueMaskPosition: %u\nLinRsvdMaskSize: %u\nLinRsvdFieldPosition: %u\nMaxPixelClock: %u\nReserved: %u\n",
                 vbe->attributes,
                 vbe->winA,
                 vbe->winB,
@@ -660,7 +660,7 @@ u32 kmain(multiboot_info* mbh, u32 magic)
         int ychunk = (vbe->Yres / chunk_size);
 
 
-        kwritef(serial_write_b, "chunk_size = %d, xchunk = %d, ychunk = %d\n", chunk_size, xchunk, ychunk);
+        trace("chunk_size = %d, xchunk = %d, ychunk = %d\n", chunk_size, xchunk, ychunk);
 
         for (int i = 0; i < chunk_size; ++i)
         {
@@ -888,7 +888,7 @@ u32 kmain(multiboot_info* mbh, u32 magic)
 //    z = 2-2; i = 10 / z; kputch(i);
 //
 //
-//    kwritef(serial_write_b, "exiting main");
+//    trace("exiting main");
 
     return 0;
 }

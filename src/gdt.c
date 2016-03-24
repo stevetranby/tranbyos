@@ -146,15 +146,15 @@ void set_kernel_stack(uintptr_t stack)
 
 void test_user_function()
 {
-    kwritef(serial_write_b, "We were called from asm, we should be in ring 3, and cause GPF now!\n");
-    kwritef(serial_write_b, "1/\n");
-    kwritef(serial_write_b, "2/\n");
-    kwritef(serial_write_b, "3/\n");
+    trace("We were called from asm, we should be in ring 3, and cause GPF now!\n");
+    trace("1/\n");
+    trace("2/\n");
+    trace("3/\n");
 
     asm volatile ("mov $0x123456, %%eax" : : );
 
-    kwritef(serial_write_b, "4/\n");
-    kwritef(serial_write_b, "5/\n");
+    trace("4/\n");
+    trace("5/\n");
 
     //cli();
 }

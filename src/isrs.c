@@ -416,10 +416,10 @@ void do_int3(u32* esp, u32 error_code, u32 fs, u32 es, u32 ds,
 {
     int tr;
     asm ("str %%ax" : "=a" (tr) : "0" (0) );
-    kwritef(serial_write_b, "\n\neax\t\tebx\t\tecx\t\tedx\n\r%x\t%x\t%x\t%x\n\r", eax,ebx,ecx,edx);
-    kwritef(serial_write_b, "esi\t\tedi\t\tebp\t\tesp\n\r%x\t%x\t%x\t%x\n\r", esi,edi,ebp,(long) esp);
-    kwritef(serial_write_b, "\n\rds\tes\tfs\ttr\n\r%x\t%x\t%x\t%x\n\r", ds,es,fs,tr);
-    kwritef(serial_write_b, "\nEIP: %x   CS: %x  EFLAGS: %x\n\r",esp[0],esp[1],esp[2]);
+    trace("\n\neax\t\tebx\t\tecx\t\tedx\n\r%x\t%x\t%x\t%x\n\r", eax,ebx,ecx,edx);
+    trace("esi\t\tedi\t\tebp\t\tesp\n\r%x\t%x\t%x\t%x\n\r", esi,edi,ebp,(long) esp);
+    trace("\n\rds\tes\tfs\ttr\n\r%x\t%x\t%x\t%x\n\r", ds,es,fs,tr);
+    trace("\nEIP: %x   CS: %x  EFLAGS: %x\n\r",esp[0],esp[1],esp[2]);
 }
 
 
@@ -445,13 +445,13 @@ void fault_handler(isr_stack_state* r)
     } else {
         if (i < 32)
         {
-            kwritef(serial_write_b, "Unhandled Exception in Kernel [ISR #%d]: %s [err: %d]", i, exception_messages[i], r->err_code);
-            kwritef(serial_write_b, "Can recover by killing this process and calling scheduler");
+            trace("Unhandled Exception in Kernel [ISR #%d]: %s\n[err: %d]\n", i, exception_messages[i], r->err_code);
+            trace("Can recover by killing this process and calling scheduler");
             do_int3((u32*)r->esp, r->err_code, r->fs, r->es, r->ds, r->ebp, r->esi, r->edi, r->edx, r->ecx, r->ebx, r->eax);
             k_panic();
         } else {
-            kwritef(serial_write_b, "Unhandled Exception [ISR #%d]: %s [err: %d]", i, exception_messages[i], r->err_code);
-            serial_write("No Handler Setup\n");
+            trace("Unhandled Exception [ISR #%d]: %s\n[err: %d]\n", i, exception_messages[i], r->err_code);
+            trace("No Handler Setup\n");
         }
     }
 
@@ -575,8 +575,8 @@ void irq_handler(isr_stack_state* r)
     // check if spurious?
     u16 isrFlags = pic_get_isr();
     if(! BIT(isrFlags, irq)) {
-        kwritef(serial_write_b, "isrflags = %b", isrFlags);
-        kwritef(serial_write_b, "spurious IRQ #%d detected", irq);
+        trace("isrflags = %b", isrFlags);
+        trace("spurious IRQ #%d detected", irq);
         irq_spurious[irq]++;
     }
 
@@ -595,6 +595,6 @@ void print_irq_counts()
 {
     serial_write("IRQ#\tCount\tName\t\tSpurious");
     for(int i=0; i < IRQ_COUNT; ++i) {
-        kwritef(serial_write_b, "%d:\t%d\t'%s'\t%d\n", i, irq_counts[i], irq_names[i], irq_spurious[i]);
+        trace("%d:\t%d\t'%s'\t%d\n", i, irq_counts[i], irq_names[i], irq_spurious[i]);
     }
 }

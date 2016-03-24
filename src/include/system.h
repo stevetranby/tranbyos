@@ -113,7 +113,7 @@ typedef __builtin_va_list va_list;
 // TODO: move this into `make debug`
 #define _DEBUG_
 #ifdef _DEBUG_
-#define trace(fmt, ...) kwritef(serial_write_b, fmt, ##__VA_ARGS__)
+#define trace(fmt, ...) trace("%s::%d::%s: \t" fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 //#define trace(fmt, ...) kwritef(kputch, fmt, ##__VA_ARGS__)
 #else
 #define trace(fmt, ...) do {} while(0);
@@ -121,7 +121,7 @@ typedef __builtin_va_list va_list;
 
 //#define _DEBUG_INFO_
 #ifdef _DEBUG_INFO_
-#define trace_info(fmt, ...) trace(fmt, ##__VA_ARGS__)
+#define trace_info(fmt, ...) trace("[INFO]" fmt, ##__VA_ARGS__)
 #else
 #define trace_info(fmt, ...) do {} while(0);
 #endif
@@ -156,40 +156,6 @@ extern u16* kmemsetw(u16* dest, u16 val, u32 count);
 extern u32  kstrlen(c_str str);
 extern u32  krand(void);
 extern void ksrand(u32 seed);
-
-//////////////////////////////////////////////////////////////////
-// Multitasking (Tasks, TSS, etc)
-
-typedef struct {
-    // general (0,4,8,12)
-    u32 eax, ebx, ecx, edx;
-    // special (eax + 16,20,24,28,32)
-    u32 esi, edi, esp, ebp, eip;
-    // flags (eax + 36)
-    u32 eflags;
-    // page directory (eax + 40)
-    u32 cr3;
-} TaskRegisters;
-
-// NOTE: require struct w/ tag because typedef not defined yet
-typedef struct Task {
-    TaskRegisters regs;
-    struct Task* next;
-} Task;
-
-typedef void(*TaskHandler)();
-
-/// Initialize the multitasking system and structures
-extern void initTasking();
-/// Kernel interface to switching task
-extern void preemptCurrentTask();
-extern void createTask(Task*, TaskHandler, u32, u32*);
-/// Kernel impl for switching task
-extern void switchTask(TaskRegisters* prev, TaskRegisters* next);
-
-// testing
-extern void k_preempt();
-extern void k_doIt();
 
 //////////////////////////////////////////////////////////////////
 // Real Time & Clock and Timers
@@ -230,6 +196,7 @@ typedef struct {
 /// FS Master Table
 /// - the top level table storing pointers to block paging tables, etc
 typedef struct {
+
 } fs_master_table;
 
 //////////////////////////////////////////////////////////////////
@@ -655,5 +622,6 @@ extern i32 mouse_get_x();
 extern i32 mouse_get_y();
 
 ////////////////////////////////////////////////////////////
+
 ////////////////////////////////////////////////////////////
 

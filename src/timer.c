@@ -20,6 +20,10 @@ static u32 _timer_ticks = 0;
 // static u32 _timer_subticks = 0;
 // static i32 _timer_drift = 0;
 
+// Scheduling Tasks
+static u32 _next_preempt = 0;
+static u32 _ticks_per_schedule = 50;
+
 u32 timer_ticks() {
     return _timer_ticks;
 }
@@ -29,10 +33,18 @@ u32 timer_seconds() {
 }
 
 // IRQ handler
-void timer_handler(isr_stack_state *r) {
+void timer_handler(isr_stack_state *r)
+{
+    UNUSED_PARAM(r);
     ++_timer_ticks;
     //trace("timer ticks: %d\n", _timer_ticks);
-    UNUSED_PARAM(r);
+
+   // schedule tasks
+   if(_next_preempt < _timer_ticks) {
+       _next_preempt = _timer_ticks + _ticks_per_schedule;
+       trace("preempting to next task\n");
+       k_preempt_kernel();
+   }
 }
 
 // Install IRQ Handler

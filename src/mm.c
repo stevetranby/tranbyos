@@ -52,10 +52,12 @@ void init_mm()
     heap_ptr = (u8*)&sys_heap_bottom + 1;
     free_ptr = heap_ptr;
 
+    trace("heap_ptr = %x\n", heap_ptr);
+    trace("free_ptr = %x\n", free_ptr);
     {
         // TEST MAGIC
         u8* ptr = kmalloc_b(5);
-        kwritef(serial_write_b, "ptr = %p\n", ptr);
+        trace("ptr = %p\n", ptr);
         ptr[0] = 'H';
         ptr[1] = 'E';
         ptr[2] = 'A';
@@ -65,7 +67,7 @@ void init_mm()
     {
         // TEST MAGIC
         u8* ptr = kmalloc_b(5);
-        kwritef(serial_write_b, "ptr = %p\n", ptr);
+        trace("ptr = %p\n", ptr);
         ptr[0] = 'H';
         ptr[1] = 'E';
         ptr[2] = 'A';
@@ -82,13 +84,13 @@ void print_heap_magic()
     //       value stored as the pointer is data found at symbol address
     // ex: 0x00100000 (address of _text_start)
     //     0x1badb002 (data @ _text_start cast as void*) <- multiboot header
-    kwritef(serial_write_b, "Text Section: %p | %p\n", &_text_start, &_text_end);
-    kwritef(serial_write_b, "Data Section: %p | %p\n", &_data_start, &_data_end);
-    kwritef(serial_write_b, "BSS Section:  %p | %p\n", &_bss_start, &_bss_end);
-    kwritef(serial_write_b, "STACK:        %p | %p\n", &sys_stack_bottom, &sys_stack_top);
-    kwritef(serial_write_b, "HEAP:         %p | %p\n", &sys_heap_bottom, &sys_heap_top);
-    kwritef(serial_write_b, "Heap Magic String: %p '%s'\n", heap_ptr, heap_ptr);
-    kwritef(serial_write_b, "Free Ptr:          %p\n", free_ptr);
+    trace("Text Section: %p | %p\n", &_text_start, &_text_end);
+    trace("Data Section: %p | %p\n", &_data_start, &_data_end);
+    trace("BSS Section:  %p | %p\n", &_bss_start, &_bss_end);
+    trace("STACK:        %p | %p\n", &sys_stack_bottom, &sys_stack_top);
+    trace("HEAP:         %p | %p\n", &sys_heap_bottom, &sys_heap_top);
+    trace("Heap Magic String: %p '%s'\n", heap_ptr, heap_ptr);
+    trace("Free Ptr:          %p\n", free_ptr);
 
 }
 
@@ -97,9 +99,9 @@ void print_heap_bytes(u32 n)
     trace("print_heap_bytes\n");
     int i = 0;
     for(u32* ptr = (u32*)heap_ptr; i < n; ++i, ++ptr) {
-        kwritef(serial_write_b, "%x", *ptr);
-        if(0 == (i+1) % 8) kwritef(serial_write_b, "\n");
-        else kwritef(serial_write_b, " ");
+        trace("%x", *ptr);
+        if(0 == (i+1) % 8) trace("\n");
+        else trace(" ");
     }
 
 }
@@ -111,13 +113,13 @@ void print_heap_bytes(u32 n)
 void print_blocks_avail()
 {
 //    FOR(MAX_BLOCKS) {
-//        kwritef(serial_write_b, "", block_avail);
+//        trace("", block_avail);
 //    }
     for(int i = 0; i < MAX_BLOCKS; ++i)
     {
-        kwritef(serial_write_b, "%d", blocks_used[i]);
-        if(0 == (i+1) % 60) kwritef(serial_write_b, "\n");
-        else kwritef(serial_write_b, ",");
+        trace("%d", blocks_used[i]);
+        if(0 == (i+1) % 60) trace("\n");
+        else trace(",");
     }
 }
 
