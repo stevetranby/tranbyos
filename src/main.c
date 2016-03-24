@@ -521,8 +521,11 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 
     init_serial();
     init_mm();
-    //TODO: init_tasking();
-    //TODO: init_paging();
+    init_page_directory();
+    initialise_tasking();
+
+    trace("tasking initialized!");
+    fork();
 
     init_video();
 
@@ -826,21 +829,6 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 
     //--------------------------------------------
 
-    init_page_directory();
-    serial_write("[main] set up page directory!");
-    wait_any_key();
-
-    //--------------------------------------------
-
-    // TODO: fix this
-    initTasking();
-    trace("[main] before k_doIt\n");
-    k_doIt();
-    trace("[main] back after k_doIt\n");
-    wait_any_key();
-
-    //--------------------------------------------
-
     // TEST Setup VGA Graphics mode
     //set_video_mode(video_mode_13h);
     //set_video_mode(video_mode_13h)
@@ -866,6 +854,30 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
     static u16 screen_width = 320;
     static u16 screen_height = 200;
     static u8 colorIndex = 0;
+
+// TODO: use error type instead?
+    i32 fork() {
+        return -1;
+    }
+
+    for(int i = 0; i < 3; ++i) {        
+        i32 child = -1;
+        if(i == 0) {
+            child = fork();
+            // terminal
+        } else if(i == 0) {
+            child = fork();            
+            // gui
+        } else if(i == 0) {
+            child = fork();
+            // scheduler
+        } else {
+            child = fork();
+            // test
+        }
+        trace("child = %d\n", child);
+    }
+    
 
     for (;;) {
         x = CLAMP(mouse_get_x(), 0, screen_width);

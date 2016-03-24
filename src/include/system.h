@@ -196,7 +196,7 @@ typedef struct {
 /// FS Master Table
 /// - the top level table storing pointers to block paging tables, etc
 typedef struct {
-
+    
 } fs_master_table;
 
 //////////////////////////////////////////////////////////////////
@@ -276,10 +276,243 @@ extern void print_blocks_avail();
 extern u8* kmalloc_b(u32 size);
 extern void free_b(u8* addr);
 
-
-extern void loadPageDirectory(u32* page_directory);
-extern void enablePaging();
+//extern void loadPageDirectory(u32* page_directory);
+//extern void enablePaging();
 extern void init_page_directory();
+extern void copy_page_physical();
+
+
+////////////////////////////////////////////////////////
+
+/**
+ This array is insertion sorted - it always remains in a sorted state (between calls).
+ It can store anything that can be cast to a void* -- so a u32int, or any pointer.
+ **/
+typedef void* type_t;
+/**
+ A predicate should return nonzero if the first argument is less than the second. Else
+ it should return zero.
+ **/
+typedef i8 (*lessthan_predicate_t)(type_t,type_t);
+typedef struct
+{
+    type_t *array;
+    u32 size;
+    u32 max_size;
+    lessthan_predicate_t less_than;
+} ordered_array_t;
+
+/**
+ A standard less than predicate.
+ **/
+i8 standard_lessthan_predicate(type_t a, type_t b);
+
+/**
+ Create an ordered array.
+ **/
+ordered_array_t create_ordered_array(u32 max_size, lessthan_predicate_t less_than);
+ordered_array_t place_ordered_array(void *addr, u32 max_size, lessthan_predicate_t less_than);
+
+/**
+ Destroy an ordered array.
+ **/
+void destroy_ordered_array(ordered_array_t *array);
+
+/**
+ Add an item into the array.
+ **/
+void insert_ordered_array(type_t item, ordered_array_t *array);
+
+/**
+ Lookup the item at index i.
+ **/
+type_t lookup_ordered_array(u32 i, ordered_array_t *array);
+
+/**
+ Deletes the item at location i from the array.
+ **/
+void remove_ordered_array(u32 i, ordered_array_t *array);
+
+
+
+////////////////////////////////////////////////////////
+// Heap
+
+#define KHEAP_START         0xC0000000
+#define KHEAP_INITIAL_SIZE  0x100000
+#define HEAP_INDEX_SIZE   0x20000
+#define HEAP_MAGIC        0x123890AB
+#define HEAP_MIN_SIZE     0x70000
+
+/**
+ Size information for a hole/block
+ **/
+typedef struct
+{
+    u32 magic;   // Magic number, used for error checking and identification.
+    u8 is_hole;   // 1 if this is a hole. 0 if this is a block.
+    u32 size;    // size of the block, including the end footer.
+} header_t;
+
+typedef struct
+{
+    u32 magic;     // Magic number, same as in header_t.
+    header_t *header; // Pointer to the block header.
+} footer_t;
+
+typedef struct
+{
+    ordered_array_t index;
+    u32 start_address; // The start of our allocated space.
+    u32 end_address;   // The end of our allocated space. May be expanded up to max_address.
+    u32 max_address;   // The maximum address the heap can be expanded to.
+    u8 supervisor;     // Should extra pages requested by us be mapped as supervisor-only?
+    u8 readonly;       // Should extra pages requested by us be mapped as read-only?
+} heap_t;
+
+/**
+ Create a new heap.
+ **/
+heap_t* create_heap(u32 start, u32 end, u32 max, u8 supervisor, u8 readonly);
+
+void* alloc(u32 size, u8 page_align, heap_t* heap);
+void  free(void* p, heap_t* heap);
+
+/// sz - size to allocate, align to page boundary, (out) physical address
+/// returns virtual address
+u32 kmalloc_int(u32 sz, int align, u32 *phys);
+
+/// simpler helpers
+u32 kmalloc_a(u32 sz);
+u32 kmalloc_p(u32 sz, u32 *phys);
+u32 kmalloc_ap(u32 sz, u32 *phys);
+u32 kmalloc(u32 sz);
+void kfree(void *p);
+
+//////////////////////////////////////////////////////////////////
+// Multitasking (Tasks, TSS, etc)
+// Paging
+
+// TODO: can we use packed bitfield structs without issue?
+// - do we want to? if not create helper funcs for bit twiddle with DEFINES
+typedef struct PACKED
+{
+    u32 present:1;
+    u32 readwrite:1;
+    u32 accessRing3:1;
+    u32 writeThrough:1;
+    u32 cacheDisabled:1;
+    u32 accessed:1;
+    u32 _zero:1;
+    u32 pageSize:1;
+    u32 _ignored:1;
+    u32 _unused:3;
+    u32 address:20;
+} page_directory_entry;
+
+typedef struct PACKED
+{
+    u32 present:1;
+    u32 readwrite:1;
+    u32 accessRing3:1;
+    u32 writeThrough:1;
+    u32 cacheDisabled:1;
+    u32 accessed:1;
+    u32 dirty:1;
+    u32 isGlobal:1;
+    u32 _unused:3;
+    u32 frameAddress:20;
+} page_table_entry;
+
+typedef struct PACKED
+{
+    page_table_entry pages[1024];
+} page_table;
+
+typedef struct PACKED
+{
+    page_table* tables[1024];
+    u32 tablesPhysical[1024];
+    u32 physicalAddress;
+} page_directory;
+
+#define PAGE_DIR_PRESENT         	0x00000001 // 1 - in physical memory
+#define PAGE_DIR_READWRITE          0x00000002 // 1 - readwrite, 0 - readonly
+#define PAGE_DIR_ACCESS_RING3       0x00000004 // 1 - access by ALL, 0 - only supervisor
+#define PAGE_DIR_WRITE_THROUGH      0x00000008 // 1 - write-through, 0 - write-back
+#define PAGE_DIR_CACHE_DISABLED     0x00000010 // 1 - page will NOT be cached
+#define PAGE_DIR_ACCESSED_RECENTLY  0x00000020 // 1 - read/written recently, OS must clear
+#define PAGE_DIR_ZERO_unused        0x00000040 // for OS use
+#define PAGE_TABLE_DIRTY            0x00000040 // written to, OS must clear
+#define PAGE_DIR_PAGE_SIZE_4M       0x00000080 // 1 - 4MB pages, 0 - 4KB pages
+#define PAGE_TABLE_zero_unused      0x00000080 // for OS use
+#define PAGE_DIR_ignored            0x00000100 // ignored ...
+#define PAGE_TABLE_GLOBAL           0x00000100 // The Global, or 'G' above, flag, if set, prevents the TLB from updating the address in it's cache if CR3 is reset. Note, that the page global enable bit in CR4 must be set to enable this feature.
+#define PAGE_DIR_unused             0x00000200 // for OS use
+#define PAGE_DIR_unused1            0x00000400 // for OS use
+#define PAGE_DIR_unused2            0x00000800 // for OS use
+#define PAGE_DIR_ADDR_BASE          0x00001000 // Base bit of start of address bits
+#define PAGE_DIR_ADDR_MASK          0xfffff000 // mask of all bits in address
+
+
+#define KERNEL_STACK_SIZE 2048       // Use a 2kb kernel stack.
+
+typedef uintptr_t vaddr;
+typedef uintptr_t paddr;
+
+// TODO: check out isr_stack_state for task switching from IRQ
+typedef struct {
+    // general (0,4,8,12)
+    u32 eax, ebx, ecx, edx;
+    // special (eax + 16,20,24,28,32)
+    u32 esi, edi, esp, ebp, eip;
+    // code segment
+    //TODO: u32 cs;
+    // flags (eax + 36)
+    u32 eflags;
+    // page directory (eax + 40)
+    u32 cr3;
+} TaskRegisters;
+
+// NOTE: require struct w/ tag because typedef not defined yet
+typedef struct Task {
+    //TaskRegisters regs;
+    i32 pid;
+    u32 esp, ebp, eip;
+    page_directory* pageDirectory;
+    u32 kernel_stack;
+    b32 isActive;
+    struct Task* next;
+} Task;
+
+void switch_page_directory(page_directory* newDirectory);
+page_table_entry* get_page(u32 address, int make, page_directory* dir);
+void page_fault(TaskRegisters* regs);
+page_directory* clone_directory(page_directory* src);
+
+typedef void(*TaskHandler)();
+
+/// Initialize the multitasking system and structures
+extern void initTasking();
+/// Kernel interface to switching task
+extern void preemptCurrentTask();
+extern void createTask(Task*, TaskHandler, u32, u32*);
+/// Kernel impl for switching task
+extern void switchTask(TaskRegisters* prev, TaskRegisters* next);
+extern void switchTaskInterrupt(TaskRegisters* prev, TaskRegisters* next);
+
+extern void initialise_tasking();
+extern i32 fork();
+extern void move_stack(void* newStackStart, u32 stackSize);
+extern i32 getpid();
+extern void switch_task();
+extern void set_kernel_stack(uintptr_t stack);
+
+// testing
+extern void k_preempt();
+extern void k_preempt_kernel();
+extern void k_doIt();
+
 
 //////////////////////////////////////////////////////////////////
 // STDOUT and friends

@@ -34,13 +34,55 @@ jump_usermode:
      pushf          ;push the Eflags register
      push 0x1B      ;user data segment with bottom 2 bits set for ring 3
      push test_user_function
-     iret           
+     iret
+
+
+global read_eip
+read_eip:
+    pop eax                     ; Get the return address
+    jmp eax                     ; Return. Can't use RET because return
+                                ; address popped off the stack. 
+
+global copy_page_physical
+copy_page_physical:
+   push ebx              ; According to __cdecl, we must preserve the contents of EBX.
+   pushf                 ; push EFLAGS, so we can pop it and reenable interrupts
+                         ; later, if they were enabled anyway.
+   cli                   ; Disable interrupts, so we aren't interrupted.
+                         ; Load these in BEFORE we disable paging!
+   mov ebx, [esp+12]     ; Source address
+   mov ecx, [esp+16]     ; Destination address
+
+   mov edx, cr0          ; Get the control register...
+   and edx, 0x7fffffff   ; and...
+   mov cr0, edx          ; Disable paging.
+
+   mov edx, 1024         ; 1024*4bytes = 4096 bytes to copy
+
+.loop:
+   mov eax, [ebx]        ; Get the word at the source address
+   mov [ecx], eax        ; Store it at the dest address
+   add ebx, 4            ; Source address += sizeof(word)
+   add ecx, 4            ; Dest address += sizeof(word)
+   dec edx               ; One less word to do
+   jnz .loop
+
+   mov edx, cr0          ; Get the control register again
+   or  edx, 0x80000000   ; and...
+   mov cr0, edx          ; Enable paging.
+
+   popf                  ; Pop EFLAGS back.
+   pop ebx               ; Get the original value of EBX back.
+   ret
+
 
 
 global switchTask
 switchTask:
-                            ; arg1, arg2 (esp -= 8)
+    cli;
+                            ; arg2, arg1 (esp -= 8)
                             ; eip (esp -= 4)
+
     pusha                   ; ax,bx,cx,dx(16),sp,bp,si,di(16) (esp -= 32)
     pushf                   ; eflags (esp -= 4)
     
@@ -101,57 +143,80 @@ switchTask:
     xchg [esp], eax         ; We do not have any more registers to use as tmp storage 
     mov eax, [eax]          ; eax
 
+    ; iret should effectively call sti;
+    sti;
+
     ret                     ; This ends all!
 
 
+global switchTaskInterrupt
+switchTaskInterrupt:
+    cli;
+                            ; arg2, arg1 (esp -= 8)
+                            ; eip (esp -= 4)
 
+    pusha                   ; ax,bx,cx,dx(16),sp,bp,si,di(16) (esp -= 32)
+    pushf                   ; eflags (esp -= 4)
+    
+    mov eax, cr3                                         
+    push eax                ; cr3 (esp -= 4)
 
-;--------------------------------------------------------------------
-; Paging
+    ; ESP  +  0 ,   4   ,  8 , 12 , 16 , 20 , 24 , 28 , 32 , 36 , 40 , 44 , 48
+    ; Stack: cr3, eflags, edi, esi, ebp, esp, edx, ecx, ebx, eax, eip, arg1, arg2
+                                               
+    mov eax, [esp+44]       ; The first argument, where to save 
+    mov [eax+4], ebx        ;   
+    mov [eax+8], ecx        ;   
+    mov [eax+12], edx       ;   
+    mov [eax+16], esi       ;   
+    mov [eax+20], edi       ;
 
-section text
-global invalidate_page_tables
-invalidate_page_tables:
-    invlpg [eax]
+    mov ebx, [esp+36]       ; eax
+    mov ecx, [esp+40]       ; eip
+    mov esi, [esp+16]       ; ebp
+    mov edi, [esp+4]        ; eflags
+    mov edx, [esp+20]       ; esp
+    add edx, 4              ; Remove the return value
 
+    mov [eax], ebx          ; eax
+    mov [eax+24], edx       ; esp
+    mov [eax+28], esi       ; ebp
+    mov [eax+32], ecx       ; eip
+    mov [eax+36], edi       ; eflags
 
-switch_page_directory:
-    push ebp
-    mov ebp, esp
-    mov eax, [esp+8]
-    mov cr3, eax
-    mov eax, cr0
-    or eax, 0x80000000
-    mov cr0, eax
+    pop ebx                 ; was pushed last
+    mov [eax+40], ebx       ; cr3
+    push ebx                ;
+ 
+    mov eax, [esp+48]       ; eax points to "next" task obj
+    mov ebx, [eax+4]        ;
+    mov ecx, [eax+8]        ;                                     
+    mov edx, [eax+12]       ;                                     
+    mov esi, [eax+16]       ;                                     
+    mov edi, [eax+20]       ;                                     
+    mov ebp, [eax+28]       ;  
 
+    push eax                ; save obj pointer
+    mov eax, [eax+36]       ; eflags
+    push eax                ; push onto stack
+    popf                    ; pop into eflags registers
+    pop eax                 ; restore obj pointer
 
-enable_pse:
-    mov eax, cr4
-    or eax, 0x00000010
-    mov cr4, eax
+    mov esp, [eax+24]       ; esp - restore "next" stack
 
-global loadPageDirectory ; &page_directory -> void
-loadPageDirectory:
-    push ebp
-    mov ebp, esp
-    mov eax, [esp+8] 
-    mov cr3, eax 
-    mov esp, ebp
-    pop ebp
-    ret
+    ; new stack
+    push eax                ; save obj pointer
+    mov eax, [eax+40]       ; cr3
+    mov cr3, eax            ; restore cr3
+    pop eax                 ; restore obj pointer
 
-global enablePaging ; void -> void
-enablePaging:
-    push ebp
-    mov ebp, esp
-    mov eax, cr0
-    or  eax, 0x80000000 ; 32nd bit - enable paging
-    mov cr0, eax
-    mov esp, ebp
-    pop ebp
-    ret
+    push eax                ; save obj pointer
+    mov eax, [eax+32]       ; eip - return address
+    xchg [esp], eax         ; We do not have any more registers to use as tmp storage 
+    mov eax, [eax]          ; eax
 
-; TODO:  Physical Address Extension (PAE)
+    ; iret should effectively call sti;
+    sti;
 
-
+    ret                     ; This ends all!
 
