@@ -28,7 +28,7 @@ static void main_A()
     trace("Starting Process A!\n");
     for(;;)
     {
-        trace("Running Process A!\n");
+        //trace("Running Process A!\n");
         //delay_ms(100);
         k_preempt();
     }
@@ -39,7 +39,7 @@ static void main_B()
     trace("Starting Process B!\n");
     for(;;)
     {
-        trace("Running Process B!\n");
+        //trace("Running Process B!\n");
         //delay_ms(200);
         k_preempt();
     }
@@ -50,7 +50,7 @@ static void main_C()
     trace("Starting Process C!\n");
     for(;;)
     {
-        trace("Running Process C!\n");
+        //trace("Running Process C!\n");
         //delay_ms(300);
         k_preempt();
     }
@@ -65,24 +65,24 @@ void k_preempt()
     {
         ++curProcessIndex;
         curProcessIndex = curProcessIndex % MAX_PROCESSES;
-        trace("checking if proc index %d is ready\n", curProcessIndex);
+        //trace("checking if proc index %d is ready\n", curProcessIndex);
         if(nextTask->isActive && nextTask != runningTask)
         {
             Task* last = runningTask;
             Task* next = runningTask->next;
             runningTask = next ? next : &processes[0];
 
-            trace("BEFORE (%d) switchTask [%d : %p : %x : %x] to [%d : %p : %x : %x]\n",
-                  curProcessIndex,
-                  last->pid, last, last->regs.cr3, last->regs.eip,
-                  runningTask->pid, runningTask, runningTask->regs.cr3, runningTask->regs.eip);
+//            trace("BEFORE (%d) switchTask [%d : %p : %x : %x] to [%d : %p : %x : %x]\n",
+//                  curProcessIndex,
+//                  last->pid, last, last->regs.cr3, last->regs.eip,
+//                  runningTask->pid, runningTask, runningTask->regs.cr3, runningTask->regs.eip);
 
             switchTask(&last->regs, &runningTask->regs);
 
-            trace("AFTER (%d) switchTask [%d : %p : %x : %x] to [%d : %p : %x : %x]\n",
-                  curProcessIndex,
-                  last->pid, last, last->regs.cr3, last->regs.eip,
-                  runningTask->pid, runningTask, runningTask->regs.cr3, runningTask->regs.eip);
+//            trace("AFTER (%d) switchTask [%d : %p : %x : %x] to [%d : %p : %x : %x]\n",
+//                  curProcessIndex,
+//                  last->pid, last, last->regs.cr3, last->regs.eip,
+//                  runningTask->pid, runningTask, runningTask->regs.cr3, runningTask->regs.eip);
 
             return;
         }
