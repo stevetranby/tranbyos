@@ -886,7 +886,7 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
         fillrect(x, y, colorIndex);
 
         trace("Running Process MAIN!\n");
-        delay_ms(100);
+        //delay_ms(100);
 
         k_preempt();
     }

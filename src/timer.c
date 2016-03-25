@@ -37,13 +37,10 @@ void timer_handler(isr_stack_state *r)
 {
     UNUSED_PARAM(r);
     ++_timer_ticks;
-    //trace("timer ticks: %d\n", _timer_ticks);
 
    // schedule tasks
    if(_next_preempt < _timer_ticks) {
        _next_preempt = _timer_ticks + _ticks_per_schedule;
-       //trace("preempting to next task\n");
-       //k_preempt_kernel();
    }
 }
 
