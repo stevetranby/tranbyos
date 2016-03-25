@@ -593,7 +593,7 @@ void irq_handler(isr_stack_state* r)
 
 void print_irq_counts()
 {
-    serial_write("IRQ#\tCount\tName\t\tSpurious");
+    trace("IRQ#\tCount\tName\t\tSpurious");
     for(int i=0; i < IRQ_COUNT; ++i) {
         trace("%d:\t%d\t'%s'\t%d\n", i, irq_counts[i], irq_names[i], irq_spurious[i]);
     }

@@ -96,14 +96,14 @@ void print_heap_magic()
 
 void print_heap_bytes(u32 n)
 {
-    trace("print_heap_bytes\n");
+    trace( "print_heap_bytes:\n\n");
     int i = 0;
     for(u32* ptr = (u32*)heap_ptr; i < n; ++i, ++ptr) {
-        trace("%x", *ptr);
-        if(0 == (i+1) % 8) trace("\n");
-        else trace(" ");
+        kserialf( "%x", *ptr);
+        if(0 == (i+1) % 8) kserialf( "\n");
+        else kserialf( " ");
     }
-
+    kserialf("\n");
 }
 
 // TODO: a lot of potential places to macro or pre-proc out the excess
@@ -112,15 +112,14 @@ void print_heap_bytes(u32 n)
 
 void print_blocks_avail()
 {
-//    FOR(MAX_BLOCKS) {
-//        trace("", block_avail);
-//    }
+    trace("blocks available:\n\n");
     for(int i = 0; i < MAX_BLOCKS; ++i)
     {
-        trace("%d", blocks_used[i]);
-        if(0 == (i+1) % 60) trace("\n");
-        else trace(",");
+        kserialf( "%d", blocks_used[i]);
+        if(0 == (i+1) % 60) kserialf("\n");
+        else kserialf( ",");
     }
+    kserialf("\n");
 }
 
 // TODO: allocate extra block on each side and fill with debug markers
@@ -138,7 +137,7 @@ u8* kmalloc_b(u32 nblks)
     }
 
     // mark used
-    kwritef(serial_write_b, "blocks_used %p, %d, %d, %d\n", blocks_used + offset, offset, nblks, nblks);
+    trace( "blocks_used %p, %d, %d, %d\n", blocks_used + offset, offset, nblks, nblks);
     kmemset(blocks_used + offset, nblks, nblks);
 
     // return init block (debug fill with known data)
@@ -147,7 +146,7 @@ u8* kmalloc_b(u32 nblks)
 #ifdef _DEBUG_
     kmemset(tmp, 0xee, nblks);
 #endif
-    kwritef(serial_write_b, "malloc ret ptr = %p\n", tmp);
+    trace( "malloc ret ptr = %p\n", tmp);
 	return tmp;
 }
 

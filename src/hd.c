@@ -14,10 +14,10 @@ void ata_wait_busy() {
 			break;
 		}
 		if ( (status & HD_ST_ERR) ) {
-			kputs(" Error in ata_wait_drq! ");
+			trace("Error in ata_wait_drq!\n");
 		}
 		if (--timer < 0) {
-			trace(" Timeout in ata_wait_busy! ");
+			trace("Timeout in ata_wait_busy!\n");
 			break;
 		}
 	}
@@ -32,7 +32,7 @@ void ata_wait_drq() {
 			break;
 		}
 		if ( (status & HD_ST_ERR) ) {
-			kputs(" Error in ata_wait_drq! ");
+			trace(" Error in ata_wait_drq! ");
 		}
 		if (--timer < 0) {
 			trace(" Timeout in ata_wait_drq! ");
@@ -50,10 +50,10 @@ void ata_wait_ready() {
 			break;
 		}
 		if ( (status & HD_ST_ERR) ) {
-			kputs(" Error in ata_wait_drq! ");
+			trace("Error in ata_wait_drq!\n");
 		}
 		if (--timer < 0) {
-			trace(" Timeout in ata_wait_ready! ");
+			trace("Timeout in ata_wait_ready!\n");
 			break;
 		}
 	}
@@ -132,15 +132,16 @@ int ata_pio_write_w(int controller, int slave, int sn, int sc, u16 *data)
 
     ata_wait_drq();
 
-    trace("\nWriting data: ");
+    trace("Writing data:\n");
     for(i=0; i < sc*256; ++i)
     {
         outw(HD_DATA, data[i]);
         if((inb(HD_ST_ALT)&HD_ST_ERR)) {
-        	trace("\nError Occured: "); print_port(HD_ERR);
+            u8 err = inb(HD_ERR);
+        	trace("Error Occured: %x (%d)\n", err, err);
         }
     }
-    trace(" Finished Writing");
+    trace("[ok]\n");
 
     return 1;
 }
@@ -164,15 +165,16 @@ int ata_pio_read_w(int controller, int slave, int sn, int sc, u16 *data)
 
     ata_wait_drq();
 
-    trace("\nReading data: ");
+    trace("Reading data\n");
     for(i=0; i < sc*256; ++i)
     {
         data[i] = inw(HD_DATA);
         if((inb(HD_ST_ALT)&HD_ST_ERR)) {
-        	trace("\nError Occured: "); print_port(HD_ERR);
+            u8 err = inb(HD_ERR);
+            trace("Error Occured: %x (%d)\n", err, err);
         }
     }
-    trace(" Finished Reading");
+    trace("Finished Reading\n");
 
     return 1;
 }

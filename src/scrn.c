@@ -20,6 +20,13 @@ u16* vidmemptr;        // word pointer
 b32 write_to_serial = false;
 b32 write_to_stdout = false;
 
+// 'cursor' since last kwritef
+internal int cursor = 0;
+
+
+////////////////////////////////////////////////////////////////
+// TEXT MODE
+
 /* Sets the forecolor and backcolor that we will use */
 void set_text_color(u8 forecolor, u8 backcolor)
 {
@@ -129,19 +136,24 @@ void kputch(u8 c)
     /* Handle a backspace, by moving the cursor back one space */
     if(c == 0x08)
     {
-        if(csr_x != 0) csr_x--;
+        if(csr_x != 0)
+            --csr_x;
+        if(cursor != 0)
+            --cursor;
     }
     /* Handles a tab by incrementing the cursor's x, but only
      *  to a point that will make it divisible by 8 */
     else if(c == 0x09)
     {
         csr_x = (csr_x + 8) & ~(8 - 1);
+        cursor = (cursor + 8) & ~(8 - 1);
     }
     /* Handles a 'Carriage Return', which simply brings the
      *  cursor back to the margin */
     else if(c == '\r')
     {
         csr_x = 0;
+        cursor = 0;
     }
     /* We handle our newlines the way DOS and the BIOS do: we
      *  treat it as if a 'CR' was also there, so we bring the
@@ -149,6 +161,7 @@ void kputch(u8 c)
     else if(c == '\n')
     {
         csr_x = 0;
+        cursor += 80;
         csr_y++;
     }
     /* Any character greater than and including a space, is a
@@ -159,7 +172,8 @@ void kputch(u8 c)
     {
         where = textmemptr + (csr_y * 80 + csr_x);
         *where = c | att;	/* Character AND attributes: color */
-        csr_x++;
+        ++csr_x;
+        ++cursor;
     }
 
     /* If the cursor has reached the edge of the screen's width, we
@@ -167,6 +181,7 @@ void kputch(u8 c)
     if(csr_x >= 80)
     {
         csr_x = 0;
+        cursor += 80;
         csr_y++;
     }
 
@@ -604,6 +619,7 @@ void serial_write_b(u8 a) {
     while (is_transmit_empty() == 0)
         ;
     outb(PORT_COM1,a);
+    ++cursor;
 }
 
 void serial_writeln(c_str str) {
@@ -651,6 +667,8 @@ void kwrites(output_writer writer, c_str text)
 // TODO: void ksprintf(u8* buf, c_str format, ...)
 void kwritef(output_writer writer, c_str format, ...)
 {
+    cursor = 0;
+
     u8 ch;
     va_list ap;
     va_start(ap, format);
@@ -662,6 +680,7 @@ void kwritef(output_writer writer, c_str format, ...)
         if(ch != '%') {
             //*buf++ = ch;
             writer(ch);
+            ++cursor;
             continue;
         }
 
@@ -714,6 +733,14 @@ void kwritef(output_writer writer, c_str format, ...)
                 kwrites(writer, s);
                 break;
             }
+
+            case '|': {
+                int paddingAmount = va_arg(ap, int);
+                while(cursor < paddingAmount) {
+                    writer(' ');
+                }
+            }
+
             default:
                 break;
         }

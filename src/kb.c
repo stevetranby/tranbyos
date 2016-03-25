@@ -160,7 +160,7 @@ static inline RETURN_CODE ps2_wait_read()
 void keyboard_handler(isr_stack_state *r)
 {
     UNUSED_PARAM(r);
-    serial_write("+");
+    //kserialf("+\n");
 
     //    // TODO: why does this fail? maybe reading the port itself makes it work fine?
     //    ps2_wait_read();
@@ -189,13 +189,13 @@ void keyboard_handler(isr_stack_state *r)
             printInt( timer_seconds() );
             kputch('\n');
         } else if(scancode == SCAN_US_F2) {
-            kputs("\nPressed F2!\n");
+            trace("\nPressed F2!\n");
             jump_usermode();
         } else if(scancode == SCAN_US_F3) {
-            kputs("\nPressed F3!\n");
+            trace("\nPressed F3!\n");
             print_irq_counts();
         } else if(scancode == SCAN_US_F4) {
-            kputs("\nPressed F4!\n");
+            trace("\nPressed F4!\n");
             print_blocks_avail();
         } else if(_curPrintMode == PRINT_MODE_SCAN) {
             printHex(scancode);
@@ -346,9 +346,9 @@ internal inline u8 mouse_read()
 /// Install Mouse IRQ Handler
 void ps2_install()
 {
-    //    serial_write("[INFO] Not Installing Mouse!\n");
+    //    trace("[INFO] Not Installing Mouse!\n");
     //    return;
-    serial_write("Installing Mouse PS/2\n");
+    trace("Installing Mouse PS/2\n");
 
     u8 status, result;
 
@@ -392,11 +392,11 @@ void ps2_install()
     static bool is_dual_device = false;
     if(BIT(status,5)) {
         is_dual_device = true;
-        serial_write("We believe this is a dual Device PS/2\n");
+        trace("We believe this is a dual Device PS/2\n");
     } else {
         // don't use 2nd port
-        serial_write("Probably a Single Device PS/2\n");
-        serial_write("[ERR]: SHOULD NOT USE 2nd Port of PS/2\n");
+        trace("Probably a Single Device PS/2\n");
+        trace("[ERR]: SHOULD NOT USE 2nd Port of PS/2\n");
     }
 
     outb(PS2_CMD, 0xAA);
@@ -420,10 +420,10 @@ void ps2_install()
         ps2_wait_read();
         status = inb(PS2_DATA);
         if(BIT(status,5)) {
-            serial_write("[err] Apparently we don't actually have 2nd controller!!\n");
+            trace("[err] Apparently we don't actually have 2nd controller!!\n");
             is_dual_device = false;
         } else {
-            serial_write("We have a second controller!\n");
+            trace("We have a second controller!\n");
             outb(PS2_CMD, PS2_2_DISABLE);
         }
     }
@@ -560,7 +560,7 @@ void ps2_install()
     {
         mouse_write(MOUSE_CMD_GET_MOUSE_ID);
         result = mouse_read();
-        kwritef(serial_write_b,"MOUSE_CMD_GET_MOUSE_ID = %d", result);
+        trace("MOUSE_CMD_GET_MOUSE_ID = %d\n", result);
 
         // Writing Magic Mouse Settings to test for scroll wheel
         mouse_write(0xF3);
@@ -577,22 +577,20 @@ void ps2_install()
         mouse_read();
 
         // TODO: this is wrong, i think (try with real corded mouse)
-        serial_write("Set Mouse Sample Rate to 80.\n");
+        trace("Set Mouse Sample Rate to 80.\n");
         mouse_write(MOUSE_CMD_GET_MOUSE_ID);
         do {
             ps2_wait_read();
             status = inb(PS2_DATA);
         } while(status != PS2_ACK_BYTE);
         result = mouse_read();
-        kwritef(serial_write_b,"MOUSE_CMD_GET_MOUSE_ID = %d\n", result);
+        trace("MOUSE_CMD_GET_MOUSE_ID = %d\n", result);
         if (result == 3)
         {
-            serial_write_b(result);
-            serial_write(" - Has Scroll Wheel.\n");
+            trace("%x - Has Scroll Wheel.\n", result);
             mouse_mode = MOUSE_SCROLLWHEEL;
         } else {
-            serial_write_b(result);
-            serial_write(" - Unsure if Has Scroll Wheel.\n");
+            trace("%x - Unsure if Has Scroll Wheel.\n", result);
         }
 
 
@@ -611,35 +609,32 @@ void ps2_install()
         mouse_read();
 
         // TODO: this is wrong, i think (try with real corded mouse)
-        serial_write("Set Mouse Sample Rate to 80.\n");
+        trace("Set Mouse Sample Rate to 80.\n");
         mouse_write(MOUSE_CMD_GET_MOUSE_ID);
         do {
             ps2_wait_read();
             status = inb(PS2_DATA);
         } while(status != PS2_ACK_BYTE);
         result = mouse_read();
-        kwritef(serial_write_b,"MOUSE_CMD_GET_MOUSE_ID = %d\n", result);
-        if (result == 4)
-        {
-            serial_write_b(result);
-            serial_write(" - Has 4th/5th buttons.\n");
+        trace("MOUSE_CMD_GET_MOUSE_ID = %d\n", result);
+        if (result == 4) {
+            trace("%x - Has 4th/5th buttons.\n", result);
             mouse_mode = MOUSE_SCROLLWHEEL;
-        }else {
-            serial_write_b(result);
-            serial_write(" - Unsure if Has 4th/5th buttons.\n");
+        } else {
+            trace("%x - Unsure if Has 4th/5th buttons.\n", result);
         }
     }
 
     //Setup the IRQ handlers
 
     irq_install_handler(1, keyboard_handler, "keyboard");
-    serial_write("Keyboard handler installed.\n");
+    trace("Keyboard handler installed.\n");
 
     // TODO: if has 2nd controller
     if(is_dual_device)
     {
         irq_install_handler(IRQ_MOUSE_PS2, mouse_handler, "mouse");
-        serial_write("Installed Mouse.\n");
+        trace("Installed Mouse.\n");
     }
 
 

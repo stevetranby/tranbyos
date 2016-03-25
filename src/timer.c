@@ -42,8 +42,8 @@ void timer_handler(isr_stack_state *r)
    // schedule tasks
    if(_next_preempt < _timer_ticks) {
        _next_preempt = _timer_ticks + _ticks_per_schedule;
-       trace("preempting to next task\n");
-       k_preempt_kernel();
+       //trace("preempting to next task\n");
+       //k_preempt_kernel();
    }
 }
 

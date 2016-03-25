@@ -112,6 +112,8 @@
 
 //////////////////////////////
 
+output_writer TRACE_WRITER = serial_write_b;
+
 u32 initial_esp;
 
 /////////////////////////////
@@ -285,20 +287,19 @@ void wait_any_key() {
     set_text_color(COLOR_LIGHT_MAGENTA, COLOR_BLACK);
 
     // TODO: clear_key_buffer();
-    serial_write("Clearing Key Buffer\n");
+    kputs("Clearing Key Buffer\n");
     while(keyboard_read_next()) {
         kputch('.');
-        serial_write_b('.');
     }
 
-    serial_write("Waiting for Key\n");
+    kputs("Waiting for Key\n");
     kputs("Press Any Key!");
     kgetch();
 
     set_text_color(COLOR_WHITE, COLOR_BLACK);
 
     kputs("\n");
-    serial_write("key pressed\n");
+    kputs("key pressed\n");
 }
 
 void display_banner()
@@ -512,6 +513,11 @@ internal void test_harddisk()
 // NASM assembly boot loader calls this method
 u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 {
+    kserialf( "\n\n\n\n");
+    for(int i=0; i<10; ++i)
+        kserialf( "=============================================================\n");
+    kserialf( "\n\n\n\n");
+
     initial_esp = initial_stack;
 
     gdt_install();
@@ -540,7 +546,6 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
     u64 c = addll(1,2);
     trace("Test: calling %d, %d, %d\n", a, b, c);
 
-
     // TODO: create text mode first if no VBE
     if(BIT(mbh->flags, 11))
     {
@@ -550,8 +555,10 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 
         for(int i=0; i<2; ++i)
         {
-            output_writer writer = (i == 0) ? serial_write_b : kputch;
-            kwritef(writer, "VBE: %x,%x,%x,%x,%x,%x\n",
+            //output_writer writer = (i == 0) ? serial_write_b : kputch;
+            TRACE_WRITER = (i == 0) ? kputch : serial_write_b;
+
+            trace("VBE: %x,%x,%x,%x,%x,%x\n",
                     mbh->vbe_controller_info,
                     mbh->vbe_mode_info,
                     mbh->vbe_mode,
@@ -562,10 +569,10 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 
         vbe_ctrl = (vbe_controller_info*)mbh->vbe_controller_info;
 
-        serial_write("\n");
+        trace("\n");
         trace("vbe_control_info: %x\n", (u32)&mbh->vbe_controller_info);
         trace("vbe buff [addr]: %x\n", (u32)&vbe_ctrl->buff[0]);
-        serial_write("\n");
+        trace("\n");
 
         trace("signature: %s [%x] addr: %x\nver: %x\noem: %s\ncaps: %x\n",
                 &vbe_ctrl->signature, (u32)vbe_ctrl->signature, vbe_ctrl->signature,
@@ -587,10 +594,10 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
         for(u32 i=0; 0xFFFF != *mode; ++mode, ++i) {
             trace("\t[%x]: %x", mode, *mode);
             if(i % 8 == 7)
-                serial_write("\n");
+                trace("\n");
             if(i > 512) break;
         }
-        serial_write("\n");
+        trace("\n");
 
         for(int i=0; i<4; ++i)
             trace("===================================================================\n");
@@ -650,7 +657,7 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 
         uint16_t uses_lfb = BIT(mbh->vbe_mode, 14);
         if (uses_lfb)
-            serial_write("uses LFB\n");
+            trace("uses LFB\n");
         int32_t colors[] = {
             0xFFFFFF, 0xC0C0C0, 0x808080,
             0x000000, 0xFF0000, 0x800000,
@@ -690,20 +697,17 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 
     // TODO: assert(mboot_mag == MULTIBOOT_EAX_MAGIC && "Didn't boot with multiboot, not sure how we got here.");
 
-    serial_write_b('\n');
+    trace("\n");
 
     u32 ticks = timer_ticks();
-    serial_write("Start Timer");
+    trace("Start Delay.\n");
     for(int i=0;i<10;i++)
     {
-        serial_write_b('.');
         delay_ms(100);
     }
-    serial_write("Done.\n");
+    trace("Done.\n");
 
-    serial_write("Test took: ");
-    printInt(timer_ticks() - ticks);
-    serial_write("Ticks\n");
+    trace("Test took: %d ticks\n", timer_ticks() - ticks);
 
     // Generics Test
     my_test(1);
@@ -716,34 +720,35 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 
 
     // TODO: do VBE in real mode
+    trace("\n\n");
     for(int i=0; i<2; ++i)
     {
-        output_writer writer = (i == 0) ? serial_write_b : kputch;
+        //output_writer writer = (i == 0) ? serial_write_b : kputch;
+        TRACE_WRITER = (i == 0) ? kputch : serial_write_b;
 
         // Multiboot Info
-        kwritef(writer, "MBInfo: %x [%x], Mem: %d - %d B, Flags: %b\n",
+        trace("MBInfo: \t%x [%x], Mem: %d - %d B, Flags: %b\n",
                 magic, &mbh, mbh->mem_lower, mbh->mem_upper, mbh->flags);
 
-        kwritef(writer,"MMap:\t%x\nAddr:\t%x\nDrives:\t%x\nAddr:\t%x\nConfig:\t%x\n",
-                mbh->mmap_length,
-                mbh->mmap_addr,
-                mbh->drives_length,
-                mbh->drives_addr,
-                mbh->config_table);
+        trace("MMap:   \t%x\n", mbh->mmap_length);
+        trace("Addr:   \t%x\n", mbh->mmap_addr);
+        trace("Drives: \t%x\n", mbh->drives_length);
+        trace("Addr:   \t%x\n", mbh->drives_addr);
+        trace("Config: \t%x\n", mbh->config_table);
 
-        kwritef(writer, "Found %d modules.\n", mbh->mods_count);
+        trace("Found %d modules.\n", mbh->mods_count);
         if (mbh->mods_count > 0)
         {
             for (u32 i = 0; i < mbh->mods_count; ++i )
             {
                 u32 module_start = *(u32*)(mbh->mods_addr + 8 * i);
                 u32 module_end   = *(u32*)(mbh->mods_addr + 8 * i + 4);
-                kwritef(writer, "Module %d is at %x : %x\n",
+                trace("Module %d is at %x : %x\n",
                       i+1, module_start, module_end);
             }
         }
 
-        kwritef(writer, "Bootloader Name: %s\n", (i8*)mbh->boot_loader_name);
+        trace("Bootloader Name: %s\n", (i8*)mbh->boot_loader_name);
     }
     wait_any_key();
     set_text_color(COLOR_MAGENTA, COLOR_BLACK);
@@ -782,7 +787,7 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
     testMalloc[3] = 'v';
     testMalloc[4] = 'e';
     print_heap_bytes(128);
-    serial_write("\n");
+    trace("\n");
     print_blocks_avail();
 
     wait_any_key();
@@ -813,12 +818,12 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 
 
     // TODO: fork off shell process
-    serial_write("Starting Infinite Loop!\r\n");
+    trace("Starting Infinite Loop!\r\n");
     kputs("Starting Infinite Loop!\n");
 
     kputs("Press SPACE BAR:");
     for(u8 ch = 0; ch != SCAN_US_SPACE; ch = keyboard_read_next()) {
-        serial_write("still waiting for SPACE KEY PRESS!\n");
+        trace("still waiting for SPACE KEY PRESS!\n");
         delay_ms(100);
     }
 
@@ -827,7 +832,7 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
     //--------------------------------------------
 
     init_page_directory();
-    serial_write("[main] set up page directory!");
+    trace("[main] set up page directory!");
     wait_any_key();
 
     //--------------------------------------------
@@ -847,7 +852,7 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
     u32 success = init_graph_vga(320,200,1);
     if(success)
     {
-        serial_write("["__DATE__" "__TIME__"] Video Mode Success!\r\n");
+        trace("["__DATE__" "__TIME__"] Video Mode Success!\r\n");
         vga_tests();
     }
 
@@ -881,7 +886,8 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
         fillrect(x, y, colorIndex);
 
         trace("Running Process MAIN!\n");
-        //delay_ms(100);
+        delay_ms(100);
+
         k_preempt();
     }
 
@@ -889,7 +895,7 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 //    // TODO: once the previous is forked, this should behave okay
 //    // Test Division By 0
 //    // need to hide the zero
-//    serial_write("trying divide by zero");
+//    trace("trying divide by zero");
 //    int i,z;
 //    z = 2-2; i = 10 / z; kputch(i);
 //

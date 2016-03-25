@@ -51,12 +51,6 @@ void outd(u16 _port, u32 _data)
     asm volatile ("outl %1, %0" : : "dN" (_port), "a" (_data));
 }
 
-void print_port(u16 port)
-{	
-	printBinary_b(inb(port));	
-}
-
-
 ///*
 // * memsetw
 // * Set `count` shorts to `val`.

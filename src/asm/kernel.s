@@ -50,7 +50,8 @@ switchTask:
     ; ESP  +  0 ,   4   ,  8 , 12 , 16 , 20 , 24 , 28 , 32 , 36 , 40 , 44 , 48
     ; Stack: cr3, eflags, edi, esi, ebp, esp, edx, ecx, ebx, eax, eip, arg1, arg2
                                                
-    mov eax, [esp+44]       ; The first argument, where to save 
+    mov eax, [esp+44]       ; The first argument, where to save
+     
     mov [eax+4], ebx        ;   
     mov [eax+8], ecx        ;   
     mov [eax+12], edx       ;   
@@ -75,6 +76,7 @@ switchTask:
     push ebx                ;
  
     mov eax, [esp+48]       ; eax points to "next" task obj
+
     mov ebx, [eax+4]        ;
     mov ecx, [eax+8]        ;                                     
     mov edx, [eax+12]       ;                                     

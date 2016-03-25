@@ -106,26 +106,6 @@ typedef __builtin_va_list va_list;
 // Error Handling
 
 
-//------------------
-// Debugging
-
-// TODO: improve this imensly with real logging
-// TODO: move this into `make debug`
-#define _DEBUG_
-#ifdef _DEBUG_
-#define trace(fmt, ...) trace("%s::%d::%s: \t" fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
-//#define trace(fmt, ...) kwritef(kputch, fmt, ##__VA_ARGS__)
-#else
-#define trace(fmt, ...) do {} while(0);
-#endif
-
-//#define _DEBUG_INFO_
-#ifdef _DEBUG_INFO_
-#define trace_info(fmt, ...) trace("[INFO]" fmt, ##__VA_ARGS__)
-#else
-#define trace_info(fmt, ...) do {} while(0);
-#endif
-
 //////////////////////
 // Assertions and Errors
 
@@ -134,7 +114,6 @@ typedef __builtin_va_list va_list;
 #define	STRINGIFY(x)  #x
 extern void kassert_fail(c_str assertion, c_str file, unsigned int line, c_str func, c_str msg);
 #define ASSERT(expr,msg) ((void) ((expr) || (kassert_fail(STRINGIFY(expr), __FILE__, __LINE__, __func__, msg), 0)))
-
 
 //////////////////////////////////////////////////////////////////
 // Utilities and Common
@@ -265,7 +244,6 @@ extern void print_port(u16 port);
 /// - Defines the memory paging table map
 extern void gdt_set_gate(u32 num, u32 base, u32 limit, u8 access, u8 gran);
 extern void gdt_install();
-extern void jump_usermode();
 
 // Memory Allocation
 extern void init_mm();
@@ -275,7 +253,6 @@ extern void print_blocks_avail();
 
 extern u8* kmalloc_b(u32 size);
 extern void free_b(u8* addr);
-
 
 extern void loadPageDirectory(u32* page_directory);
 extern void enablePaging();
@@ -308,6 +285,7 @@ extern void printHex_b(u8 num);
 extern void printAddr(void* ptr);
 extern void printBinary_b(u8 num);
 
+/// serial communication for output through QEMU/BOCHS serial terminal interface view
 extern void init_serial();
 extern int serial_received();
 extern char read_serial();
@@ -320,12 +298,11 @@ extern void serial_writeHex_w(u16 num);
 extern void serial_writeHex_b(u8 num);
 extern void serial_writeBinary_b(u8 num);
 
-// TODO: kwrite("",a,b,c); should write to all output "subscribers"
+/// formatted strings
 extern void kwrites(output_writer writer, c_str text);
-extern void kputs(const char* text);
-//extern void kprintf(c_str format, ...);
 extern void kwritef(output_writer writer, c_str format, ...);
 #define kprintf(fmt, ...) kwritef(kputch, fmt, ##__VA_ARGS__)
+#define kserialf(fmt, ...) kwritef(serial_write_b, fmt, ##__VA_ARGS__)
 
 ////////////////////////////////////////////////////////////////////////////
 // User Input Devices
@@ -625,3 +602,25 @@ extern i32 mouse_get_y();
 
 ////////////////////////////////////////////////////////////
 
+//------------------
+// Debugging
+
+// TODO: improve this imensly with real logging
+// TODO: move this into `make debug`
+#define _DEBUG_
+#ifdef _DEBUG_
+// NOTE: The token ` %| ` inside the trace format string is for hacky way of padding output to line up
+extern output_writer TRACE_WRITER;
+#define trace(fmt, ...) kwritef(TRACE_WRITER, "%s::%d: %|" fmt, __FILE__, __LINE__, 30, ##__VA_ARGS__)
+//#define trace(fmt, ...) kwritef(serial_write_b, "%s::%d::%s: " fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
+//#define trace(fmt, ...) kwritef(kputch, fmt, ##__VA_ARGS__)
+#else
+#define trace(fmt, ...) do {} while(0);
+#endif
+
+//#define _DEBUG_INFO_
+#ifdef _DEBUG_INFO_
+#define trace_info(fmt, ...) trace("[INFO]" fmt, ##__VA_ARGS__)
+#else
+#define trace_info(fmt, ...) do {} while(0);
+#endif
