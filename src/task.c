@@ -9,9 +9,14 @@
 //#include <stdint.h>
 #include <system.h>
 
-internal Task *runningTask;
+// TODO: alloc on heap instead (no variable)
 internal Task mainTask;
 internal Task otherTask;
+
+internal Task* runningTask;
+i32 getpid() { return runningTask->pid; }
+
+int processes_count = 0;
 
 //////////////////////////////////////////////////////////////////
 // Testing
@@ -23,20 +28,14 @@ static void otherMain()
     k_preempt();
 }
 
-
 void k_preempt()
 {
-    trace("k_preempt called [%d]\n", timer_ticks());
-    Task *last = runningTask;
+    trace("ticks: %d\n", timer_ticks());
+    Task* lastTask = runningTask;
     runningTask = runningTask->next;
-    switchTask(&last->regs, &runningTask->regs);
-}
-
-void k_doIt()
-{
-    trace("Switching to otherTask... \n");
-    k_preempt();
-    trace("Returned to mainTask!\n");
+    trace("mainTask = %p, otherTask = %p, runningTask = %p, lastTask = %p\n",
+          &mainTask, &otherTask, runningTask, lastTask);
+    switchTask(&lastTask->regs, &runningTask->regs);
 }
 
 //////////////////////////////////////////////////////////////////
@@ -58,6 +57,8 @@ void initTasking()
 
     trace("main.cr3 = %x\n", mainTask.regs.cr3);
     trace("main.eflags = %b\n", mainTask.regs.eflags);
+
+    processes_count = 1;
 
     createTask(&otherTask, otherMain, mainTask.regs.eflags, (u32*)mainTask.regs.cr3);
 
@@ -82,6 +83,18 @@ void createTask(Task* task, TaskHandler handler, u32 flags, u32* pagedir)
     task->regs.eflags = flags;
     task->regs.eip = (u32) handler;
     task->regs.cr3 = (u32) pagedir;
-    task->regs.esp = (u32) allocPage() + 0x1000; // Not implemented here
+
+    //task->regs.esp = (u32) allocPage() + 0x1000; // Not implemented here
+    // need to make sure we don't overlap with other processes or we'll destroy stacks
+    task->regs.esp = (u32) allocPage() + 0x1000 * processes_count;
+
     task->next = 0;
+    task->isActive = true;
+
+    ++processes_count;
+}
+
+void removeTask(Task* task)
+{
+    --processes_count;
 }

@@ -91,9 +91,9 @@ typedef __builtin_va_list va_list;
 // TODO: only need to make sure work on other compilers we want to use for building the kernel, user level can be built with other compilers
 
 // Volatile - don't move instructions (no optimization)
-#define asm          __asm__
-#define volatile     __volatile__
-#define PACKED  __attribute__((packed))
+#define asm             __asm__
+#define volatile    __volatile__
+#define PACKED      __attribute__((packed))
 
 #define sti()   asm volatile ("sti");
 #define cli()   asm volatile ("cli");
@@ -257,6 +257,132 @@ extern void free_b(u8* addr);
 extern void loadPageDirectory(u32* page_directory);
 extern void enablePaging();
 extern void init_page_directory();
+
+
+//////////////////////////////////////////////////////////////////
+// Multitasking (Tasks, TSS, etc)
+// Paging
+
+// TODO: can we use packed bitfield structs without issue?
+// - do we want to? if not create helper funcs for bit twiddle with DEFINES
+typedef struct PACKED
+{
+    u32 present:1;
+    u32 readwrite:1;
+    u32 accessRing3:1;
+    u32 writeThrough:1;
+    u32 cacheDisabled:1;
+    u32 accessed:1;
+    u32 _zero:1;
+    u32 pageSize:1;
+    u32 _ignored:1;
+    u32 _unused:3;
+    u32 address:20;
+} page_directory_entry;
+
+typedef struct PACKED
+{
+    u32 present:1;
+    u32 readwrite:1;
+    u32 accessRing3:1;
+    u32 writeThrough:1;
+    u32 cacheDisabled:1;
+    u32 accessed:1;
+    u32 dirty:1;
+    u32 isGlobal:1;
+    u32 _unused:3;
+    u32 frameAddress:20;
+} page_table_entry;
+
+typedef struct PACKED
+{
+    page_table_entry pages[1024];
+} page_table;
+
+typedef struct PACKED
+{
+    page_table* tables[1024];
+    u32 tablesPhysical[1024];
+    u32 physicalAddress;
+} page_directory;
+
+#define PAGE_DIR_PRESENT         	0x00000001 // 1 - in physical memory
+#define PAGE_DIR_READWRITE          0x00000002 // 1 - readwrite, 0 - readonly
+#define PAGE_DIR_ACCESS_RING3       0x00000004 // 1 - access by ALL, 0 - only supervisor
+#define PAGE_DIR_WRITE_THROUGH      0x00000008 // 1 - write-through, 0 - write-back
+#define PAGE_DIR_CACHE_DISABLED     0x00000010 // 1 - page will NOT be cached
+#define PAGE_DIR_ACCESSED_RECENTLY  0x00000020 // 1 - read/written recently, OS must clear
+#define PAGE_DIR_ZERO_unused        0x00000040 // for OS use
+#define PAGE_TABLE_DIRTY            0x00000040 // written to, OS must clear
+#define PAGE_DIR_PAGE_SIZE_4M       0x00000080 // 1 - 4MB pages, 0 - 4KB pages
+#define PAGE_TABLE_zero_unused      0x00000080 // for OS use
+#define PAGE_DIR_ignored            0x00000100 // ignored ...
+#define PAGE_TABLE_GLOBAL           0x00000100 // The Global, or 'G' above, flag, if set, prevents the TLB from updating the address in it's cache if CR3 is reset. Note, that the page global enable bit in CR4 must be set to enable this feature.
+#define PAGE_DIR_unused             0x00000200 // for OS use
+#define PAGE_DIR_unused1            0x00000400 // for OS use
+#define PAGE_DIR_unused2            0x00000800 // for OS use
+#define PAGE_DIR_ADDR_BASE          0x00001000 // Base bit of start of address bits
+#define PAGE_DIR_ADDR_MASK          0xfffff000 // mask of all bits in address
+
+
+#define KERNEL_STACK_SIZE 2048       // Use a 2kb kernel stack.
+
+typedef uintptr_t vaddr;
+typedef uintptr_t paddr;
+
+// TODO: check out isr_stack_state for task switching from IRQ
+typedef struct {
+    // general (0,4,8,12)
+    u32 eax, ebx, ecx, edx;
+    // special (eax + 16,20,24,28,32)
+    u32 esi, edi, esp, ebp, eip;
+    // code segment
+    //TODO: u32 cs;
+    // flags (eax + 36)
+    u32 eflags;
+    // page directory (eax + 40)
+    u32 cr3;
+} TaskRegisters;
+
+// NOTE: require struct w/ tag because typedef not defined yet
+typedef struct Task {
+    TaskRegisters regs;
+    i32 pid;
+    //u32 esp, ebp, eip;
+    page_directory* pageDirectory;
+    u32 kernel_stack;
+    b32 isActive;
+    struct Task* next;
+} Task;
+
+void switch_page_directory(page_directory* newDirectory);
+page_table_entry* get_page(u32 address, int make, page_directory* dir);
+void page_fault(TaskRegisters* regs);
+page_directory* clone_directory(page_directory* src);
+
+typedef void(*TaskHandler)();
+
+/// Initialize the multitasking system and structures
+extern void initTasking();
+/// Kernel interface to switching task
+extern void preemptCurrentTask();
+extern void createTask(Task*, TaskHandler, u32, u32*);
+/// Kernel impl for switching task
+extern void switchTask(TaskRegisters* prev, TaskRegisters* next);
+extern void switchTaskInterrupt(TaskRegisters* prev, TaskRegisters* next);
+
+extern void initialise_tasking();
+extern i32 fork();
+extern void move_stack(void* newStackStart, u32 stackSize);
+extern i32 getpid();
+extern void switch_task();
+extern void set_kernel_stack(uintptr_t stack);
+
+// testing
+extern void jump_usermode();
+extern void k_preempt();
+extern void k_preempt_kernel();
+extern void k_doIt();
 
 //////////////////////////////////////////////////////////////////
 // STDOUT and friends
@@ -624,3 +750,4 @@ extern output_writer TRACE_WRITER;
 #else
 #define trace_info(fmt, ...) do {} while(0);
 #endif
+

@@ -208,66 +208,8 @@ void kfree_b(u8* addr)
 //    // Now you can access all structures in virtual memory. Mapping the PDPT into the directory wastes quite much virtual memory as only 32 bytes are used, but if you allocate most/all PDPT's into one page then you can access ALL of them, which can be quite useful You can also statically allocate the PDPT at boot time, put the 4 page directory addresses in your process struct, and then just write the same PDPT address to CR3 on a context switch after you've patched the PDPT.
 //}
 
-
-
-
-//////////////////////////////////////////////////
-// Paging
-
-// TODO: can we use packed bitfield structs without issue?
-// - do we want to? if not create helper funcs for bit twiddle with DEFINES
-typedef struct PACKED
-{
-    u32 present:1;
-    u32 readwrite:1;
-    u32 access_supervisor:1;
-    u32 write_through:1;
-    u32 cache_disabled:1;
-    u32 accessed:1;
-    u32 _zero:1;
-    u32 page_size:1;
-    u32 _ignored:1;
-    u32 _unused:3;
-    u32 addr:20;
-} page_directory_entry;
-
-typedef struct PACKED
-{
-    u32 present:1;
-    u32 readwrite:1;
-    u32 access_supervisor:1;
-    u32 write_through:1;
-    u32 cache_disabled:1;
-    u32 accessed:1;
-    u32 dirty:1;
-    u32 isglobal:1;
-    u32 _unused:3;
-    u32 addr:20;
-} page_table_entry;
-
-#define PAGE_DIR_PRESENT         	0x00000001 // 1 - in physical memory
-#define PAGE_DIR_READWRITE          0x00000002 // 1 - readwrite, 0 - readonly
-#define PAGE_DIR_USER_ALL           0x00000004 // 1 - access by ALL, 0 - only supervisor
-#define PAGE_DIR_WRITE_THROUGH      0x00000008 // 1 - write-through, 0 - write-back
-#define PAGE_DIR_CACHE_DISABLED     0x00000010 // 1 - page will NOT be cached
-#define PAGE_DIR_ACCESSED_RECENTLY  0x00000020 // 1 - read/written recently, OS must clear
-#define PAGE_DIR_ZERO_unused        0x00000040 // for OS use
-#define PAGE_TABLE_DIRTY            0x00000040 // written to, OS must clear
-#define PAGE_DIR_PAGE_SIZE_4M       0x00000080 // 1 - 4MB pages, 0 - 4KB pages
-#define PAGE_TABLE_zero_unused      0x00000080 // for OS use
-#define PAGE_DIR_ignored            0x00000100 // ignored ...
-#define PAGE_TABLE_GLOBAL           0x00000100 // The Global, or 'G' above, flag, if set, prevents the TLB from updating the address in it's cache if CR3 is reset. Note, that the page global enable bit in CR4 must be set to enable this feature.
-#define PAGE_DIR_unused             0x00000200 // for OS use
-#define PAGE_DIR_unused1            0x00000400 // for OS use
-#define PAGE_DIR_unused2            0x00000800 // for OS use
-#define PAGE_DIR_ADDR_BASE          0x00001000 // Base bit of start of address bits
-#define PAGE_DIR_ADDR_MASK          0xfffff000 // mask of all bits in address
-
-typedef uintptr_t vaddr;
-typedef uintptr_t paddr;
-
-u32 page_directory[1024] __attribute__((aligned(4096)));
-u32 first_page_table[1024] __attribute__((aligned(4096)));
+u32 pageDirectory[1024] __attribute__((aligned(4096)));
+u32 firstPageTable[1024] __attribute__((aligned(4096)));
 // TODO: if you want more than 4K dir * 4K pages need to add another level
 
 
@@ -318,7 +260,7 @@ void init_page_directory()
         // bit 0 = 0 - not present
         // bit 1 = 1 - writable
         // bit 2 = 0 - supervisor only
-        page_directory[i] = PAGE_DIR_READWRITE;
+        pageDirectory[i] = PAGE_DIR_READWRITE;
     }
 
     //we will fill all 1024 entries in the table, mapping 4 megabytes
@@ -326,19 +268,19 @@ void init_page_directory()
     {
         // As the address is page aligned, it will always leave 12 bits zeroed.
         // attributes: supervisor level (0), read/write (1), present (1)
-        first_page_table[i] = (i * PAGE_DIR_ADDR_BASE) | PAGE_DIR_READWRITE | PAGE_DIR_PRESENT;
+        firstPageTable[i] = (i * PAGE_DIR_ADDR_BASE) | PAGE_DIR_READWRITE | PAGE_DIR_PRESENT;
     }
 
     // attributes: supervisor level (0), read/write (1), present (1)
     //page_directory[0] = ((unsigned int)first_page_table) | 3;
-    page_directory[0] = (u32)first_page_table | PAGE_DIR_READWRITE | PAGE_DIR_PRESENT;
+    pageDirectory[0] = (u32)firstPageTable | PAGE_DIR_READWRITE | PAGE_DIR_PRESENT;
 
     trace("loading in page directory\n");
 
     // must have page fault handler installed before enabling paging otherwise GPF calling `trace()` or other
     const int ISR_PAGE_FAULT = 0x0e;
     isr_install_handler(ISR_PAGE_FAULT, page_fault_handler, "page fault");
-    loadPageDirectory(page_directory);
+    loadPageDirectory(pageDirectory);
     enablePaging();
 
     trace("paging enabled\n");
@@ -365,16 +307,18 @@ void* get_physaddr(void* virtualaddr)
 
     //u32 * pd = (u32*)0xFFFFF000;
 
-    u32 pd = page_directory[pdindex];
+    u32 pd = pageDirectory[pdindex];
+    UNUSED_VAR(pd);
 
     // Here you need to check whether the PD entry is present.
     // TODO: if(BIT(pd, PAGE_DIR_PRESENT))
 
     u32 pt = 0xFFC00000 + (0x400 * pdindex);
+    UNUSED_VAR(pt);
 
     // Here you need to check whether the PT entry is present.
 
-    u32 base = first_page_table[ptindex] & ~0xFFF;
+    u32 base = firstPageTable[ptindex] & ~0xFFF;
     u32 offset = (u32)virtualaddr & 0xFFF;
     return (void *)(base + offset);
 }

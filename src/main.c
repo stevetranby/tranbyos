@@ -839,9 +839,9 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 
     // TODO: fix this
     initTasking();
-    trace("[main] before k_doIt\n");
-    k_doIt();
-    trace("[main] back after k_doIt\n");
+    trace("[main] before preempt\n");
+    k_preempt();
+    trace("[main] back after preempt\n");
     wait_any_key();
 
     //--------------------------------------------
@@ -860,7 +860,7 @@ u32 kmain(multiboot_info* mbh, u32 magic, u32 initial_stack)
 //    success = init_graph_vga(320,240,0);
 //    if(success) 
 //    {
-//        serial_write("["__DATE__" "__TIME__"] Video Mode Success!\r\n");
+//        trace("["__DATE__" "__TIME__"] Video Mode Success!\r\n");
 //        vga_tests();
 //    }
 
